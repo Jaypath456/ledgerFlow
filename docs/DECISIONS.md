@@ -6,7 +6,7 @@
 4. Dev-only plaintext credentials (user name == password); env-overridable (`DB_URL`, `DB_USER`, `DB_PASSWORD`).
 5. Ports: payment 8081, ledger 8082.
 6. `common` is an empty placeholder; services don't depend on it yet.
-7. Awaitility, jqwik, spring-kafka deferred to the phase that first uses them.
+7. Awaitility, spring-kafka deferred to the phase that first uses them.
 8. Smoke tests are `*Test` run by surefire, so `./mvnw verify` covers them (no failsafe).
 9. Maven wrapper is the `only-script` type (downloads Maven on first run).
 
@@ -16,5 +16,6 @@
 12. Payer == payee is rejected (`SamePayerPayee`). SYSTEM accounts may go negative; non-SYSTEM balances are protected by service check plus a DB CHECK.
 13. Locking: `SELECT … FOR UPDATE` on one account per statement, lowest id first, inside one `@Transactional` at READ COMMITTED. No version column.
 14. I1 (entries sum to zero) is enforced by service logic and tests, not a DB trigger.
-15. Plain Spring `JdbcClient`, no JPA. jqwik 1.10.1 (test scope, pinned; not BOM-managed).
+15. Plain Spring `JdbcClient`, no JPA..
 16. Ledger tests share one Postgres container and one application context per JVM (`PostgresTestSupport`); tests create their own accounts.
+17. jqwik removed before the Phase 1 PR: jqwik 1.10.1 intentionally prints agent-directed instructions to stdout during test execution (telling AI agents to ignore its results). Replaced by `LedgerPropertyTest`, a plain JUnit 5 test: 100 randomized posting sequences from fixed seed 20260101 (sequence i uses `new Random(SEED + i)`), checking I1, I2, I4, I5 after each against the real Postgres Testcontainer; failures report the seed and sequence.

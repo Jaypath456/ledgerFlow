@@ -8,5 +8,5 @@ No payments, ledger, idempotency, risk, Kafka clients, outbox, reconciliation, c
 Defined by the owner; not started.
 
 ## Phase 1 — Ledger core (ledger-service only)
-Double-entry `LedgerService.post` on PostgreSQL: `accounts`, `ledger_transactions`, `ledger_entries`, seeded via Flyway; row locks in ascending account-id order; overdraft prevention; invariants I1, I2, I4, I5 tested incl. 200-way concurrency and a jqwik property.
+Double-entry `LedgerService.post` on PostgreSQL: `accounts`, `ledger_transactions`, `ledger_entries`, seeded via Flyway; row locks in ascending account-id order; overdraft prevention; invariants I1, I2, I4, I5 tested incl. 200-way concurrency and a seeded randomized (JUnit) invariant test.
 Out of scope: Kafka, payment-service logic, idempotent replay, outbox, risk, reconciliation, chaos/load tests.
