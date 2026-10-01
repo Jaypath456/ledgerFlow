@@ -9,3 +9,12 @@
 7. Awaitility, jqwik, spring-kafka deferred to the phase that first uses them.
 8. Smoke tests are `*Test` run by surefire, so `./mvnw verify` covers them (no failsafe).
 9. Maven wrapper is the `only-script` type (downloads Maven on first run).
+
+## Phase 1
+10. `payment_id` is UUID with a UNIQUE constraint (I2 backstop).
+11. Duplicate paymentId throws `DuplicatePayment`; no replay of the original result (idempotency is a later phase). The duplicate check runs before the funds check.
+12. Payer == payee is rejected (`SamePayerPayee`). SYSTEM accounts may go negative; non-SYSTEM balances are protected by service check plus a DB CHECK.
+13. Locking: `SELECT … FOR UPDATE` on one account per statement, lowest id first, inside one `@Transactional` at READ COMMITTED. No version column.
+14. I1 (entries sum to zero) is enforced by service logic and tests, not a DB trigger.
+15. Plain Spring `JdbcClient`, no JPA. jqwik 1.10.1 (test scope, pinned; not BOM-managed).
+16. Ledger tests share one Postgres container and one application context per JVM (`PostgresTestSupport`); tests create their own accounts.
