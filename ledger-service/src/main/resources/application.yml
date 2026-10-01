@@ -1,0 +1,17 @@
+server:
+  port: ${SERVER_PORT:8082}
+spring:
+  application:
+    name: ledger-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ledgerflow}
+    username: ${DB_USER:ledger_user}
+    password: ${DB_PASSWORD:ledger_user}
+  flyway:
+    schemas: ledger
+    default-schema: ledger
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
