@@ -20,6 +20,9 @@ final class LedgerInvariants {
                 GROUP BY t.id HAVING COALESCE(SUM(e.amount_minor), 0) <> 0""")
                 .query(Long.class).list();
         assertThat(unbalanced).as("I1 unbalanced transactions").isEmpty();
+        long ledgerSum = jdbc.sql("SELECT COALESCE(SUM(amount_minor), 0) FROM ledger_entries")
+                .query(Long.class).single();
+        assertThat(ledgerSum).as("I1 global ledger sum").isZero();
 
         // I2: a payment is posted at most once
         List<UUID> duplicated = jdbc.sql("""

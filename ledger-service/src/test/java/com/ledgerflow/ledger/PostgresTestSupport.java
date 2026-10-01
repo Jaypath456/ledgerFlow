@@ -10,7 +10,7 @@ import org.testcontainers.utility.MountableFile;
 
 /**
  * One real Postgres 17 and one real application context shared by all ledger tests in the JVM
- * (JUnit and jqwik alike). Tests create their own accounts, so they don't interfere.
+ *. Tests create their own accounts, so they don't interfere.
  */
 final class PostgresTestSupport {
 

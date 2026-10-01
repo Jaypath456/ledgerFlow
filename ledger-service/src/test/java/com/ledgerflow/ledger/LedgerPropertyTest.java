@@ -3,39 +3,40 @@ package com.ledgerflow.ledger;
 import static com.ledgerflow.ledger.PostgresTestSupport.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.List;
+import java.util.Random;
 import java.util.UUID;
-import net.jqwik.api.Arbitraries;
-import net.jqwik.api.Arbitrary;
-import net.jqwik.api.ForAll;
-import net.jqwik.api.Property;
-import net.jqwik.api.Provide;
+import org.junit.jupiter.api.Test;
 
+/** Randomized posting sequences with a fixed seed; sequence i uses {@code new Random(SEED + i)} so it can be replayed alone. */
 class LedgerPropertyTest {
 
+    static final long SEED = 20260101L;
+    private static final int SEQUENCES = 100;
     private static final int ACCOUNTS = 4;
     private static final long FUNDING = 1_000;
 
-    record Op(int payer, int payee, long amount) {}
-
-    @Provide
-    Arbitrary<List<Op>> ops() {
-        Arbitrary<Op> op = Arbitraries.integers().between(0, ACCOUNTS - 1).flatMap(payer ->
-                Arbitraries.integers().between(0, ACCOUNTS - 1).flatMap(payee ->
-                        Arbitraries.longs().between(1, 1_500).map(amount -> new Op(payer, payee, amount))));
-        return op.list().ofMinSize(1).ofMaxSize(30);
+    @Test
+    void randomPostingsPreserveInvariants() {
+        for (int seq = 0; seq < SEQUENCES; seq++) {
+            try {
+                runSequence(new Random(SEED + seq));
+            } catch (AssertionError | RuntimeException e) {
+                throw new AssertionError("seed=" + SEED + " sequence=" + seq + " (replay with new Random(" + (SEED + seq) + ")): " + e.getMessage(), e);
+            }
+        }
     }
 
-    @Property(tries = 100)
-    void randomPostingsPreserveInvariants(@ForAll("ops") List<Op> ops) {
+    private void runSequence(Random rnd) {
         long[] ids = new long[ACCOUNTS];
         for (int i = 0; i < ACCOUNTS; i++) {
             ids[i] = fundedCustomer(FUNDING);
         }
 
-        for (Op op : ops) {
+        int ops = 1 + rnd.nextInt(30);
+        for (int i = 0; i < ops; i++) {
+            long amount = 1 + rnd.nextInt(1_500);
             try {
-                ledger().post(UUID.randomUUID(), ids[op.payer()], ids[op.payee()], op.amount());
+                ledger().post(UUID.randomUUID(), ids[rnd.nextInt(ACCOUNTS)], ids[rnd.nextInt(ACCOUNTS)], amount);
             } catch (LedgerException expected) {
                 // overdrafts and self-payments are rejected; the ledger must stay consistent anyway
             }
