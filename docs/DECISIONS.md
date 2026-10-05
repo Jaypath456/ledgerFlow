@@ -59,3 +59,15 @@
     - I5: cached balance = sum of entries.
     - I6: exactly one key per payment; each key's request hash (recomputed with `sha256` in SQL), stored response id and status code (201 declined / 202 accepted) match its payment.
     Funding/seed postings (payment ids not in `payments`) are exempt from the I2/I3 cross-checks by construction. Health remains Spring Boot Actuator `/actuator/health`; no custom heartbeat.
+
+## Phase 5
+41. Images: one multi-stage `Dockerfile` with targets `payment-service` / `ledger-service`. The build stage is `maven:3.9.11-eclipse-temurin-25`, because the Temurin images have no curl/wget for the Maven wrapper; the runtime is `eclipse-temurin:25-jre`. Healthchecks call `/actuator/health` over bash `/dev/tcp` (no curl in the JRE image).
+42. Memory sizing for a 7.6 GiB laptop: services `-Xmx384m`, Kafka `-Xms256m -Xmx512m`, Postgres `shm_size: 256mb`. The last is needed: with Docker's 64 MB `/dev/shm`, parallel queries in the invariant checker failed.
+43. Outbox poll interval 50 ms → 10 ms (`ledgerflow.outbox.poll-ms`; Compose `OUTBOX_POLL_MS`). Measured back to back at 200/s: request-to-terminal p50 84 → 36 ms, p95 121 → 51 ms. Idle cost is about 100 small indexed queries/s per service. This is the only latency change made.
+44. Not changed, by evidence: Kafka heartbeat/session/rebalance settings, partition count (3, per the brief) and listener concurrency. The measured throughput bottleneck is the ledger consumer (3 partitions × 1 thread, one DB transaction per event); see RESULTS.
+45. Chaos runs use their own Compose project (`ledgerflow-chaos`, own volume) and accumulate state across runs. The invariant checker therefore covers all history, not just one run. The velocity rule is disabled there via `RISK_VELOCITY_MAX` (DECISIONS 21).
+46. Chaos run definitions:
+    - **Recovery time:** seconds from the end of the fault action (restart issued, unpause, Kafka restarted, replay started, hot burst sent, or chaos profile switched off) until a *new* probe payment reaches COMPLETED end to end.
+    - **Settle:** no PENDING_LEDGER and no unpublished outbox rows.
+    - **Failed run:** any violation, a checker error, a settle timeout (300 s) or a failed scenario check (hot account: exactly 50 of 200 completed and balance 0; replay: ≥ 1000 duplicates absorbed by each consumer).
+47. The fault-point crash runs use probability 0.0005 per hit with `action=halt` (≈ 1–3 real JVM halts per 60 s at 100/s); Compose restarts the container.

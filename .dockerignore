@@ -1,0 +1,7 @@
+**/target
+.git
+.github
+.claude
+chaos
+docs
+infra

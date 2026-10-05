@@ -2,6 +2,7 @@ name: ledgerflow
 services:
   postgres:
     image: postgres:17
+    shm_size: 256mb # parallel queries (invariant checker) need more than Docker's 64 MB default
     environment:
       POSTGRES_DB: ledgerflow
       POSTGRES_USER: postgres
@@ -32,11 +33,54 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_HEAP_OPTS: -Xms256m -Xmx512m
     healthcheck:
       test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
       interval: 10s
       timeout: 10s
       retries: 10
+
+  payment-service:
+    build: { context: .., target: payment-service }
+    ports: ["8081:8081"]
+    environment: &app-env
+      DB_URL: jdbc:postgresql://postgres:5432/ledgerflow
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JAVA_TOOL_OPTIONS: -Xmx384m
+      RISK_VELOCITY_MAX: ${RISK_VELOCITY_MAX:-5}
+      LEDGERFLOW_OUTBOX_POLL_MS: ${OUTBOX_POLL_MS:-10}
+      # Fault injection: only with SPRING_PROFILES_ACTIVE=chaos (see docs/DECISIONS.md).
+      SPRING_PROFILES_ACTIVE: ${PAYMENT_PROFILES:-default}
+      LEDGERFLOW_CHAOS_FAULTS: ${PAYMENT_CHAOS_FAULTS:-}
+      LEDGERFLOW_CHAOS_PROBABILITY: ${PAYMENT_CHAOS_PROBABILITY:-0}
+    depends_on: &app-deps
+      postgres: { condition: service_healthy }
+      kafka: { condition: service_healthy }
+    restart: unless-stopped
+    healthcheck:
+      # The JRE image has no curl/wget; plain HTTP over bash /dev/tcp.
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8081 && printf 'GET /actuator/health HTTP/1.0\r\n\r\n' >&3 && grep -q '\"status\":\"UP\"' <&3"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 120s
+
+  ledger-service:
+    build: { context: .., target: ledger-service }
+    ports: ["8082:8082"]
+    environment:
+      <<: *app-env
+      SPRING_PROFILES_ACTIVE: ${LEDGER_PROFILES:-default}
+      LEDGERFLOW_CHAOS_FAULTS: ${LEDGER_CHAOS_FAULTS:-}
+      LEDGERFLOW_CHAOS_PROBABILITY: ${LEDGER_CHAOS_PROBABILITY:-0}
+    depends_on: *app-deps
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8082 && printf 'GET /actuator/health HTTP/1.0\r\n\r\n' >&3 && grep -q '\"status\":\"UP\"' <&3"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 120s
 
 volumes:
   pgdata:

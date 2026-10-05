@@ -44,7 +44,7 @@ public class OutboxRelay {
                 .update();
     }
 
-    @Scheduled(fixedDelayString = "${ledgerflow.outbox.poll-ms:50}")
+    @Scheduled(fixedDelayString = "${ledgerflow.outbox.poll-ms:10}")
     public void drain() {
         try {
             while (publishBatch() == BATCH) {

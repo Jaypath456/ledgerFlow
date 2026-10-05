@@ -22,3 +22,6 @@ Out of scope: reconciliation, fault injection, invariant SQL, chaos/load, servic
 ## Phase 4 — Recovery, reconciliation, fault injection
 Reconciler for PENDING_LEDGER payments older than 30 s; fault injection points under the `chaos` profile; `chaos/verify_invariants.sql` (I1–I6) proven against healthy data and controlled corruption.
 Out of scope: chaos runner, load tests, service containers.
+
+## Phase 5 — Chaos, load, performance
+Service images (`Dockerfile`) and Compose services; `chaos/bench.sh` (k6 load + drain + invariants), `chaos/run_chaos.sh` (9 fault scenarios under load, invariant gate per run), `chaos/create_accounts.sql` seeding. Measured first; one evidence-backed optimization (outbox poll interval).
