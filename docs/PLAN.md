@@ -14,3 +14,7 @@ Out of scope: Kafka, payment-service logic, idempotent replay, outbox, risk, rec
 ## Phase 2 — Payment API, idempotency, outbox (payment-service only)
 `POST /api/payments` (Idempotency-Key required) and `GET /api/payments/{id}`; tables `payments`, `idempotency_keys`, `outbox`, `processed_events`; risk rules (amount limit, velocity, blocked accounts); accepted payment + key + PaymentRequested outbox row in one transaction, declined payments get no outbox row.
 Out of scope: Kafka clients, outbox relay, consumers, reconciliation, chaos/load.
+
+## Phase 3 — Kafka, outbox relay, idempotent consumers
+Shared versioned events (`PaymentRequested`, `LedgerPosted`, `LedgerRejected`) in `common`; topics `payments.requested` (key payer) and `ledger.results` (key paymentId), 3 partitions, DLT after 3 attempts; outbox relays in both services; ledger consumer (dedupe + posting + outcome + result outbox in one transaction); payment result consumer; `e2e-tests` module running both services.
+Out of scope: reconciliation, fault injection, invariant SQL, chaos/load, service containers.

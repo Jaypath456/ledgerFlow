@@ -56,12 +56,11 @@ class PaymentApiTest extends PaymentTestSupport {
         assertThat(r.raw().headers().firstValue("Idempotent-Replayed")).hasValue("false");
         UUID id = UUID.fromString(r.body().get("id").asString());
 
-        var outbox = jdbc.sql("SELECT topic, event_key, payload::text AS payload, published_at FROM outbox WHERE aggregate_id = ?")
+        var outbox = jdbc.sql("SELECT topic, event_key, payload::text AS payload FROM outbox WHERE aggregate_id = ?")
                 .param(id).query().listOfRows();
         assertThat(outbox).hasSize(1);
         assertThat(outbox.getFirst().get("topic")).isEqualTo("payments.requested");
         assertThat(outbox.getFirst().get("event_key")).isEqualTo(String.valueOf(payer));
-        assertThat(outbox.getFirst().get("published_at")).isNull();
         JsonNode event = json.readTree((String) outbox.getFirst().get("payload"));
         assertThat(event.get("eventType").asString()).isEqualTo("PaymentRequested");
         assertThat(event.get("version").asInt()).isEqualTo(1);

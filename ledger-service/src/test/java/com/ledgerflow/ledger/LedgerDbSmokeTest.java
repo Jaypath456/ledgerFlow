@@ -10,7 +10,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
-@SpringBootTest
+@SpringBootTest(properties = LedgerServiceApplication.CONFIG_NAME)
 class LedgerDbSmokeTest {
 
     @DynamicPropertySource
@@ -18,6 +18,7 @@ class LedgerDbSmokeTest {
         r.add("spring.datasource.url", PostgresTestSupport.POSTGRES::getJdbcUrl);
         r.add("spring.datasource.username", () -> "ledger_user");
         r.add("spring.datasource.password", () -> "ledger_user");
+        r.add("spring.kafka.bootstrap-servers", PostgresTestSupport.KAFKA::getBootstrapServers);
     }
 
     @Autowired
@@ -27,7 +28,7 @@ class LedgerDbSmokeTest {
     void flywayRanInOwnSchema() {
         Integer applied = jdbc.queryForObject(
                 "select count(*) from ledger.flyway_schema_history where success", Integer.class);
-        assertThat(applied).isEqualTo(3);
+        assertThat(applied).isEqualTo(4);
     }
 
     @Test

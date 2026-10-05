@@ -1,5 +1,6 @@
 package com.ledgerflow.payment;
 
+import com.ledgerflow.common.OutboxRelay;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
@@ -57,9 +58,7 @@ class PaymentRepository {
     }
 
     void insertOutbox(UUID aggregateId, String topic, String eventKey, String payloadJson) {
-        jdbc.sql("INSERT INTO outbox (aggregate_id, topic, event_key, payload) VALUES (?, ?, ?, CAST(? AS jsonb))")
-                .params(aggregateId, topic, eventKey, payloadJson)
-                .update();
+        OutboxRelay.enqueue(jdbc, aggregateId, topic, eventKey, payloadJson);
     }
 
     private static Payment payment(ResultSet rs, int n) throws SQLException {
