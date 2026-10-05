@@ -25,4 +25,6 @@ delete_ledger_pod() {
   row "Replacement READY after" "$(elapsed_since "$t") s"
 }
 
+# The probe timer starts once delete_ledger_pod returns, i.e. after the replacement is already Ready.
+RECOVERY_LABEL="Post-ready convergence"
 infra_demo "Kubernetes pod recovery (ledger-service)" "kubectl delete pod <ledger-service pod>" delete_ledger_pod

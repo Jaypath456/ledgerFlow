@@ -224,7 +224,7 @@ Cluster state before the restarts: node Ready, DiskPressure False, all four work
 |---|---|
 | payment-service | Replacement created 0.9 s after delete; Ready at 11.4 s; `/actuator/health` UP at 12.0 s; dashboard HTTP 200. No payment traffic during this step. |
 | ledger-service (modest workload) | 30 payments of $5 submitted, the pod deleted after payment 15. Replacement Ready within 10.9 s (measured when the workload script reached its wait, so this is an upper bound). Result: 30 submitted, 20 COMPLETED, 10 FAILED (insufficient funds), 0 pending, 0 duplicate postings (max 1 posting per payment), 0 invariant violations, payer $100 → $0, payee $0 → $100. |
-| ledger-service (`./k8s/demo-restart.sh`, run unchanged) | Replacement created 0.9 s after delete; replacement Ready 13.4 s after delete. 250 of 250 payments accepted, 0 client retries, 250 COMPLETED, 0 duplicate postings, payer $750.00 (expected $750.00), full invariant check 0 violations, verdict **PASS**. The script's "Recovered after 0.2 s" is measured from after the replacement was Ready, so the deletion-to-probe time is 13.4 s + 0.2 s. |
+| ledger-service (`./k8s/demo-restart.sh`, run unchanged) | Replacement created 0.9 s after delete; replacement Ready 13.4 s after delete. 250 of 250 payments accepted, 0 client retries, 250 COMPLETED, 0 duplicate postings, payer $750.00 (expected $750.00), full invariant check 0 violations, verdict **PASS**. The script's "Recovered after 0.2 s" line (since relabelled "Post-ready convergence") is measured from after the replacement was Ready, so the deletion-to-probe time is 13.4 s + 0.2 s. |
 
 **PostgreSQL pod restart** (only the pod deleted; the StatefulSet and PVC `pvc-75b45479…` kept):
 - The PostgreSQL log shows shutdown at 19:50:28 UTC and "ready to accept connections" at 19:50:31 UTC, about 3 s. A `kubectl wait` on the pod returned at once because the old pod was still terminating, so it was not used for this figure.
@@ -252,7 +252,7 @@ Cluster state before the restarts: node Ready, DiskPressure False, all four work
 - `bash -n k8s/*.sh`: passes (5 scripts).
 - `./k8s/status.sh`: payment and ledger UP; all workloads and PVCs listed.
 - `./k8s/logs.sh payment|ledger|kafka|postgres`: each prints recent logs. No log-follow process was left running.
-- `./k8s/start.sh`: **not re-run** against the healthy cluster. Read the script: an existing cluster is started, not recreated; images are rebuilt and imported; manifests are applied. A from-scratch creation was not tested in this phase.
+- `./k8s/start.sh`: not re-run against the healthy cluster in this pass. Read the script: an existing cluster is started, not recreated; images are rebuilt and imported; manifests are applied. The from-scratch creation was verified afterwards (next section).
 
 **Maven** (`./mvnw clean verify`, JDK 25.0.4.1): **BUILD SUCCESS**, exit 0, **94 tests, 0 failures**. payment-service 33, ledger-service 33, e2e-tests 28 (the same 94 as Phase 7).
 
@@ -261,3 +261,15 @@ Cluster state before the restarts: node Ready, DiskPressure False, all four work
 - `demo/happy_path.sh`: **PASS**. $25 payment, HTTP 202, COMPLETED, payer $100 → $75, payee $0 → $25, exactly one posting, 0 invariant violations.
 - `./stop.sh`: stopped, data kept.
 - `k3d cluster start ledgerflow`: cluster Ready, DiskPressure False, all workloads 1/1, both PVCs Bound, health UP, dashboard HTTP 200. Data from before the Compose run was still there.
+
+### From-scratch cluster creation (2026-10-05, after the runs above)
+One observed run from the committed repository state. The verified cluster was deleted with `./k8s/stop.sh` (cluster and both PVCs gone; no Compose or other Docker volumes touched), then recreated with `./k8s/start.sh`.
+
+- `./k8s/start.sh`: exit 0, **ready in 142 s**. Cluster created by 11 s; application images came from the Docker build cache (1 s); importing the four images into the cluster took about 100 s; PostgreSQL, Kafka and both services were ready 30 s after the manifests were applied.
+- Node Ready, DiskPressure False, no taints. The kubelet's effective config (node `configz`) shows `evictionHard` 1Gi, `evictionMinimumReclaim` 256Mi and image GC 100/99, from the `start.sh` flags alone. No drop-in file exists on this node.
+- All four workloads 1/1; two new PVCs Bound; the database started empty (0 payments).
+- Payment and ledger `/actuator/health`, `/liveness` and `/readiness`: HTTP 200, UP. Dashboard HTTP 200.
+- `demo/happy_path.sh`: **PASS**. $25 payment, HTTP 202, COMPLETED, payer $100 → $75, payee $0 → $25, exactly one posting.
+- `./k8s/demo-restart.sh`: **PASS**. Replacement created 0.7 s after delete, Ready 8.9 s after delete, post-ready convergence 0.2 s. 250 of 250 accepted, 0 client retries, 250 COMPLETED, 0 duplicate postings, payer $750.00 (expected $750.00).
+- Invariants: `chaos/verify_invariants.sql` 0 violations, service checks 0 violations, global ledger entry sum 0, 0 pending payments (252 payments in total).
+- `./mvnw clean verify` (JDK 25.0.4.1): **BUILD SUCCESS**, exit 0, **94 tests, 0 failures** (payment-service 33, ledger-service 33, e2e-tests 28).

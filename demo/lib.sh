@@ -135,7 +135,7 @@ infra_demo() {
   "$fault_fn"
   t=$(date +%s.%N)
   recovery=$(probe_recovery "$t") || recovery=TIMEOUT
-  row "Recovered after" "${recovery} s (a new payment completed end to end)"
+  row "${RECOVERY_LABEL:-Recovered after}" "${recovery} s (a new payment completed end to end)"
   wait "$traffic"
   # A real client retries a failed attempt with the SAME key: that is what idempotency is for.
   local retried=0
