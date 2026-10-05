@@ -114,3 +114,27 @@ Every fault-free bench run finished with 0 failed requests and 0 invariant viola
 Earlier attempts, kept for the record:
 - Trial (9 runs, 30 s load): 9/9 passed, 0 violations.
 - First 27-run campaign: stopped at run 8. The laptop lid was closed and the host suspended at 21:28:07 for ~61 min (systemd-logind: "Lid closed. Suspending…"). All containers froze, and the run's settle timer expired during the suspend. The checker then ran within 4 s of resume and reported one I3 (a payment still in flight). That payment completed 4 s after resume, posted exactly once, and the checker was clean afterwards. Run 6 of that campaign was invalid (script bug: reused hot account and keys from the trial); fixed before campaign 2.
+
+## Phase 6 (local package) and final acceptance
+- `docker compose -f infra/docker-compose.yml up --build` (default project, existing dev volume migrated additively to payments v2 / ledger v4): all 4 containers healthy in 42 s; both `/actuator/health` → `{"status":"UP"}`.
+- On that stack, with default settings: funded payment → 202 → COMPLETED; payment above balance → 202 → FAILED (`INSUFFICIENT_FUNDS`), balance unchanged; over $10,000 → 201 DECLINED (`AMOUNT_LIMIT`); same-key replay → identical 202 body; same key, different body → 422; invariant checker → 0 violations.
+- `./mvnw clean verify`: pass, 57 tests (payment-service 23, ledger-service 20, e2e-tests 14).
+- CI: not run for branch `ledgerflow-completion` (not pushed).
+
+| # | Acceptance item | Evidence |
+|---|---|---|
+| 1 | `./mvnw verify` passes | 57 tests green (Phase 6 above) |
+| 2 | Full Compose stack starts | Phase 6 above |
+| 3 | Both health endpoints UP | Phase 6 above |
+| 4 | Funded payment → COMPLETED | e2e `PaymentFlowTest`; Compose smoke |
+| 5 | Insufficient funds → FAILED | e2e `PaymentFlowTest`; Compose smoke |
+| 6 | API retries cannot duplicate a payment | 32-way same-key storm, replay tests; 43,253 same-key retries under chaos, I6/I2 clean |
+| 7 | Kafka duplicates cannot duplicate postings | `LedgerKafkaTest` (3× delivery, 16 concurrent events); 18,000 replayed events absorbed; I2 clean |
+| 8 | Concurrent spending cannot overdraft | Phase 1 200-way test; hot account 50/200 completed, balance 0 (×3 under chaos); I4 clean |
+| 9 | Stale PENDING_LEDGER recovers | e2e `RecoveryTest` (posted / rejected / never reached ledger) |
+| 10 | Poison message → DLT without blocking | `LedgerKafkaTest`, `PaymentKafkaTest` poison tests |
+| 11 | I1–I6 automated | `chaos/verify_invariants.sql`; `InvariantCheckerTest` (healthy + 14 corruptions); per chaos run |
+| 12 | 20+ chaos runs, no unexplained violations | 27/27 passed, 0 violations; earlier interrupted campaign explained (host suspend) |
+| 13 | Performance/recovery recorded | Phase 5 above |
+| 14 | No Redis/cloud/Kubernetes/unsupported scope | two services, local Compose only; dependencies: Spring Boot starters (webmvc, actuator, jdbc, flyway, kafka), Postgres driver, Testcontainers, Awaitility |
+| 15 | README metrics ⊆ RESULTS | README numbers copied from this file |

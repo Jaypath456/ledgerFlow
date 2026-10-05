@@ -5,8 +5,8 @@
 3. One Postgres 17 DB `ledgerflow`; schemas/roles created by `infra/postgres/init/01-roles-schemas.sql`, reused by Testcontainers tests (single source of truth).
 4. Dev-only plaintext credentials (user name == password); env-overridable (`DB_URL`, `DB_USER`, `DB_PASSWORD`).
 5. Ports: payment 8081, ledger 8082.
-6. `common` is an empty placeholder; services don't depend on it yet.
-7. Awaitility, spring-kafka deferred to the phase that first uses them.
+6. `common` was an empty placeholder in Phase 0; from Phase 2 it holds the shared events, `MessagingConfig`, `OutboxRelay` and `FaultInjector`.
+7. Awaitility, spring-kafka deferred to the phase that first uses them (Phase 3).
 8. Smoke tests are `*Test` run by surefire, so `./mvnw verify` covers them (no failsafe).
 9. Maven wrapper is the `only-script` type (downloads Maven on first run).
 
@@ -71,3 +71,8 @@
     - **Settle:** no PENDING_LEDGER and no unpublished outbox rows.
     - **Failed run:** any violation, a checker error, a settle timeout (300 s) or a failed scenario check (hot account: exactly 50 of 200 completed and balance 0; replay: ≥ 1000 duplicates absorbed by each consumer).
 47. The fault-point crash runs use probability 0.0005 per hit with `action=halt` (≈ 1–3 real JVM halts per 60 s at 100/s); Compose restarts the container.
+
+## Phase 6
+48. The Compose file is the single local package: Postgres, Kafka and both services built from the repo `Dockerfile`, `restart: unless-stopped`, healthchecks on `/actuator/health`. Defaults are production-like (velocity limit 5/60 s, no chaos profile); load and chaos scripts override them via environment variables.
+49. CI unchanged: GitHub Actions runs `./mvnw -B verify` (now including `e2e-tests`). Images are not built or published in CI.
+50. The README quotes only numbers recorded in RESULTS.md.
