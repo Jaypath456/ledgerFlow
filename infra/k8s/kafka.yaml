@@ -1,0 +1,65 @@
+# Single Kafka 4.0 broker in KRaft mode (broker + controller in one process), PVC-backed.
+# Settings follow infra/docker-compose.yml. No ZooKeeper, no operator, no replication.
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  namespace: ledgerflow
+spec:
+  selector: { app: kafka }
+  ports: [{ name: broker, port: 9092 }]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+  namespace: ledgerflow
+spec:
+  serviceName: kafka
+  replicas: 1
+  selector:
+    matchLabels: { app: kafka }
+  template:
+    metadata:
+      labels: { app: kafka }
+    spec:
+      # Otherwise Kubernetes injects KAFKA_PORT etc., which the image would read as broker config.
+      enableServiceLinks: false
+      securityContext: { fsGroup: 1000 }
+      containers:
+        - name: kafka
+          image: apache/kafka:4.0.0
+          env:
+            - { name: KAFKA_NODE_ID, value: "1" }
+            - { name: KAFKA_PROCESS_ROLES, value: "broker,controller" }
+            # The controller talks to itself; localhost avoids waiting on the pod's own Service endpoint.
+            - { name: KAFKA_CONTROLLER_QUORUM_VOTERS, value: "1@localhost:9093" }
+            - { name: KAFKA_CONTROLLER_LISTENER_NAMES, value: CONTROLLER }
+            - { name: KAFKA_LISTENERS, value: "INTERNAL://:9092,CONTROLLER://:9093" }
+            - { name: KAFKA_ADVERTISED_LISTENERS, value: "INTERNAL://kafka:9092" }
+            - { name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP, value: "INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT" }
+            - { name: KAFKA_INTER_BROKER_LISTENER_NAME, value: INTERNAL }
+            - { name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR, value: "1" }
+            - { name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR, value: "1" }
+            - { name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR, value: "1" }
+            - { name: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS, value: "0" }
+            - { name: KAFKA_LOG_DIRS, value: /var/lib/kafka/data }
+            - { name: KAFKA_HEAP_OPTS, value: "-Xms256m -Xmx512m" }
+          ports: [{ containerPort: 9092 }]
+          readinessProbe:
+            tcpSocket: { port: 9092 }
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket: { port: 9092 }
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          resources:
+            requests: { memory: 512Mi }
+            limits: { memory: 1Gi }
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/kafka/data }
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: { requests: { storage: 2Gi } }

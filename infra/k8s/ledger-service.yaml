@@ -1,0 +1,51 @@
+# ledger-service: 1 replica, NodePort 30082 (k3d maps host :8082 -> node :30082). Probes use the Actuator health groups.
+apiVersion: v1
+kind: Service
+metadata:
+  name: ledger-service
+  namespace: ledgerflow
+spec:
+  type: NodePort
+  selector: { app: ledger-service }
+  ports: [{ name: http, port: 8082, targetPort: 8082, nodePort: 30082 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ledger-service
+  namespace: ledgerflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: ledger-service }
+  template:
+    metadata:
+      labels: { app: ledger-service }
+      annotations:
+        ledgerflow/image-id: local # k8s/start.sh sets the built image id, so a rebuild rolls the pods
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: ledger-service
+          image: ledgerflow-ledger:1.1.0-local
+          imagePullPolicy: Never # imported into k3d by k8s/start.sh, never pulled
+          envFrom:
+            - configMapRef: { name: ledgerflow-config }
+          env:
+            - name: DB_PASSWORD
+              valueFrom: { secretKeyRef: { name: ledgerflow-secrets, key: LEDGER_DB_PASSWORD } }
+          ports: [{ containerPort: 8082 }]
+          startupProbe:
+            httpGet: { path: /actuator/health/liveness, port: 8082 }
+            periodSeconds: 2
+            failureThreshold: 90
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: 8082 }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: 8082 }
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests: { memory: 256Mi }
+            limits: { memory: 512Mi }
