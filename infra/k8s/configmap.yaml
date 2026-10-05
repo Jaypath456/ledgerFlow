@@ -1,0 +1,15 @@
+# Non-secret app settings, shared by both services (same values as infra/docker-compose.yml + the demo overlay).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ledgerflow-config
+  namespace: ledgerflow
+data:
+  DB_URL: jdbc:postgresql://postgres:5432/ledgerflow
+  KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  SPRING_PROFILES_ACTIVE: demo,k8s
+  LEDGERFLOW_OUTBOX_POLL_MS: "10"
+  RISK_VELOCITY_MAX: "1000000"
+  RISK_BLOCKED_ACCOUNTS: "999999"
+  # Heap as a share of the container memory limit instead of a fixed -Xmx.
+  JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=60

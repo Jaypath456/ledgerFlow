@@ -1,0 +1,6 @@
+# Kubernetes (k8s/start.sh): make the probe health groups explicit instead of relying on auto-detection.
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true

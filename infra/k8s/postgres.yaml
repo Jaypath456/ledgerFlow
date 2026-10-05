@@ -1,0 +1,61 @@
+# Single PostgreSQL 17 instance with a PVC (k3s local-path). Not replicated; no HA.
+# Init SQL comes from the postgres-init ConfigMap, built by k8s/start.sh from infra/postgres/init/.
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: ledgerflow
+spec:
+  selector: { app: postgres }
+  ports: [{ name: postgres, port: 5432 }]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: ledgerflow
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels: { app: postgres }
+  template:
+    metadata:
+      labels: { app: postgres }
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: postgres
+          image: postgres:17
+          env:
+            - { name: POSTGRES_DB, value: ledgerflow }
+            - { name: POSTGRES_USER, value: postgres }
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: ledgerflow-secrets, key: POSTGRES_PASSWORD } }
+            - { name: PGDATA, value: /var/lib/postgresql/data/pgdata }
+          ports: [{ containerPort: 5432 }]
+          readinessProbe:
+            exec: { command: ["pg_isready", "-U", "postgres", "-d", "ledgerflow"] }
+            periodSeconds: 5
+          livenessProbe:
+            exec: { command: ["pg_isready", "-U", "postgres", "-d", "ledgerflow"] }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests: { memory: 256Mi }
+            limits: { memory: 512Mi }
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/postgresql/data }
+            - { name: init, mountPath: /docker-entrypoint-initdb.d, readOnly: true }
+            - { name: shm, mountPath: /dev/shm }
+      volumes:
+        - name: init
+          configMap: { name: postgres-init }
+        # Parallel queries (invariant checker) need more than the 64 MB default, as in Compose.
+        - name: shm
+          emptyDir: { medium: Memory, sizeLimit: 256Mi }
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: { requests: { storage: 2Gi } }
