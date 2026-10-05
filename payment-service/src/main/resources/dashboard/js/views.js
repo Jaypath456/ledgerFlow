@@ -1,57 +1,97 @@
-import { esc, money, shortId } from './format.js';
+import { ApiRejection } from './api.js';
+import { esc, money, reasonLabel } from './format.js';
 
-export const badge = (text, cls = text) => `<span class="badge ${esc(cls)}">${esc(text)}</span>`;
+export const kv = (rows) => `<dl class="kv small">${rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`;
+
+export const technical = (inner) => `<details class="tech"><summary>View technical details</summary>${inner}</details>`;
 
 export function errorBox(error) {
-  const kind = error?.name === 'ApiRejection' || error?.constructor?.name === 'ApiRejection'
-    ? 'Rejected by the API' : 'Infrastructure error';
-  return `<div class="error-box"><b>${kind}</b>${esc(error?.message ?? error)}</div>`;
+  const title = error instanceof ApiRejection ? 'Request rejected' : 'Couldn\'t reach LedgerFlow';
+  return `<div class="error"><b>${title}</b>${esc(error?.message ?? error)}</div>`;
 }
+
+/** Measured plain-English lines: ok true → ✓, false → ✗, undefined → plain info. */
+export const story = (lines) => `<ul class="story">${lines.map((l) =>
+  `<li class="${l.ok === undefined ? 'info' : l.ok ? 'ok' : 'bad'}">${esc(l.text)}</li>`).join('')}</ul>`;
 
 export function scenarioCard(s) {
   return `<article class="card scenario" data-scenario="${esc(s.id)}">
-    <h2><span class="letter">${esc(s.letter)}</span>${esc(s.title)}</h2>
-    <p class="expect">${esc(s.expect)}</p>
-    <button class="btn primary" data-run="${esc(s.id)}">Run scenario</button>
-    <div class="result" hidden></div>
+    <h2>${esc(s.title)}</h2>
+    <p class="what">${esc(s.what)}</p>
+    <p class="why">${esc(s.why)}</p>
+    <button class="btn primary" data-run="${esc(s.id)}">Run test</button>
+    <div class="result"></div>
   </article>`;
 }
 
 export function scenarioResult(r) {
-  const headline = r.headline.map(([k, v]) => `<div><b>${esc(v)}</b><span class="muted">${esc(k)}</span></div>`).join('');
-  const rows = r.rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('');
-  const checks = r.checks.map((c) => `<li class="${c.ok ? '' : 'bad'}">${esc(c.label)}</li>`).join('');
+  const facts = r.facts?.length
+    ? `<div class="facts">${r.facts.map(([n, label]) => `<div><b>${esc(n)}</b><span>${esc(label)}</span></div>`).join('')}</div>` : '';
+  const checks = `<p class="small muted">Measured checks (all must hold for PASS):</p>
+    <ul class="checks">${r.checks.map((c) => `<li class="${c.ok ? '' : 'bad'}">${esc(c.label)}</li>`).join('')}</ul>`;
   return `<div class="verdict ${r.pass ? 'pass' : 'fail'}">${r.pass ? 'PASS' : 'FAIL'}</div>
-    <div class="headline">${headline}</div>
-    <dl class="kv">${rows}</dl>
-    <ul class="checks">${checks}</ul>`;
+    <p class="lead">${esc(r.lead)}</p>
+    ${facts}
+    ${story(r.story)}
+    ${technical(kv(r.details) + checks)}`;
 }
 
 export function invariantTable(inv) {
   const rows = [...inv.ledger.checks.map((c) => ({ ...c, source: 'ledger-service' })),
     ...inv.payment.checks.map((c) => ({ ...c, source: 'payment-service' }))]
     .sort((a, b) => a.invariant.localeCompare(b.invariant))
-    .map((c) => `<tr><td><b>${esc(c.invariant)}</b></td><td>${badge(c.pass ? 'PASS' : 'FAIL', c.pass ? 'pass' : 'fail')}</td>
-      <td>${esc(c.description)}<br><small class="muted">${esc(c.source)} · ${c.violations} violations</small></td></tr>`).join('');
-  return `<table>${rows}</table>
-    <p class="small muted">${inv.payment.pending} payment(s) in flight right now. Cross-schema checks (COMPLETED ⇔ posted) run per scenario; the full database check is <code>./demo/run.sh invariants</code>.</p>`;
+    .map((c) => `<tr><td><b>${esc(c.invariant)}</b></td><td>${c.pass ? 'PASS' : 'FAIL'}</td>
+      <td>${esc(c.description)}<br><span class="muted">${esc(c.source)} · ${c.violations} violation(s)</span></td></tr>`).join('');
+  return `<table class="inv-table">${rows}</table>
+    <p class="muted">${inv.payment.pending} payment(s) processing right now. Each service checks its own database schema.
+    Checks that need both (e.g. "completed ⇔ recorded in the ledger") run inside each reliability test, and for the whole
+    database with <code>./demo/run.sh invariants</code>.</p>`;
 }
 
-export function accountRows(accounts, balances) {
-  if (!accounts.length) return '<tr><td colspan="4" class="muted">No demo accounts yet; run a scenario or use "Create demo accounts".</td></tr>';
-  return accounts.map((a) => {
-    const b = balances.find((x) => x.id === a.id);
-    return `<tr><td class="mono">${a.id}</td><td>${esc(a.type)}</td><td>${esc(a.createdBy)}</td><td class="num">${b ? money(b.balanceMinor) : '–'}</td></tr>`;
+export function experimentCard(x) {
+  return `<article class="card scenario" data-scenario="${esc(x.id)}">
+    <h2>${esc(x.title)}</h2>
+    <p class="what">${esc(x.what)}</p>
+    <button class="btn primary" data-run="${esc(x.id)}">Run experiment</button>
+    <div class="result"></div>
+  </article>`;
+}
+
+export function experimentResult(r) {
+  return `<div class="verdict ${r.pass ? 'pass' : 'fail'}">${r.pass ? 'PASS' : 'FAIL'}</div>
+    <p class="section-label">What we did</p><p>${esc(r.did)}</p>
+    <p class="section-label">What was paused or slowed</p><p>${esc(r.paused)}</p>
+    <p class="section-label">What you would see</p>${story(r.observed)}
+    <p class="section-label">How it recovered</p>${story(r.recovered)}
+    ${technical(kv(r.details))}`;
+}
+
+const STATUS_WORD = { COMPLETED: 'Completed', FAILED: 'Failed', DECLINED: 'Declined', PENDING_LEDGER: 'Still processing' };
+
+export function playgroundResult(r, events) {
+  const accounts = r.accounts.map((a) => `<div class="move"><span class="name">${esc(a.name)}</span>
+    <span>${money(a.before)} → <b>${money(a.after)}</b></span></div>`).join('');
+  const txs = r.tx.map((t) => {
+    const ok = t.status === 'COMPLETED';
+    const word = STATUS_WORD[t.status] ?? (t.error ? 'Not sent' : t.status);
+    const why = t.declineReason ? ` — ${reasonLabel(t.declineReason)}` : '';
+    return `<li class="${ok ? 'ok' : 'bad'}"><span>${esc(t.from)} → ${esc(t.to)}</span><span class="amt">${money(t.amountMinor)}</span>
+      <span class="pill ${ok ? 'ok' : t.status === 'PENDING_LEDGER' ? 'wait' : 'bad'}">${esc(word)}</span><span class="muted">${esc(why)}</span></li>`;
   }).join('');
-}
-
-export function paymentSummary(p) {
-  return `<dl class="kv"><dt>Payment</dt><dd class="mono">${esc(shortId(p.id))}</dd><dt>Status</dt><dd>${badge(p.status)}</dd>
-    <dt>Amount</dt><dd>${money(p.amountMinor)} (${p.payerAccountId} → ${p.payeeAccountId})</dd>
-    ${p.declineReason ? `<dt>Reason</dt><dd>${esc(p.declineReason)}</dd>` : ''}</dl>`;
-}
-
-export function activityEntry(e) {
-  const when = new Date(e.at).toLocaleTimeString();
-  return `<div class="entry"><time>${esc(when)}</time>${e.pass === undefined ? '' : badge(e.pass ? 'PASS' : 'FAIL', e.pass ? 'pass' : 'fail')} ${esc(e.text)}</div>`;
+  const failedCount = r.tx.filter((t) => t.status === 'FAILED').length;
+  const tl = events.map((e) => `<li><span class="ms">${e.ms} ms</span>${esc(e.text)}</li>`).join('');
+  const tech = r.tx.map((t, i) => [[`#${i + 1} accounts`, `#${t.payerAccountId ?? '?'} → #${t.payeeAccountId ?? '?'}`],
+    [`#${i + 1} idempotency key`, t.key], [`#${i + 1} payment ID`, t.id ?? '–'], [`#${i + 1} HTTP`, t.httpStatus],
+    [`#${i + 1} status / reason`, `${t.status ?? '–'} ${t.declineReason ?? ''}`], [`#${i + 1} ledger postings`, t.postings ?? '–']]).flat();
+  const checks = `<ul class="checks">${r.checks.map((c) => `<li class="${c.ok ? '' : 'bad'}">${esc(c.label)}</li>`).join('')}</ul>`;
+  return `<div class="verdict ${r.pass ? 'pass' : 'fail'}">${r.pass ? 'PASS' : 'FAIL'}</div>
+    <p class="lead">${r.tx.length} transactions executed${failedCount ? ` · ${failedCount} payment(s) failed safely, which can be the correct outcome` : ''}</p>
+    <p class="section-label">Balances</p><div class="moves">${accounts}</div>
+    <p class="section-label">Transactions</p><ul class="tx-list">${txs}</ul>
+    <p class="section-label">Correctness</p>${story(r.checks.map((c) => ({ text: c.label.replace(/ \(\d+ violations\)$/, ''), ok: c.ok })))}
+    <p class="small muted">PASS means the correctness rules held. A payment that fails for lack of funds is a correct outcome, not a failed test.</p>
+    <details class="tech"><summary>View timeline</summary><ul class="timeline">${tl}</ul>
+      <p class="small muted">Times are measured by the demo runner from the start of the run: when each request was sent, when the payment API answered,
+      and when the final state was first observed (it checks every 20 ms). Database locks and Kafka timings are not measured here.</p></details>
+    ${technical(kv(tech) + checks)}`;
 }

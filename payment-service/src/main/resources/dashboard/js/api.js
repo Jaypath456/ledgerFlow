@@ -71,3 +71,19 @@ export async function invariants() {
   const [ledger, payment] = await Promise.all([call(`${LEDGER}/demo/invariants`), call(`${PAYMENT}/demo/invariants`)]);
   return { ledger, payment, violations: ledger.violations + payment.violations, pass: ledger.pass && payment.pass };
 }
+
+// named demo accounts (ledger-service, demo profile)
+export const namedAccounts = () => call(`${LEDGER}/demo/named-accounts`);
+export const createNamedAccount = (name, balanceMinor) =>
+  call(`${LEDGER}/demo/named-accounts`, { method: 'POST', body: { name, balanceMinor } });
+/** Moves named accounts to target balances via ordinary balanced postings with their own treasury. */
+export const setNamedBalances = (targets) => call(`${LEDGER}/demo/named-accounts/balances`, { method: 'POST', body: targets });
+
+// transaction playground runner (payment-service, demo profile)
+export const runTransactions = (specs) => call(`${PAYMENT}/demo/transactions`, { method: 'POST', body: specs, timeoutMs: 120000 });
+
+// resilience controls (demo profile, application-level only)
+export const ledgerControls = () => call(`${LEDGER}/demo/controls`);
+export const setLedgerControls = (c) => call(`${LEDGER}/demo/controls`, { method: 'POST', body: c });
+export const paymentControls = () => call(`${PAYMENT}/demo/controls`);
+export const setPaymentControls = (c) => call(`${PAYMENT}/demo/controls`, { method: 'POST', body: c });

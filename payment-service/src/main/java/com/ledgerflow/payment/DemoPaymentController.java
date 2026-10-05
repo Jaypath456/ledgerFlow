@@ -120,6 +120,91 @@ class DemoPaymentController {
                 RiskRule.MaxAmount.MAX_MINOR);
     }
 
+    static final int MAX_TRANSACTIONS = 5;
+    static final long MAX_START_DELAY_MS = 10_000;
+    static final long SETTLE_WAIT_MS = 60_000;
+
+    record TransactionSpec(String key, long payerAccountId, long payeeAccountId, long amountMinor, long startDelayMs) {}
+
+    /** Times are measured by this runner, in ms since the run began; final status is observed by polling every 20 ms. */
+    record TransactionResult(int index, String key, int httpStatus, String id, String status, String declineReason,
+                             boolean replayed, long startedMs, long respondedMs, Long finishedMs, String error) {}
+
+    record TransactionRun(int transactions, long elapsedMs, List<TransactionResult> results) {}
+
+    /**
+     * Transaction Playground runner: each transaction waits its own start delay, then is sent
+     * independently through the normal POST /api/payments (loopback HTTP), and is followed until it
+     * reaches a final state (or {@value #SETTLE_WAIT_MS} ms pass).
+     */
+    @PostMapping("/transactions")
+    TransactionRun transactions(@RequestBody List<TransactionSpec> specs) throws Exception {
+        if (specs == null || specs.size() < 2 || specs.size() > MAX_TRANSACTIONS) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "between 2 and " + MAX_TRANSACTIONS + " transactions");
+        }
+        for (TransactionSpec s : specs) {
+            if (s.key() == null || s.key().isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "every transaction needs an idempotency key");
+            }
+            if (s.startDelayMs() < 0 || s.startDelayMs() > MAX_START_DELAY_MS) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "startDelayMs must be between 0 and " + MAX_START_DELAY_MS);
+            }
+        }
+        URI target = URI.create("http://localhost:" + env.getProperty("local.server.port") + "/api/payments");
+        var start = new CountDownLatch(1);
+        long[] t0 = new long[1]; // set before the latch opens; the latch makes it visible to every task
+        List<Future<TransactionResult>> futures = new ArrayList<>();
+        try (var pool = Executors.newVirtualThreadPerTaskExecutor()) {
+            for (int i = 0; i < specs.size(); i++) {
+                int index = i;
+                TransactionSpec s = specs.get(i);
+                futures.add(pool.submit(() -> {
+                    start.await();
+                    return runOne(index, target, s, t0[0]);
+                }));
+            }
+            t0[0] = System.nanoTime();
+            start.countDown();
+        }
+        List<TransactionResult> results = new ArrayList<>();
+        for (var f : futures) {
+            results.add(f.get());
+        }
+        return new TransactionRun(specs.size(), sinceMs(t0[0]), results);
+    }
+
+    private TransactionResult runOne(int index, URI target, TransactionSpec s, long t0) throws InterruptedException {
+        Thread.sleep(s.startDelayMs());
+        long started = sinceMs(t0);
+        var body = json.createObjectNode().put("payerAccountId", s.payerAccountId()).put("payeeAccountId", s.payeeAccountId())
+                .put("amountMinor", s.amountMinor()).put("currency", "USD");
+        BurstResult r = send(index, target, new BurstRequest(s.key(), body));
+        long responded = sinceMs(t0);
+        if (r.id() == null) {
+            return new TransactionResult(index, s.key(), r.httpStatus(), null, null, null, r.replayed(), started, responded, null, r.error());
+        }
+        String status = r.status();
+        String reason = null;
+        long deadline = System.currentTimeMillis() + SETTLE_WAIT_MS;
+        while ("PENDING_LEDGER".equals(status) && System.currentTimeMillis() < deadline) {
+            Thread.sleep(20);
+            var row = jdbc.sql("SELECT status, decline_reason FROM payments WHERE id = ?").param(UUID.fromString(r.id()))
+                    .query((rs, n) -> new String[] {rs.getString(1), rs.getString(2)}).single();
+            status = row[0];
+            reason = row[1];
+        }
+        if (reason == null && !"PENDING_LEDGER".equals(status)) {
+            reason = jdbc.sql("SELECT decline_reason FROM payments WHERE id = ?").param(UUID.fromString(r.id()))
+                    .query(String.class).optional().orElse(null);
+        }
+        return new TransactionResult(index, s.key(), r.httpStatus(), r.id(), status, reason, r.replayed(), started, responded,
+                "PENDING_LEDGER".equals(status) ? null : sinceMs(t0), null);
+    }
+
+    private static long sinceMs(long t0) {
+        return (System.nanoTime() - t0) / 1_000_000;
+    }
+
     @PostMapping("/payments/status")
     List<PaymentStatus> statuses(@RequestBody List<UUID> ids) {
         if (ids == null || ids.isEmpty() || ids.size() > 1000) {

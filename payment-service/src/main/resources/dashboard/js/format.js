@@ -13,3 +13,17 @@ export function newKey(prefix = 'ui') {
 export function esc(value) {
   return String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
+
+// Plain-English labels for internal codes (the raw code stays in "technical details").
+const STATUS = { PENDING_LEDGER: 'Processing…', COMPLETED: 'Completed', FAILED: 'Failed', DECLINED: 'Declined' };
+const REASON = {
+  INSUFFICIENT_FUNDS: 'Insufficient funds',
+  UNKNOWN_ACCOUNT: 'Account does not exist',
+  INVALID_AMOUNT: 'Invalid amount',
+  SAME_PAYER_PAYEE: 'Sender and receiver are the same account',
+  AMOUNT_LIMIT: 'Over the $10,000 limit',
+  BLOCKED_ACCOUNT: 'Blocked account',
+  VELOCITY_LIMIT: 'Too many payments in a minute',
+};
+export const statusLabel = (s) => STATUS[s] ?? s;
+export const reasonLabel = (r) => REASON[r] ?? r;

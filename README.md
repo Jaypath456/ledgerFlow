@@ -12,7 +12,12 @@ Requires Docker with Compose v2.
 ./start.sh                 # builds and starts Postgres, Kafka and both services; waits until healthy
 ```
 
-Open **http://localhost:8081/**. In the **Failure Lab** tab, run any scenario and watch measured results come back, e.g. 200 simultaneous $10 payments against a $500 account ending in exactly 50 COMPLETED, 150 FAILED, balance $0.00.
+Open **http://localhost:8081/**:
+- **Payments**: Jay and Ajay are ready with real ledger balances. Pick From/To, an amount, and *Send Payment*; *+ Create account* adds your own.
+- **Reliability Tests**: *Run test* on any card for a measured result, e.g. 200 simultaneous $10 payments against $500 end in exactly 50 completed, 150 rejected, balance $0.00.
+- **Transaction Playground**: compose 2–5 concurrent payments yourself.
+- **Resilience Lab**: pause, slow or lose processing and watch payments recover.
+- **System**: service status and the invariant check.
 
 ```
 ./demo/run.sh --help       # the same scenarios from the terminal, plus infrastructure faults
@@ -20,7 +25,13 @@ Open **http://localhost:8081/**. In the **Failure Lab** tab, run any scenario an
 ./reset.sh                 # wipe demo data and start again from the clean seed
 ```
 
-The demo runs as its own Compose project (`ledgerflow-demo`) with the `demo` Spring profile. That profile adds the dashboard, a few narrow `/demo` endpoints (fresh scenario accounts, read-only balances and invariant checks, a concurrent request burst) and a raised velocity limit so races reach the ledger. **None of this exists in the normal profile.**
+The demo runs as its own Compose project (`ledgerflow-demo`) with the `demo` Spring profile. That profile adds the dashboard and a few narrow `/demo` endpoints:
+- named and scenario accounts;
+- read-only balances and invariant checks;
+- a concurrent request runner;
+- application-level processing controls.
+
+The demo overlay also raises the velocity limit so races reach the ledger. **None of this exists in the normal profile.** The local stack is single-instance by design (one database, one broker, one of each service), so it is not highly available. It shows that temporary failures are recovered safely, not that there is no downtime.
 
 ## Problem
 
@@ -88,7 +99,7 @@ Seeded accounts:
 
 ## Demo scenarios
 
-The same scenarios exist in the dashboard (Failure Lab) and in `demo/`. Each one:
+The same scenarios exist in the dashboard (Reliability Tests) and in `demo/`. Each one:
 1. creates fresh accounts, funded through ordinary double-entry postings (the seeded accounts are never used);
 2. sends real requests;
 3. waits for the ledger to settle;
@@ -107,6 +118,28 @@ The same scenarios exist in the dashboard (Failure Lab) and in `demo/`. Each one
 | `invariants` | full I1–I6 check of the whole database |
 | `ledger-crash`, `kafka-restart`, `postgres-pause` | infrastructure fault under traffic, then recovery, settlement and the full invariant check (shell only) |
 
+**Transaction Playground.** You set 2–5 payments between named accounts, each with a start delay, and the demo runner sends them concurrently through the normal payment API (outbox → Kafka → ledger → result). The result shows:
+- real before/after balances;
+- each payment's status;
+- a timeline measured by the runner;
+- a verdict.
+
+The verdict is about correctness, not success. A payment that fails for insufficient funds is a correct outcome. PASS requires all of the following:
+- no negative balance;
+- each completed payment posted exactly once, failed ones not at all;
+- money conserved;
+- balances that reconcile;
+- clean invariants.
+
+Examples (dependency race, shared receiver, shared payer, delayed requests) only prefill the editor, and no winner is assumed.
+
+**Resilience Lab.** Application-level controls, demo profile only, that never stop the JVM:
+- pause or resume the ledger's or the payment service's Kafka listener;
+- add a real 2 s / 5 s ledger processing delay;
+- "lose" ledger results, so reconciliation has to recover the payment.
+
+Each experiment shows what was paused, what you would see, and how it recovered with exactly one ledger posting.
+
 Infrastructure faults are deliberately not exposed over HTTP. An application that could kill its own infrastructure on request would be a security hole.
 
 Where each kind of verification lives:
@@ -117,7 +150,7 @@ Where each kind of verification lives:
 ## How to test
 
 ```
-./mvnw verify     # 70 tests, real Postgres + Kafka via Testcontainers (Docker required)
+./mvnw verify     # 94 tests, real Postgres + Kafka via Testcontainers (Docker required)
 ```
 
 - Unit and integration tests run per service.

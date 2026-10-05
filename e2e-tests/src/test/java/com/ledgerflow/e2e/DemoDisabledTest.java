@@ -29,6 +29,14 @@ class DemoDisabledTest {
         assertThat(get(ledger + "/demo/invariants").statusCode()).isEqualTo(404);
         assertThat(get(ledger + "/demo/accounts?ids=1").statusCode()).isEqualTo(404);
         assertThat(post(ledger + "/demo/accounts").statusCode()).isIn(404, 405);
+        // Phase 7 interactive additions: named accounts, playground runner, resilience controls
+        assertThat(get(ledger + "/demo/named-accounts").statusCode()).isEqualTo(404);
+        assertThat(post(ledger + "/demo/named-accounts").statusCode()).isIn(404, 405);
+        assertThat(get(ledger + "/demo/controls").statusCode()).isEqualTo(404);
+        assertThat(post(ledger + "/demo/controls").statusCode()).isIn(404, 405);
+        assertThat(get(payment + "/demo/controls").statusCode()).isEqualTo(404);
+        assertThat(post(payment + "/demo/controls").statusCode()).isIn(404, 405);
+        assertThat(post(payment + "/demo/transactions").statusCode()).isIn(404, 405);
 
         // no cross-origin access granted in the default profile
         var health = http.send(HttpRequest.newBuilder(URI.create(ledger + "/actuator/health"))

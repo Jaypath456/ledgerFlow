@@ -8,6 +8,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -30,8 +31,11 @@ class LedgerResultListener {
     private final JsonMapper json;
     private final TransactionTemplate tx;
     private final Counter duplicates;
+    private final ObjectProvider<DemoPaymentControls> demo;
 
-    LedgerResultListener(JdbcClient jdbc, JsonMapper json, PlatformTransactionManager tm, MeterRegistry meters) {
+    LedgerResultListener(JdbcClient jdbc, JsonMapper json, PlatformTransactionManager tm, MeterRegistry meters,
+                         ObjectProvider<DemoPaymentControls> demo) {
+        this.demo = demo;
         this.jdbc = jdbc;
         this.json = json;
         this.tx = new TransactionTemplate(tm);
@@ -41,6 +45,11 @@ class LedgerResultListener {
     /** Malformed or unknown events throw, so the error handler retries and then dead-letters them. */
     @KafkaListener(topics = Topics.LEDGER_RESULTS)
     void onMessage(String value) {
+        DemoPaymentControls controls = demo.getIfAvailable(); // demo profile only
+        if (controls != null && controls.discardResult()) {
+            log.info("demo: ledger result discarded (simulated lost message)");
+            return;
+        }
         JsonNode node = json.readTree(value);
         String type = node.path("eventType").asString("");
         switch (type) {

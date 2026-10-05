@@ -33,7 +33,7 @@ class DemoLedgerController {
 
     record ScenarioAccounts(long treasuryAccountId, List<Account> accounts) {}
 
-    record PaymentLedger(UUID paymentId, String outcome, String reason, long postings) {}
+    record PaymentLedger(UUID paymentId, String outcome, String reason, long postings, long resultsEmitted) {}
 
     record Check(String invariant, String description, long violations, boolean pass) {}
 
@@ -99,12 +99,13 @@ class DemoLedgerController {
                         SELECT p.id,
                                o.status AS outcome,
                                o.reason,
-                               (SELECT count(*) FROM ledger_transactions t WHERE t.payment_id = p.id) AS postings
+                               (SELECT count(*) FROM ledger_transactions t WHERE t.payment_id = p.id) AS postings,
+                               (SELECT count(*) FROM outbox r WHERE r.aggregate_id = p.id) AS results
                         FROM unnest(CAST(:ids AS uuid[])) AS p(id)
                         LEFT JOIN payment_outcomes o ON o.payment_id = p.id""")
                 .param("ids", paymentIds.toArray(UUID[]::new))
                 .query((rs, n) -> new PaymentLedger(rs.getObject("id", UUID.class), rs.getString("outcome"),
-                        rs.getString("reason"), rs.getLong("postings")))
+                        rs.getString("reason"), rs.getLong("postings"), rs.getLong("results")))
                 .list();
     }
 

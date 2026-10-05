@@ -178,3 +178,37 @@ Same host as Phase 5. Single runs, recorded as observed. These are demonstration
 | `ledger-crash` (kill -9, restart after 3 s) | 42.7 s | 250/250 COMPLETED, each posted once; payer $750.00 as expected; 0 violations |
 | `kafka-restart` | 19.3 s | 250/250 COMPLETED; 0 duplicates; 0 violations |
 | `postgres-pause` (10 s) | 0.2 s after unpause | 250/250 COMPLETED; 0 duplicates; 0 violations |
+
+## Phase 7 — interactive accounts, Transaction Playground, Resilience Lab (2026-10-05)
+Single observed runs on the same host, recorded as they happened. These are demonstrations, not benchmarks. Race outcomes vary between runs; every run was judged by correctness properties only.
+- `./mvnw clean verify`: pass, **94 tests**: the 70 existing plus 24 new.
+  - ledger-service 33 (+7 `DemoNamedAccountsTest`).
+  - payment-service 33 (+5 `DemoRunnerAndControlsTest`).
+  - e2e-tests 28 (+8 `PlaygroundTest`, +4 `ResilienceTest` on a separate demo-profile stack; `DemoDisabledTest` extended to the new endpoints).
+- After `./reset.sh --yes`: Jay #1001 $75.00 and Ajay #1003 $100.00 exist with real ledger balances. "+ Create account" created Jaysus #1005 at $100.00. A duplicate name (any case) is refused: "An account with that name already exists."
+- Payments by name through the dashboard: Jay → Ajay $25, Ajay → Jaysus $10, Jaysus → Jay $5, all COMPLETED (0.29–0.97 s). Balances after refresh: Jay $55.00, Ajay $115.00, Jaysus $105.00.
+- Transaction Playground, through the dashboard UI (headless Chrome), starting from the example balances Jay $75, Ajay $100, Jaysus $100, all **PASS**:
+
+| Example | Observed |
+|---|---|
+| Dependency race (Jay → Ajay $50, Ajay → Jaysus $140) | Dashboard run: **both COMPLETED** (Jay's credit landed first): Jay $25, Ajay $10, Jaysus $240. Three earlier runs (dashboard modules from Node): **Ajay → Jaysus FAILED** (insufficient funds), Jay $25, Ajay $150, Jaysus $100. Both are valid; all PASS. |
+| Shared receiver (Jay → Ajay $50, Jaysus → Ajay $50) | Both COMPLETED; Ajay $100 → $200 (no lost update) |
+| Shared payer (Jay → Ajay $60, Jay → Jaysus $15) | Both COMPLETED; Jay $75 → $0 |
+| Shared payer, not enough (Jay → Ajay $60, Jay → Jaysus $25) | Dashboard run: $25 COMPLETED, $60 FAILED (Jay $50). Two earlier runs: $60 COMPLETED, $25 FAILED (Jay $15). Never negative; all PASS. |
+| Delayed requests (second request +1000 ms) | Requests sent at 0 and 1000 ms; both COMPLETED; reversed delays reverse the order (0 / 1000 ms) |
+| Custom: Jaysus → Jay $30, Jay → Ajay $90, Ajay → Jaysus $20 (+250 ms) | $30 and $20 COMPLETED; $90 FAILED (insufficient funds); PASS |
+| User-created accounts (Node run): Alice/Bob 3-way custom, 5-way ring across 5 accounts | PASS; the ring left every balance unchanged |
+
+- Resilience Lab, from the dashboard (every experiment ended with exactly 1 ledger posting and invariants passed):
+
+| Experiment | Observed |
+|---|---|
+| Ledger processing paused, then resumed | System page showed "Ledger processing: PAUSED". A payment (Jay → Ajay $25 on the Payments page) stayed "Processing…" for 4 s with Jay's balance unchanged ($30.00 / $30.00), then COMPLETED after resume (Jay $30 → $5). Experiment card: PASS. |
+| Result processing paused, then resumed | Ledger outcome POSTED and payer already $75 while the payment still showed "Processing…"; COMPLETED after resume; PASS |
+| Lost result, recovered by reconciliation | Ledger POSTED; payment "Processing…"; recovered by the reconciler after 37–39 s (3 runs); the ledger sent its result twice (original + re-emitted); PASS |
+| 2 s ledger delay | Payment stayed "Processing…" 2.1 s, then COMPLETED; PASS |
+| 5 s ledger delay | 5.1–5.3 s, then COMPLETED; PASS |
+| Reset demo faults | Paused results and a 2 s delay, then reset: every control back to RUNNING / DELIVERED / NONE |
+
+- System page: Payment and Ledger services UP, invariants PASS, ledger and result processing RUNNING, "Deployment mode: Local single-instance demo · High availability: Not configured · Recovery/correctness: Verified".
+- Reliability Tests (dashboard, after all of the above): 8/8 PASS.
