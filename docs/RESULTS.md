@@ -145,3 +145,36 @@ Earlier attempts, kept for the record:
 - Regression test `SeedIsolationTest` runs the concurrency, randomized and Kafka tests first, then the seed check. With the old funding source it fails the same way (−2184000); with the fix it passes.
 - Order independence: ledger-service passed 21/21 under alphabetical, reverse-alphabetical and random class order (seeds 11, 22, 33), plus random method order (seeds 22, 33). Each run used a fresh JVM and container.
 - `./mvnw clean verify`: pass, 58 tests.
+
+## Phase 7 (demo experience), 2026-10-05
+Same host as Phase 5. Single runs, recorded as observed. These are demonstrations, not benchmarks; the historical sessions above are unchanged.
+- `./mvnw clean verify`: pass, **70 tests**: the 58 existing plus 12 new.
+  - payment-service 28 (+5 `DemoPaymentTest`): dashboard served, burst, cap, config, invariant summary.
+  - ledger-service 26 (+5 `DemoLedgerTest`): isolated funded accounts, validation, read-outs, invariant summary with rolled-back corruption, deadlock counter.
+  - e2e-tests 16 (+2 `DemoDisabledTest`): no dashboard, `/demo/**` or CORS in the default profile; velocity limit still 5/60 s.
+- `./start.sh` from a stopped state: all 4 containers healthy and both `/actuator/health` UP in 42 s.
+- `./stop.sh` then `./start.sh`: data kept (1,576 payments before and after).
+- `./reset.sh --yes`: removed only project `ledgerflow-demo` (its containers, network and volume). It restarted on the clean Flyway seed (0 payments, SYSTEM −175000, 6 accounts); volume `ledgerflow_pgdata` was untouched. Answering "n" cancels.
+- Dashboard: `/` and all assets 200 with correct MIME types. Headless Chrome rendered live data (both services UP, invariants PASS, 6 invariant rows, 8 scenario cards, 5 shell commands). CORS from `:8081` is allowed; any other origin gets 403.
+- Dashboard scenarios, using the dashboard's own unmodified modules against the live stack: 8/8 PASS, again 8/8 after a reset.
+
+| Scenario | Measured |
+|---|---|
+| Happy path | 202 → COMPLETED; payer $75.00, payee $25.00; 1 posting |
+| Insufficient funds | 202 → FAILED (`INSUFFICIENT_FUNDS`); payer $10.00, payee $0.00; 0 postings |
+| Idempotent retry | 2 requests, both 202; second replayed, byte-identical; 1 payment id; 1 posting |
+| Idempotency conflict | 202, then 422 with no payment id; original $10.00; payer $90.00; 1 posting |
+| Same-key race | 32 sent, 32 responses (burst 133 ms); 1 payment id; 31 replays; 1 posting |
+| Hot-account race | 200 × $10.00 from $500.00 (burst 313 ms); 50 COMPLETED, 150 FAILED; ending $0.00; payee $500.00; 50 postings; 0 duplicates |
+| Opposite-direction | 100 A→B + 100 B→A; 200 COMPLETED; 0 errors; Postgres deadlocks +0; A $100.00, B $100.00 |
+| Risk rules | > $10,000 → 201 DECLINED `AMOUNT_LIMIT`; account 999999 → 201 DECLINED `BLOCKED_ACCOUNT`; 0 postings |
+
+- With ledger-service stopped, a scenario reports FAIL as an infrastructure error, and the shell scripts exit 2.
+- Shell scenarios: `./demo/run.sh all` passed all 9 application scenarios, with the same outcomes as the table. The full cross-schema check (`chaos/verify_invariants.sql`) reported 0 violations.
+- Infrastructure demos, each with 250 × $1.00 background payments:
+
+| Demo | Recovery (new payment completes) | Outcome |
+|---|---|---|
+| `ledger-crash` (kill -9, restart after 3 s) | 42.7 s | 250/250 COMPLETED, each posted once; payer $750.00 as expected; 0 violations |
+| `kafka-restart` | 19.3 s | 250/250 COMPLETED; 0 duplicates; 0 violations |
+| `postgres-pause` (10 s) | 0.2 s after unpause | 250/250 COMPLETED; 0 duplicates; 0 violations |

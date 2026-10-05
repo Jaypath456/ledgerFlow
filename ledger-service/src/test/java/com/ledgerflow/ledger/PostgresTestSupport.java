@@ -65,7 +65,7 @@ final class PostgresTestSupport {
                             "--spring.datasource.hikari.maximum-pool-size=40",
                             "--spring.kafka.bootstrap-servers=" + KAFKA.getBootstrapServers(),
                             "--" + LedgerServiceApplication.CONFIG_NAME,
-                            "--spring.profiles.active=chaos"); // FaultInjector present but idle
+                            "--spring.profiles.active=chaos,demo"); // FaultInjector idle; demo endpoints active
             testTreasury = createAccount(AccountType.SYSTEM);
         }
         return context;

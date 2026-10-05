@@ -4,6 +4,24 @@ A local, event-driven payments backend built to stay **financially correct** und
 
 Java 25 · Spring Boot 4.1 (MVC, JdbcClient — no JPA) · PostgreSQL 17 · Kafka 4 (KRaft) · Flyway · Testcontainers · k6 · Docker Compose.
 
+## Quick start (demo)
+
+Requires Docker with Compose v2.
+
+```
+./start.sh                 # builds and starts Postgres, Kafka and both services; waits until healthy
+```
+
+Open **http://localhost:8081/**. In the **Failure Lab** tab, run any scenario and watch measured results come back, e.g. 200 simultaneous $10 payments against a $500 account ending in exactly 50 COMPLETED, 150 FAILED, balance $0.00.
+
+```
+./demo/run.sh --help       # the same scenarios from the terminal, plus infrastructure faults
+./stop.sh                  # stop, keeping data
+./reset.sh                 # wipe demo data and start again from the clean seed
+```
+
+The demo runs as its own Compose project (`ledgerflow-demo`) with the `demo` Spring profile. That profile adds the dashboard, a few narrow `/demo` endpoints (fresh scenario accounts, read-only balances and invariant checks, a concurrent request burst) and a raised velocity limit so races reach the ledger. **None of this exists in the normal profile.**
+
 ## Problem
 
 A payment must move money **exactly once** and always end in a definite state:
@@ -68,10 +86,38 @@ Seeded accounts:
 - 2, 3, 4: customers funded with $1,000, $500 and $250.
 - 5, 6: merchants.
 
+## Demo scenarios
+
+The same scenarios exist in the dashboard (Failure Lab) and in `demo/`. Each one:
+1. creates fresh accounts, funded through ordinary double-entry postings (the seeded accounts are never used);
+2. sends real requests;
+3. waits for the ledger to settle;
+4. **checks** the measured outcome, so a scenario can fail.
+
+| Scenario | What it shows |
+|---|---|
+| `happy` | $100 pays $25 → COMPLETED, payer $75, posted once |
+| `insufficient` | $10 tries $25 → FAILED (`INSUFFICIENT_FUNDS`), no ledger write |
+| `retry` | same key + body twice → one payment, byte-identical replayed 202 |
+| `conflict` | same key, different body → 422, no second payment |
+| `same-key-race` | 32 concurrent identical requests → one payment, one posting, 31 replays |
+| `hot-account` | 200 concurrent $10 payments from $500 → 50 COMPLETED, 150 FAILED, $0.00, no overdraft |
+| `opposite-direction` | 100 A→B + 100 B→A at once → all complete, 0 Postgres deadlocks, money conserved |
+| `risk` | over $10,000 / blocked account → DECLINED, never reaches the ledger |
+| `invariants` | full I1–I6 check of the whole database |
+| `ledger-crash`, `kafka-restart`, `postgres-pause` | infrastructure fault under traffic, then recovery, settlement and the full invariant check (shell only) |
+
+Infrastructure faults are deliberately not exposed over HTTP. An application that could kill its own infrastructure on request would be a security hole.
+
+Where each kind of verification lives:
+- **Automated tests** (`*/src/test`, `e2e-tests/`): run by `./mvnw verify` and CI; real Postgres and Kafka through Testcontainers.
+- **Interactive demonstrations** (`demo/` and the dashboard): run against the live demo stack, and show and check results on demand.
+- **Chaos/load campaign** (`chaos/`): k6 load plus 9 fault scenarios, with an invariant gate on every run. Its results are recorded in `docs/RESULTS.md`.
+
 ## How to test
 
 ```
-./mvnw verify     # 58 tests, real Postgres + Kafka via Testcontainers (Docker required)
+./mvnw verify     # 70 tests, real Postgres + Kafka via Testcontainers (Docker required)
 ```
 
 - Unit and integration tests run per service.

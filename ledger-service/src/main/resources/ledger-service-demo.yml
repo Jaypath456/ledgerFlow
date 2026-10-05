@@ -1,0 +1,7 @@
+# Demo profile only: let the dashboard on :8081 read this service's health.
+management:
+  endpoints:
+    web:
+      cors:
+        allowed-origins: http://localhost:8081,http://127.0.0.1:8081
+        allowed-methods: GET
