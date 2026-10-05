@@ -12,7 +12,7 @@ export const PRESETS = [
     balances: { Jay: 7500, Ajay: 10000, Jaysus: 10000 },
     txs: [['Jay', 'Ajay', 50, 0], ['Ajay', 'Jaysus', 140, 0]],
     explain: 'Ajay starts with $100 and cannot afford $140 on his own. If Jay\'s $50 reaches the ledger first, Ajay can pay Jaysus; '
-      + 'if Ajay\'s payment is evaluated first, it fails. Either outcome is correct. PASS means: no overdraft, no partial write, '
+      + 'if Ajay\'s payment is evaluated first, it fails. Either outcome is correct. The race is handled correctly when there is no overdraft, no partial write, '
       + 'a balanced ledger, and each payment recorded at most once.',
   },
   {
@@ -33,7 +33,7 @@ export const PRESETS = [
     balances: { Jay: 7500, Ajay: 10000, Jaysus: 10000 },
     txs: [['Jay', 'Ajay', 60, 0], ['Jay', 'Jaysus', 25, 0]],
     explain: 'Jay has $75 but $85 is requested at once. Only one payment can be covered; which one depends on ordering. '
-      + 'One FAILED payment is the correct result, so the run can still PASS.',
+      + 'One rejected payment is the correct result, so the race can still be handled correctly.',
   },
   {
     id: 'delayed', label: 'Delayed requests',

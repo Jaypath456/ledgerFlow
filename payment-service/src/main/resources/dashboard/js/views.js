@@ -78,18 +78,23 @@ export function playgroundResult(r, events) {
     return `<li class="${ok ? 'ok' : 'bad'}"><span>${esc(t.from)} → ${esc(t.to)}</span><span class="amt">${money(t.amountMinor)}</span>
       <span class="pill ${ok ? 'ok' : t.status === 'PENDING_LEDGER' ? 'wait' : 'bad'}">${esc(word)}</span><span class="muted">${esc(why)}</span></li>`;
   }).join('');
-  const failedCount = r.tx.filter((t) => t.status === 'FAILED').length;
+  const completed = r.tx.filter((t) => t.status === 'COMPLETED').length;
+  const rejected = r.tx.filter((t) => t.status === 'FAILED' || t.status === 'DECLINED').length;
+  const processing = r.tx.length - completed - rejected;
+  // "safely" only when the correctness checks actually held
+  const summary = `${completed} completed · ${rejected} rejected${rejected && r.pass ? ' safely' : ''}`
+    + (processing ? ` · ${processing} still processing` : '');
   const tl = events.map((e) => `<li><span class="ms">${e.ms} ms</span>${esc(e.text)}</li>`).join('');
   const tech = r.tx.map((t, i) => [[`#${i + 1} accounts`, `#${t.payerAccountId ?? '?'} → #${t.payeeAccountId ?? '?'}`],
     [`#${i + 1} idempotency key`, t.key], [`#${i + 1} payment ID`, t.id ?? '–'], [`#${i + 1} HTTP`, t.httpStatus],
     [`#${i + 1} status / reason`, `${t.status ?? '–'} ${t.declineReason ?? ''}`], [`#${i + 1} ledger postings`, t.postings ?? '–']]).flat();
   const checks = `<ul class="checks">${r.checks.map((c) => `<li class="${c.ok ? '' : 'bad'}">${esc(c.label)}</li>`).join('')}</ul>`;
-  return `<div class="verdict ${r.pass ? 'pass' : 'fail'}">${r.pass ? 'PASS' : 'FAIL'}</div>
-    <p class="lead">${r.tx.length} transactions executed${failedCount ? ` · ${failedCount} payment(s) failed safely, which can be the correct outcome` : ''}</p>
+  return `<div class="verdict long ${r.pass ? 'pass' : 'fail'}">${r.pass ? 'RACE HANDLED CORRECTLY ✓' : 'SCENARIO FAILED ✕'}</div>
+    <p class="lead">${esc(summary)}</p>
     <p class="section-label">Balances</p><div class="moves">${accounts}</div>
     <p class="section-label">Transactions</p><ul class="tx-list">${txs}</ul>
     <p class="section-label">Correctness</p>${story(r.checks.map((c) => ({ text: c.label.replace(/ \(\d+ violations\)$/, ''), ok: c.ok })))}
-    <p class="small muted">PASS means the correctness rules held. A payment that fails for lack of funds is a correct outcome, not a failed test.</p>
+    <p class="small muted">"Race handled correctly" means every correctness rule held. A payment rejected for lack of funds is a correct outcome, not a failed scenario.</p>
     <details class="tech"><summary>View timeline</summary><ul class="timeline">${tl}</ul>
       <p class="small muted">Times are measured by the demo runner from the start of the run: when each request was sent, when the payment API answered,
       and when the final state was first observed (it checks every 20 ms). Database locks and Kafka timings are not measured here.</p></details>

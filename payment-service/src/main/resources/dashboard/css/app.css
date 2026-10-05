@@ -139,6 +139,7 @@ details[open] > summary { margin-bottom: .75rem; }
 .verdict { font-size: 1.9rem; font-weight: 800; letter-spacing: .1em; }
 .verdict.pass { color: var(--accent); }
 .verdict.fail { color: var(--bad); }
+.verdict.long { font-size: 1.45rem; letter-spacing: .04em; }
 .verdict.running { color: var(--warn); font-size: 1rem; letter-spacing: 0; font-weight: 600; }
 .lead { color: var(--muted); margin: .1rem 0 .6rem; }
 .facts { display: flex; gap: 1.5rem; flex-wrap: wrap; margin: .25rem 0 .25rem; }
