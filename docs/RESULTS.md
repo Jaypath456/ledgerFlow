@@ -118,12 +118,12 @@ Earlier attempts, kept for the record:
 ## Phase 6 (local package) and final acceptance
 - `docker compose -f infra/docker-compose.yml up --build` (default project, existing dev volume migrated additively to payments v2 / ledger v4): all 4 containers healthy in 42 s; both `/actuator/health` → `{"status":"UP"}`.
 - On that stack, with default settings: funded payment → 202 → COMPLETED; payment above balance → 202 → FAILED (`INSUFFICIENT_FUNDS`), balance unchanged; over $10,000 → 201 DECLINED (`AMOUNT_LIMIT`); same-key replay → identical 202 body; same key, different body → 422; invariant checker → 0 violations.
-- `./mvnw clean verify`: pass, 57 tests (payment-service 23, ledger-service 20, e2e-tests 14).
-- CI: not run for branch `ledgerflow-completion` (not pushed).
+- `./mvnw clean verify`: pass, 58 tests (payment-service 23, ledger-service 21, e2e-tests 14), after the test-isolation fix below. The original Phase 6 run had 57 (ledger-service 20).
+- CI on PR #1 exposed an order-dependent ledger test failure, fixed below.
 
 | # | Acceptance item | Evidence |
 |---|---|---|
-| 1 | `./mvnw verify` passes | 57 tests green (Phase 6 above) |
+| 1 | `./mvnw verify` passes | 58 tests green (Phase 6 above) |
 | 2 | Full Compose stack starts | Phase 6 above |
 | 3 | Both health endpoints UP | Phase 6 above |
 | 4 | Funded payment → COMPLETED | e2e `PaymentFlowTest`; Compose smoke |
@@ -138,3 +138,10 @@ Earlier attempts, kept for the record:
 | 13 | Performance/recovery recorded | Phase 5 above |
 | 14 | No Redis/cloud/Kubernetes/unsupported scope | two services, local Compose only; dependencies: Spring Boot starters (webmvc, actuator, jdbc, flyway, kafka), Postgres driver, Testcontainers, Awaitility |
 | 15 | README metrics ⊆ RESULTS | README numbers copied from this file |
+
+## Test-isolation fix (PR #1 CI failure)
+- CI failure: `LedgerPostingTest.seedIsBalancedAndFunded` expected −175000, but was −2181000. Reproduced locally with `-Dsurefire.runOrder=reversealphabetical`.
+- Root cause: every ledger test funded its accounts from seeded SYSTEM account 1 in the shared container, so the seed check passed only when it ran first (DECISIONS 51).
+- Regression test `SeedIsolationTest` runs the concurrency, randomized and Kafka tests first, then the seed check. With the old funding source it fails the same way (−2184000); with the fix it passes.
+- Order independence: ledger-service passed 21/21 under alphabetical, reverse-alphabetical and random class order (seeds 11, 22, 33), plus random method order (seeds 22, 33). Each run used a fresh JVM and container.
+- `./mvnw clean verify`: pass, 58 tests.

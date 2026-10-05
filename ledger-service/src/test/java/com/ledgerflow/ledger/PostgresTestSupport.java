@@ -1,5 +1,7 @@
 package com.ledgerflow.ledger;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -25,7 +27,11 @@ import org.testcontainers.utility.MountableFile;
  */
 final class PostgresTestSupport {
 
-    static final long SYSTEM_ACCOUNT = 1;
+    /** Canonical balances of the accounts seeded by Flyway V3 (account id → balance). */
+    static final Map<Long, Long> SEED_BALANCES =
+            Map.of(1L, -175_000L, 2L, 100_000L, 3L, 50_000L, 4L, 25_000L, 5L, 0L, 6L, 0L);
+    /** V3 posts 3 funding transactions with 2 entries each; nothing else may touch seeded accounts. */
+    static final long SEED_ENTRIES = 6;
 
     // Same init script as docker-compose: roles/schemas have a single source of truth.
     static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17")
@@ -37,6 +43,9 @@ final class PostgresTestSupport {
     static final KafkaContainer KAFKA = new KafkaContainer("apache/kafka:4.0.0");
 
     private static ConfigurableApplicationContext context;
+    // Tests fund their accounts from this SYSTEM account, never from the seeded account 1, so the
+    // Flyway seed stays at its baseline no matter which tests ran before (shared container).
+    private static long testTreasury;
 
     static {
         POSTGRES.start();
@@ -57,6 +66,7 @@ final class PostgresTestSupport {
                             "--spring.kafka.bootstrap-servers=" + KAFKA.getBootstrapServers(),
                             "--" + LedgerServiceApplication.CONFIG_NAME,
                             "--spring.profiles.active=chaos"); // FaultInjector present but idle
+            testTreasury = createAccount(AccountType.SYSTEM);
         }
         return context;
     }
@@ -74,13 +84,23 @@ final class PostgresTestSupport {
                 .param(type.name()).query(Long.class).single();
     }
 
-    /** Creates a customer account funded from the SYSTEM account through a normal posting. */
+    /** Creates a customer account funded from the test treasury (a SYSTEM account) through a normal posting. */
     static long fundedCustomer(long amountMinor) {
         long id = createAccount(AccountType.CUSTOMER);
         if (amountMinor > 0) {
-            ledger().post(UUID.randomUUID(), SYSTEM_ACCOUNT, id, amountMinor);
+            context();
+            ledger().post(UUID.randomUUID(), testTreasury, id, amountMinor);
         }
         return id;
+    }
+
+    /** The Flyway-seeded accounts are exactly as V3 left them. */
+    static void assertSeedBaseline() {
+        SEED_BALANCES.forEach((id, expected) ->
+                assertThat(balance(id)).as("balance of seeded account %d", id).isEqualTo(expected));
+        assertThat(jdbc().sql("SELECT count(*) FROM ledger_entries WHERE account_id IN (:ids)")
+                .param("ids", SEED_BALANCES.keySet()).query(Long.class).single())
+                .as("ledger entries on seeded accounts").isEqualTo(SEED_ENTRIES);
     }
 
     static long balance(long accountId) {

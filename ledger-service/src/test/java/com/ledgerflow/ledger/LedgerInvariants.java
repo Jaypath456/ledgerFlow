@@ -42,5 +42,8 @@ final class LedgerInvariants {
                     (SELECT SUM(e.amount_minor) FROM ledger_entries e WHERE e.account_id = a.id), 0)""")
                 .query(Long.class).list();
         assertThat(drifted).as("I5 cached balance drift").isEmpty();
+
+        // Test-isolation guard: no test may post to/from the Flyway-seeded accounts.
+        PostgresTestSupport.assertSeedBaseline();
     }
 }

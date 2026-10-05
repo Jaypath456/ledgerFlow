@@ -71,7 +71,7 @@ Seeded accounts:
 ## How to test
 
 ```
-./mvnw verify     # 57 tests, real Postgres + Kafka via Testcontainers (Docker required)
+./mvnw verify     # 58 tests, real Postgres + Kafka via Testcontainers (Docker required)
 ```
 
 - Unit and integration tests run per service.

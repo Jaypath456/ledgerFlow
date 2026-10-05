@@ -76,3 +76,6 @@
 48. The Compose file is the single local package: Postgres, Kafka and both services built from the repo `Dockerfile`, `restart: unless-stopped`, healthchecks on `/actuator/health`. Defaults are production-like (velocity limit 5/60 s, no chaos profile); load and chaos scripts override them via environment variables.
 49. CI unchanged: GitHub Actions runs `./mvnw -B verify` (now including `e2e-tests`). Images are not built or published in CI.
 50. The README quotes only numbers recorded in RESULTS.md.
+
+## Test isolation (post-Phase 6 fix)
+51. Ledger tests share one Postgres container and one application context (DECISIONS 16). They therefore never post to or from the Flyway-seeded accounts 1–6. `fundedCustomer` funds from a test-only SYSTEM account created once per test database, so the canonical seed (SYSTEM −175000; customers 100000 / 50000 / 25000; merchants 0) holds in any class or method order. `LedgerInvariants.assertAll()` also asserts that baseline, so a test that touches a seeded account fails itself, not some later test. `LedgerDbSmokeTest` uses the shared context instead of its own `@SpringBootTest`, because a second context would join the same Kafka consumer group and take partitions from the context the Kafka tests observe.
