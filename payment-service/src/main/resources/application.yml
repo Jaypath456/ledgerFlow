@@ -10,8 +10,15 @@ spring:
   flyway:
     schemas: payments
     default-schema: payments
+  mvc:
+    problemdetails:
+      enabled: true
 management:
   endpoints:
     web:
       exposure:
         include: health,metrics
+ledgerflow:
+  risk:
+    velocity-max: ${RISK_VELOCITY_MAX:5}
+    blocked-accounts: ${RISK_BLOCKED_ACCOUNTS:}
