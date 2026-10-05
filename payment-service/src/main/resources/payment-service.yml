@@ -1,0 +1,36 @@
+server:
+  port: ${SERVER_PORT:8081}
+spring:
+  application:
+    name: payment-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ledgerflow}
+    username: ${DB_USER:payment_user}
+    password: ${DB_PASSWORD:payment_user}
+  flyway:
+    schemas: payments
+    default-schema: payments
+    locations: classpath:db/migration/payments
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    producer:
+      acks: all
+      properties:
+        enable.idempotence: true
+    consumer:
+      group-id: payment-service
+      auto-offset-reset: earliest
+    listener:
+      concurrency: 3
+  mvc:
+    problemdetails:
+      enabled: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+ledgerflow:
+  risk:
+    velocity-max: ${RISK_VELOCITY_MAX:5}
+    blocked-accounts: ${RISK_BLOCKED_ACCOUNTS:}

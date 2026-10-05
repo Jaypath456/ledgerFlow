@@ -10,6 +10,18 @@ spring:
   flyway:
     schemas: ledger
     default-schema: ledger
+    locations: classpath:db/migration/ledger
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    producer:
+      acks: all
+      properties:
+        enable.idempotence: true
+    consumer:
+      group-id: ledger-service
+      auto-offset-reset: earliest
+    listener:
+      concurrency: 3
 management:
   endpoints:
     web:
