@@ -212,3 +212,52 @@ Single observed runs on the same host, recorded as they happened. These are demo
 
 - System page: Payment and Ledger services UP, invariants PASS, ledger and result processing RUNNING, "Deployment mode: Local single-instance demo · High availability: Not configured · Recovery/correctness: Verified".
 - Reliability Tests (dashboard, after all of the above): 8/8 PASS.
+
+## Phase 8 — local Kubernetes (k3d), 2026-10-05
+Single observed runs on one laptop (one k3d server node, Linux kernel 6.17, ~100 GiB root disk). Times are wall-clock measurements from the commands shown. Only these runs are reported. Nothing here is a benchmark, and nothing was re-run to get a better number.
+
+Cluster state before the restarts: node Ready, DiskPressure False, all four workloads 1/1, both PVCs Bound.
+
+**Pod replacement and recovery** (deletion time to the replacement's readiness):
+
+| Pod deleted | Result |
+|---|---|
+| payment-service | Replacement created 0.9 s after delete; Ready at 11.4 s; `/actuator/health` UP at 12.0 s; dashboard HTTP 200. No payment traffic during this step. |
+| ledger-service (modest workload) | 30 payments of $5 submitted, the pod deleted after payment 15. Replacement Ready within 10.9 s (measured when the workload script reached its wait, so this is an upper bound). Result: 30 submitted, 20 COMPLETED, 10 FAILED (insufficient funds), 0 pending, 0 duplicate postings (max 1 posting per payment), 0 invariant violations, payer $100 → $0, payee $0 → $100. |
+| ledger-service (`./k8s/demo-restart.sh`, run unchanged) | Replacement created 0.9 s after delete; replacement Ready 13.4 s after delete. 250 of 250 payments accepted, 0 client retries, 250 COMPLETED, 0 duplicate postings, payer $750.00 (expected $750.00), full invariant check 0 violations, verdict **PASS**. The script's "Recovered after 0.2 s" is measured from after the replacement was Ready, so the deletion-to-probe time is 13.4 s + 0.2 s. |
+
+**PostgreSQL pod restart** (only the pod deleted; the StatefulSet and PVC `pvc-75b45479…` kept):
+- The PostgreSQL log shows shutdown at 19:50:28 UTC and "ready to accept connections" at 19:50:31 UTC, about 3 s. A `kubectl wait` on the pod returned at once because the old pod was still terminating, so it was not used for this figure.
+- Same PVC, still Bound. Data kept: payment `0788de93…` still COMPLETED; account 1050 $0.00 and account 1051 $100.00, unchanged; 948 payments and 1,614 ledger entries, unchanged.
+- After the restart, both services UP and a new payment reached a terminal state (FAILED, insufficient funds: payer balance $0). Invariants 0 violations.
+
+**Kafka pod restart** (only the pod deleted; the StatefulSet and PVC `pvc-ea2a9b19…` kept):
+- Replacement pod created 2.5 s after delete; Ready 19.5 s after delete.
+- Same PVC, still Bound.
+- Three payments after the restart: all COMPLETED, one posting each. Payer $100.00 → $85.00, payee $0.00 → $15.00.
+- Both services logged transient reconnect errors during the restart (Kafka `DisconnectException`; PostgreSQL `57P01` from the earlier restart). They resumed and processed the new payments. Single-broker recovery only. Not Kafka HA.
+
+**Final correctness check** (after all of the above, on the same cluster):
+
+| Check | Result |
+|---|---|
+| Duplicate financial effects | 0 (every payment checked in the runs above has at most one posting) |
+| Pending payments (`PENDING_LEDGER`) | 0 |
+| Invariants I1–I6, `chaos/verify_invariants.sql` | 0 violations |
+| Service invariant checks (ledger + payment) | 0 violations each |
+| Global ledger entry sum | **0** |
+| Negative CUSTOMER or MERCHANT balances | 0. 19 SYSTEM treasury accounts are negative by design (they fund demo accounts; I4 excludes SYSTEM). |
+
+**Scripts:**
+- `bash -n k8s/*.sh`: passes (5 scripts).
+- `./k8s/status.sh`: payment and ledger UP; all workloads and PVCs listed.
+- `./k8s/logs.sh payment|ledger|kafka|postgres`: each prints recent logs. No log-follow process was left running.
+- `./k8s/start.sh`: **not re-run** against the healthy cluster. Read the script: an existing cluster is started, not recreated; images are rebuilt and imported; manifests are applied. A from-scratch creation was not tested in this phase.
+
+**Maven** (`./mvnw clean verify`, JDK 25.0.4.1): **BUILD SUCCESS**, exit 0, **94 tests, 0 failures**. payment-service 33, ledger-service 33, e2e-tests 28 (the same 94 as Phase 7).
+
+**Docker Compose regression** (k3d stopped, not deleted; then restored):
+- `./start.sh`: four containers healthy (postgres, kafka, payment-service, ledger-service), dashboard HTTP 200, start-up 1 min 53 s.
+- `demo/happy_path.sh`: **PASS**. $25 payment, HTTP 202, COMPLETED, payer $100 → $75, payee $0 → $25, exactly one posting, 0 invariant violations.
+- `./stop.sh`: stopped, data kept.
+- `k3d cluster start ledgerflow`: cluster Ready, DiskPressure False, all workloads 1/1, both PVCs Bound, health UP, dashboard HTTP 200. Data from before the Compose run was still there.

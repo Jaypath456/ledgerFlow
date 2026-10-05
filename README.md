@@ -97,6 +97,29 @@ Seeded accounts:
 - 2, 3, 4: customers funded with $1,000, $500 and $250.
 - 5, 6: merchants.
 
+## Optional: local Kubernetes (k3d)
+
+Compose is the primary local stack. The same services can also run on a local single-node [k3d](https://k3d.io) cluster, using plain Kubernetes YAML in `infra/k8s/`.
+
+Prerequisites: Docker, `kubectl`, `k3d`.
+
+```
+./k8s/start.sh             # creates the cluster on first run; later runs start it and re-apply manifests
+./k8s/status.sh            # health, workloads, pods, services, PVCs
+./k8s/logs.sh payment      # or: ledger | kafka | postgres (add kubectl logs flags, e.g. -f)
+./k8s/demo-restart.sh      # deletes the ledger-service pod under load and checks that no payment is lost or duplicated
+./k8s/stop.sh              # deletes the cluster AND its PostgreSQL/Kafka volumes
+```
+
+- Dashboard: http://localhost:8081/
+- Ledger health: http://localhost:8082/actuator/health
+
+Components (namespace `ledgerflow`): Deployments for `payment-service` and `ledger-service` (one replica each); StatefulSets for PostgreSQL 17 and Kafka 4 (KRaft, one broker), each with a 2 Gi PVC; Services (NodePort for the two apps, ClusterIP for PostgreSQL and Kafka) with Kubernetes service discovery; a ConfigMap (database init SQL shared with Compose) and a Secret (development passwords). Every workload has startup, readiness and liveness probes.
+
+The cluster's eviction thresholds are set explicitly (`eviction-hard` 1 Gi, `eviction-minimum-reclaim` 256 Mi) because the k3s default reclaim of 10% is about 10 GiB on a 100 GiB disk. See [docs/DECISIONS.md](docs/DECISIONS.md) (Phase 8).
+
+Limits: one node, one replica of each service, one PostgreSQL and one Kafka broker. Kubernetes restarts failed pods; it does not provide high availability. Measured recovery timings and invariant results are in [docs/RESULTS.md](docs/RESULTS.md) (Phase 8).
+
 ## Demo scenarios
 
 The same scenarios exist in the dashboard (Reliability Tests) and in `demo/`. Each one:
