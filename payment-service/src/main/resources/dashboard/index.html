@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LedgerFlow</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/app.css">
+  <script type="module" src="/js/main.js"></script>
+</head>
+<body>
+<header class="masthead">
+  <div class="brand">
+    <div class="wordmark">LEDGERFLOW</div>
+    <div class="tagline">Reliable Event-Driven Payments</div>
+  </div>
+  <button class="system-indicator" id="system-indicator" data-goto="system" title="System status">
+    <span class="dot"></span><span class="label">Checking…</span>
+  </button>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-tab="payments" aria-selected="true">Payments</button>
+  <button role="tab" data-tab="tests">Reliability Tests</button>
+  <button role="tab" data-tab="playground">Transaction Playground</button>
+  <button role="tab" data-tab="lab">Resilience Lab</button>
+  <button role="tab" data-tab="system">System</button>
+</nav>
+
+<main>
+  <!-- PAYMENTS -->
+  <section class="panel" data-panel="payments">
+    <div class="intro">
+      <h1>Send a payment</h1>
+      <p>Move money from one account to another. LedgerFlow checks the balance, records the payment once, and tells you how it went.</p>
+    </div>
+
+    <section class="accounts-area">
+      <div class="area-head">
+        <h2>Accounts</h2>
+        <div class="row">
+          <button class="btn" id="refresh-accounts">Refresh balances</button>
+          <button class="btn primary" id="open-create">+ Create account</button>
+        </div>
+      </div>
+      <form id="create-form" class="card form inline-form" hidden autocomplete="off">
+        <label>Name <input name="name" required maxlength="24" placeholder="e.g. Jaysus"></label>
+        <label>Starting balance <span class="money-input"><span>$</span><input name="balance" type="number" min="0" max="1000000" step="0.01" required value="100.00"></span></label>
+        <div class="row"><button class="btn primary" type="submit">Create account</button><button class="btn" type="button" id="cancel-create">Cancel</button></div>
+        <p class="small muted">A real ledger account, funded with an ordinary balanced ledger entry.</p>
+        <div id="create-error"></div>
+      </form>
+      <div class="account-cards" id="account-cards"><p class="muted">Loading accounts…</p></div>
+    </section>
+
+    <div class="pay-layout">
+      <form id="pay-form" class="card form" autocomplete="off">
+        <label>From <select name="payer" required></select></label>
+        <label>To <select name="payee" required></select></label>
+        <label>Amount <span class="money-input"><span>$</span><input name="amount" type="number" min="0.01" step="0.01" required value="25.00"></span></label>
+        <button class="btn primary big" type="submit" id="send-payment">Send Payment</button>
+      </form>
+
+      <div class="result-column">
+        <div id="pay-result" class="card result-card empty">
+          <p class="muted">Your payment result will appear here.</p>
+          <p class="muted small">Pick two accounts, an amount, and click <b>Send Payment</b>.</p>
+        </div>
+        <details class="card advanced" id="advanced">
+          <summary>Advanced: send the same request again</summary>
+          <p class="small">Every new payment gets a unique request ID (an <i>idempotency key</i>), generated automatically.
+            Sending the exact same request again, with the same ID, must not pay twice: LedgerFlow replays the original answer.</p>
+          <dl class="kv small" id="advanced-key"><dt>Last request ID</dt><dd class="muted">none yet</dd></dl>
+          <button class="btn" type="button" id="retry-payment" disabled>Send the same request again</button>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- RELIABILITY TESTS -->
+  <section class="panel" data-panel="tests" hidden>
+    <div class="intro">
+      <h1>Reliability tests</h1>
+      <p>Each test creates fresh accounts, sends real requests to the running system, and checks what actually happened.
+        The result is measured, never assumed.</p>
+    </div>
+    <div class="scenarios" id="scenarios"></div>
+  </section>
+
+  <!-- TRANSACTION PLAYGROUND -->
+  <section class="panel" data-panel="playground" hidden>
+    <div class="intro">
+      <h1>Transaction playground</h1>
+      <p>Build your own set of payments and launch them at the same time (or with small delays). Each one goes through the
+        normal payment API, Kafka and the ledger. Afterwards you see real before/after balances and whether every correctness rule held.</p>
+    </div>
+    <div class="card">
+      <div class="row presets"><span class="muted">Try an example:</span><span id="preset-buttons" class="row"></span></div>
+      <div id="preset-note" class="preset-note" hidden></div>
+      <div class="balance-strip" id="play-balances"></div>
+      <div id="tx-rows" class="tx-rows"></div>
+      <div class="row">
+        <button class="btn" id="add-tx">+ Add transaction</button>
+        <button class="btn" id="reverse-delays" hidden>Reverse delays</button>
+        <button class="btn primary big" id="run-tx">Run transactions</button>
+      </div>
+      <p class="small muted">"Start delay" is how long the demo runner waits before sending that request. It is not database lock timing.</p>
+    </div>
+    <div id="play-result" class="card play-result" hidden></div>
+  </section>
+
+  <!-- RESILIENCE LAB -->
+  <section class="panel" data-panel="lab" hidden>
+    <div class="intro">
+      <h1>Resilience lab</h1>
+      <p>Temporarily pause or slow down parts of LedgerFlow and watch payments wait safely and recover, without ever moving money twice.</p>
+    </div>
+    <div class="card controls">
+      <h2>Processing controls</h2>
+      <p class="small muted">These pause or slow processing inside the demo services. They do not stop the JVM, Kafka or the database.</p>
+      <ul class="status-list" id="control-list">
+        <li data-ctl="ledger"><span>Ledger processing</span><b>…</b><button class="btn" data-action="toggle-ledger">Pause</button></li>
+        <li data-ctl="results"><span>Payment result processing</span><b>…</b><button class="btn" data-action="toggle-results">Pause</button></li>
+        <li data-ctl="lose"><span>Ledger results</span><b>…</b><button class="btn" data-action="toggle-lose">Lose results</button></li>
+        <li data-ctl="delay"><span>Ledger processing delay</span><b>…</b>
+          <span class="row"><button class="btn" data-delay="0">None</button><button class="btn" data-delay="2000">2 s</button><button class="btn" data-delay="5000">5 s</button></span></li>
+      </ul>
+      <button class="btn primary" id="reset-faults">Reset demo faults</button>
+      <p class="small muted">While processing is paused, try a payment on the Payments page: it is accepted and waits as "Processing…" until you resume.</p>
+    </div>
+    <div class="scenarios" id="experiments"></div>
+    <details class="card tech infra">
+      <summary>Real infrastructure failures (run from a terminal)</summary>
+      <p class="small">These commands deliberately stop or restart local infrastructure, so they stay terminal-controlled rather than
+        being exposed through HTTP. Run them while watching this dashboard:</p>
+      <ul class="commands" id="infra-commands"></ul>
+    </details>
+  </section>
+
+  <!-- SYSTEM -->
+  <section class="panel" data-panel="system" hidden>
+    <div class="intro">
+      <h1>System</h1>
+    </div>
+    <div class="system-layout">
+      <div class="card">
+        <ul class="status-list" id="status-list">
+          <li data-row="payment"><span>Payment Service</span><b>…</b></li>
+          <li data-row="ledger"><span>Ledger Service</span><b>…</b></li>
+          <li data-row="invariants"><span>Ledger Invariants</span><b>…</b></li>
+          <li data-row="ledger-processing"><span>Ledger processing</span><b>…</b></li>
+          <li data-row="result-processing"><span>Result processing</span><b>…</b></li>
+        </ul>
+        <div class="row">
+          <button class="btn primary" id="run-invariants">Run invariant check</button>
+          <button class="btn" id="refresh-status">Refresh status</button>
+        </div>
+        <details class="tech">
+          <summary>View technical details</summary>
+          <div id="invariant-detail" class="small"></div>
+          <p class="small muted">Service status comes from each service's <code>/actuator/health</code>, which includes its database connection.
+            PostgreSQL and Kafka are not listed separately because their health cannot be observed directly from here.</p>
+        </details>
+      </div>
+
+      <div class="card how">
+        <h2>How LedgerFlow works</h2>
+        <ol class="flow-vertical">
+          <li>Payment</li>
+          <li>Payment Service <small>saves it and queues a message</small></li>
+          <li>Kafka <small>delivers the message</small></li>
+          <li>Ledger Service <small>moves the money, exactly once</small></li>
+          <li>Completed / Failed</li>
+        </ol>
+        <p>LedgerFlow prevents duplicate financial effects, overdrafts and inconsistent balances, even when requests are retried or processed concurrently.</p>
+        <details class="tech">
+          <summary>View technical details</summary>
+          <ul class="small compact">
+            <li><b>Idempotency:</b> each request ID is stored first; a repeat returns the stored original response, and the same ID with a different body is refused (422).</li>
+            <li><b>Transactional outbox:</b> the payment and its <code>PaymentRequested</code> event are saved in one database transaction, then published to Kafka. Nothing is lost if a service crashes.</li>
+            <li><b>Idempotent consumers:</b> every event id is recorded with its effect, so a redelivered message changes nothing.</li>
+            <li><b>No overdraft:</b> the ledger locks both accounts in a fixed order, checks funds under the lock and writes balanced debit/credit entries (<code>LedgerPosted</code> / <code>LedgerRejected</code>).</li>
+            <li><b>Recovery:</b> a payment still processing after 30 s is asked about again; the ledger replays its recorded decision instead of moving money twice.</li>
+            <li><b>Invariants I1–I6:</b> ledger sums to zero · posted at most once · accepted payments finish · no negative balances · balances match entries · request IDs consistent.</li>
+          </ul>
+        </details>
+      </div>
+    </div>
+
+    <div class="card deployment">
+      <h2>Deployment</h2>
+      <ul class="status-list">
+        <li><span>Deployment mode</span><b class="plain">Local single-instance demo</b></li>
+        <li><span>High availability</span><b class="plain">Not configured</b></li>
+        <li><span>Recovery / correctness</span><b class="ok">Verified</b></li>
+      </ul>
+      <p class="small muted">LedgerFlow's local demo intentionally runs one instance of each part (one database, one Kafka broker, one of each service).
+        It demonstrates safe recovery and financial correctness under temporary failure, not zero-downtime high availability:
+        if a part is down, payments wait, and nothing is lost or doubled when it comes back.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">LedgerFlow demo · payment-service and ledger-service · PostgreSQL · Kafka</footer>
+</body>
+</html>

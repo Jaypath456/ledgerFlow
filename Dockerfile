@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1
 # One build stage for both services; pick the runtime with --target (Compose does).
 FROM maven:3.9.11-eclipse-temurin-25 AS build
 WORKDIR /src

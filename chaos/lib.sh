@@ -67,6 +67,27 @@ dlt_total() {
   echo $sum
 }
 
+elapsed_since() { awk -v s="$1" -v e="$(date +%s.%N)" 'BEGIN { printf "%.1f", e - s }'; }
+
+probe_recovery() { # seconds from $1 (epoch) until a new probe payment completes end to end
+  # probe accounts: PROBE_PAYER/PROBE_PAYEE (default: the chaos seed's probe 30000 -> merchant 20001)
+  local start=$1 key id s i
+  while [ "$(elapsed_since "$start" | cut -d. -f1)" -lt 300 ]; do
+    key="probe-$(date +%s%N)"
+    id=$(curl -fsS -m 5 -X POST "$PAYMENT_URL/api/payments" -H 'Content-Type: application/json' -H "Idempotency-Key: $key" \
+         -d "{\"payerAccountId\":${PROBE_PAYER:-30000},\"payeeAccountId\":${PROBE_PAYEE:-20001},\"amountMinor\":1,\"currency\":\"USD\"}" 2>/dev/null | jq -r '.id // empty' 2>/dev/null)
+    if [ -n "$id" ]; then
+      for i in $(seq 1 50); do
+        s=$(curl -fsS -m 2 "$PAYMENT_URL/api/payments/$id" 2>/dev/null | jq -r '.status // empty' 2>/dev/null)
+        [ "$s" = COMPLETED ] && { elapsed_since "$start"; return 0; }
+        sleep 0.1
+      done
+    fi
+    sleep 0.5
+  done
+  echo TIMEOUT; return 1
+}
+
 k6_run() { # k6_run OUT_DIR RATE DURATION [extra -e args...]
   local out=$1 rate=$2 duration=$3; shift 3
   mkdir -p "$out" && chmod 777 "$out"

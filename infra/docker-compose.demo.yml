@@ -1,0 +1,14 @@
+# Demo overlay (used by ./start.sh with project name "ledgerflow-demo"; own volume).
+# Activates the demo Spring profile (dashboard + /demo endpoints) and the demo risk settings.
+# The base infra/docker-compose.yml keeps the normal, production-like defaults.
+services:
+  payment-service:
+    environment:
+      SPRING_PROFILES_ACTIVE: demo
+      # Velocity limit raised so the race scenarios reach ledger concurrency (normal default: 5 per 60 s).
+      RISK_VELOCITY_MAX: "1000000"
+      # An account the risk-rule demo can show being blocked.
+      RISK_BLOCKED_ACCOUNTS: "999999"
+  ledger-service:
+    environment:
+      SPRING_PROFILES_ACTIVE: demo

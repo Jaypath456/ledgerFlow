@@ -27,3 +27,7 @@ Service images (`Dockerfile`) and Compose services; `chaos/bench.sh` (k6 load + 
 `docker compose -f infra/docker-compose.yml up --build` runs Postgres, Kafka and both services (Actuator health UP); README; docs updated; CI keeps running `./mvnw -B verify` (no image builds or publishing).
 
 Status: Phases 0–6 complete. No cloud deployment, Kubernetes, Redis, auth, gateway or extra services by design.
+
+## Phase 7 — Demo experience
+`./start.sh` / `./stop.sh` / `./reset.sh` (Compose project `ledgerflow-demo` + `infra/docker-compose.demo.yml`); static dashboard served by payment-service under the `demo` profile; narrow demo-only endpoints in both services; `demo/` self-checking scenario scripts (application races and shell-driven infrastructure faults).
+Out of scope: changes to the payment/Kafka/ledger design, new services, HTTP control of infrastructure.

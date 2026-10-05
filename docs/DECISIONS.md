@@ -79,3 +79,45 @@
 
 ## Test isolation (post-Phase 6 fix)
 51. Ledger tests share one Postgres container and one application context (DECISIONS 16). They therefore never post to or from the Flyway-seeded accounts 1–6. `fundedCustomer` funds from a test-only SYSTEM account created once per test database, so the canonical seed (SYSTEM −175000; customers 100000 / 50000 / 25000; merchants 0) holds in any class or method order. `LedgerInvariants.assertAll()` also asserts that baseline, so a test that touches a seeded account fails itself, not some later test. `LedgerDbSmokeTest` uses the shared context instead of its own `@SpringBootTest`, because a second context would join the same Kafka consumer group and take partitions from the context the Kafka tests observe.
+
+## Phase 7 — demo experience
+52. The demo is a separate Compose project, `ledgerflow-demo`, with its own volume: `infra/docker-compose.yml` plus the overlay `infra/docker-compose.demo.yml`. `start.sh`, `stop.sh` and `reset.sh` only ever address that project. The base Compose file and its production-like defaults are unchanged.
+53. The `demo` Spring profile gates everything demo-specific (`@Profile("demo")`). The default profile has no dashboard, no `/demo/**` and no CORS; an e2e test asserts this against the default-profile stack.
+54. The demo's risk settings come from the overlay's environment, not from the profile's config: velocity limit 1,000,000/60 s so the race scenarios reach ledger concurrency, and blocked account 999999. The normal default of 5/60 s is untouched. Test contexts therefore run with `demo` active without changing the velocity tests.
+55. The dashboard is plain HTML/CSS and ES modules under `payment-service/src/main/resources/dashboard/`, mapped to `/` only in the demo profile. Nothing sits in `/static`. No build step, CDN or npm.
+56. Demo endpoints are narrow. Nothing on them executes SQL or shell, or controls Docker or processes.
+    - ledger-service:
+      - create fresh accounts, each request with its own SYSTEM treasury, funded via `LedgerService.post` (double entry, never the seeded accounts; caps: 10 accounts, $1,000,000 each);
+      - read balances;
+      - read the outcome and posting count per payment;
+      - ledger-schema invariant counts (I1, I2 duplicates, I4, I5);
+      - Postgres's deadlock counter.
+    - payment-service:
+      - batch payment status;
+      - the risk settings in effect;
+      - payments-schema invariant counts (I6, and I3 as "nothing stuck beyond 30 s");
+      - `POST /demo/burst`.
+    CORS on ledger-service allows only `http://localhost:8081` / `127.0.0.1:8081`, GET/POST.
+57. `POST /demo/burst` exists because browsers keep about 6 HTTP/1.1 connections per origin, so a page cannot create real 200-way contention. It sends up to 500 ordinary `POST /api/payments` requests over loopback HTTP, all released together (virtual threads plus a latch). It can do nothing a client could not. The shell scripts get real concurrency from one background `curl` per request.
+58. Invariants are shown honestly per schema. Each service can read only its own schema (DECISIONS 3), so the dashboard shows each service's checks. The cross-schema parts (COMPLETED ⇔ POSTED, no posting for FAILED/DECLINED) are verified per scenario for that scenario's payments. The whole-database cross-schema check is `./demo/run.sh invariants`, which runs `chaos/verify_invariants.sql` as the superuser.
+59. Infrastructure faults (kill, restart, pause) remain shell-only (`demo/*.sh`, `chaos/`). `probe_recovery` moved from `chaos/run_chaos.sh` into `chaos/lib.sh` so demo scripts can reuse it. The probe accounts became overridable; the defaults keep the chaos campaign's behaviour.
+
+## Phase 7 — interactive accounts, playground, resilience lab
+60. **Not highly available, by design.** The local deployment runs one Postgres, one Kafka broker and one instance of each service. LedgerFlow demonstrates correctness under failure and safe recovery: retries don't duplicate money, duplicate delivery is harmless, concurrent spending can't overdraft, there are no partial ledger writes, and invariants hold. It does not demonstrate zero downtime. The System page states this ("Local single-instance demo / High availability: Not configured").
+61. **Named demo accounts** (Jay, Ajay, user-created). The `demo` profile creates a label table `demo_account_names(account_id, name, treasury_account_id)` at startup (`CREATE TABLE IF NOT EXISTS`), not via Flyway, so the normal-profile schema is unchanged. The table holds labels only. Each named account is a normal CUSTOMER account funded from its own SYSTEM treasury through `LedgerService.post`. On an empty table the demo creates Jay ($75) and Ajay ($100), i.e. after every `./reset.sh`. Names are unique, ignoring case. "Set example balances" moves differences between a named account and its own treasury with ordinary balanced postings; it never writes a balance directly, and only named demo accounts qualify.
+62. **Transaction Playground runner** (`POST /demo/transactions`, 2–5 transactions, start delay 0–10 s). Each transaction runs on its own virtual thread: it waits its delay, then sends a normal `POST /api/payments` over loopback with the browser-generated idempotency key, then follows the payment to a final state by polling every 20 ms (up to 60 s). It reports times the runner itself measured: sent, API response, and final state observed. Nothing else (locks, Kafka) is claimed. It never calls LedgerService directly. Locking is the ledger's ordinary ascending-id order; there is no special path for the UI.
+63. **Race demos validate properties, not winners.** A run PASSes when:
+    - every payment reaches a final state;
+    - no balance is negative;
+    - COMPLETED payments are posted exactly once and FAILED ones not at all;
+    - the sum of balances is unchanged;
+    - each account's balance equals its before-balance adjusted by the completed payments;
+    - the invariant checks are clean.
+
+    A FAILED payment (e.g. insufficient funds) is a correct outcome. Tests assert these properties and never which payment wins.
+64. **Resilience controls are application-level and profile-isolated.** `/demo/controls` exists only under the `demo` profile:
+    - ledger: pause/resume of its Kafka listener (`KafkaListenerEndpointRegistry`), and a real per-message processing delay (0–10 s);
+    - payment: pause/resume of its result listener, and "lose results", which acknowledges results without recording them (no `processed_events` row), so only the existing reconciler can recover the payment.
+
+    The listener hooks come in through `ObjectProvider` and are absent outside the profile. Docker, process, SQL and Kafka-admin control stay outside HTTP (shell scripts only).
+65. The Dockerfile's `# syntax=docker/dockerfile:1` line was removed. It made every build fetch a frontend image from Docker Hub, so `./start.sh` failed offline, even with all base images cached. Docker's built-in frontend supports the `RUN --mount=type=cache` the file uses.

@@ -145,3 +145,70 @@ Earlier attempts, kept for the record:
 - Regression test `SeedIsolationTest` runs the concurrency, randomized and Kafka tests first, then the seed check. With the old funding source it fails the same way (−2184000); with the fix it passes.
 - Order independence: ledger-service passed 21/21 under alphabetical, reverse-alphabetical and random class order (seeds 11, 22, 33), plus random method order (seeds 22, 33). Each run used a fresh JVM and container.
 - `./mvnw clean verify`: pass, 58 tests.
+
+## Phase 7 (demo experience), 2026-10-05
+Same host as Phase 5. Single runs, recorded as observed. These are demonstrations, not benchmarks; the historical sessions above are unchanged.
+- `./mvnw clean verify`: pass, **70 tests**: the 58 existing plus 12 new.
+  - payment-service 28 (+5 `DemoPaymentTest`): dashboard served, burst, cap, config, invariant summary.
+  - ledger-service 26 (+5 `DemoLedgerTest`): isolated funded accounts, validation, read-outs, invariant summary with rolled-back corruption, deadlock counter.
+  - e2e-tests 16 (+2 `DemoDisabledTest`): no dashboard, `/demo/**` or CORS in the default profile; velocity limit still 5/60 s.
+- `./start.sh` from a stopped state: all 4 containers healthy and both `/actuator/health` UP in 42 s.
+- `./stop.sh` then `./start.sh`: data kept (1,576 payments before and after).
+- `./reset.sh --yes`: removed only project `ledgerflow-demo` (its containers, network and volume). It restarted on the clean Flyway seed (0 payments, SYSTEM −175000, 6 accounts); volume `ledgerflow_pgdata` was untouched. Answering "n" cancels.
+- Dashboard: `/` and all assets 200 with correct MIME types. Headless Chrome rendered live data (both services UP, invariants PASS, 6 invariant rows, 8 scenario cards, 5 shell commands). CORS from `:8081` is allowed; any other origin gets 403.
+- Dashboard scenarios, using the dashboard's own unmodified modules against the live stack: 8/8 PASS, again 8/8 after a reset.
+
+| Scenario | Measured |
+|---|---|
+| Happy path | 202 → COMPLETED; payer $75.00, payee $25.00; 1 posting |
+| Insufficient funds | 202 → FAILED (`INSUFFICIENT_FUNDS`); payer $10.00, payee $0.00; 0 postings |
+| Idempotent retry | 2 requests, both 202; second replayed, byte-identical; 1 payment id; 1 posting |
+| Idempotency conflict | 202, then 422 with no payment id; original $10.00; payer $90.00; 1 posting |
+| Same-key race | 32 sent, 32 responses (burst 133 ms); 1 payment id; 31 replays; 1 posting |
+| Hot-account race | 200 × $10.00 from $500.00 (burst 313 ms); 50 COMPLETED, 150 FAILED; ending $0.00; payee $500.00; 50 postings; 0 duplicates |
+| Opposite-direction | 100 A→B + 100 B→A; 200 COMPLETED; 0 errors; Postgres deadlocks +0; A $100.00, B $100.00 |
+| Risk rules | > $10,000 → 201 DECLINED `AMOUNT_LIMIT`; account 999999 → 201 DECLINED `BLOCKED_ACCOUNT`; 0 postings |
+
+- With ledger-service stopped, a scenario reports FAIL as an infrastructure error, and the shell scripts exit 2.
+- Shell scenarios: `./demo/run.sh all` passed all 9 application scenarios, with the same outcomes as the table. The full cross-schema check (`chaos/verify_invariants.sql`) reported 0 violations.
+- Infrastructure demos, each with 250 × $1.00 background payments:
+
+| Demo | Recovery (new payment completes) | Outcome |
+|---|---|---|
+| `ledger-crash` (kill -9, restart after 3 s) | 42.7 s | 250/250 COMPLETED, each posted once; payer $750.00 as expected; 0 violations |
+| `kafka-restart` | 19.3 s | 250/250 COMPLETED; 0 duplicates; 0 violations |
+| `postgres-pause` (10 s) | 0.2 s after unpause | 250/250 COMPLETED; 0 duplicates; 0 violations |
+
+## Phase 7 — interactive accounts, Transaction Playground, Resilience Lab (2026-10-05)
+Single observed runs on the same host, recorded as they happened. These are demonstrations, not benchmarks. Race outcomes vary between runs; every run was judged by correctness properties only.
+- `./mvnw clean verify`: pass, **94 tests**: the 70 existing plus 24 new.
+  - ledger-service 33 (+7 `DemoNamedAccountsTest`).
+  - payment-service 33 (+5 `DemoRunnerAndControlsTest`).
+  - e2e-tests 28 (+8 `PlaygroundTest`, +4 `ResilienceTest` on a separate demo-profile stack; `DemoDisabledTest` extended to the new endpoints).
+- After `./reset.sh --yes`: Jay #1001 $75.00 and Ajay #1003 $100.00 exist with real ledger balances. "+ Create account" created Jaysus #1005 at $100.00. A duplicate name (any case) is refused: "An account with that name already exists."
+- Payments by name through the dashboard: Jay → Ajay $25, Ajay → Jaysus $10, Jaysus → Jay $5, all COMPLETED (0.29–0.97 s). Balances after refresh: Jay $55.00, Ajay $115.00, Jaysus $105.00.
+- Transaction Playground, through the dashboard UI (headless Chrome), starting from the example balances Jay $75, Ajay $100, Jaysus $100, all **PASS**:
+
+| Example | Observed |
+|---|---|
+| Dependency race (Jay → Ajay $50, Ajay → Jaysus $140) | Dashboard run: **both COMPLETED** (Jay's credit landed first): Jay $25, Ajay $10, Jaysus $240. Three earlier runs (dashboard modules from Node): **Ajay → Jaysus FAILED** (insufficient funds), Jay $25, Ajay $150, Jaysus $100. Both are valid; all PASS. |
+| Shared receiver (Jay → Ajay $50, Jaysus → Ajay $50) | Both COMPLETED; Ajay $100 → $200 (no lost update) |
+| Shared payer (Jay → Ajay $60, Jay → Jaysus $15) | Both COMPLETED; Jay $75 → $0 |
+| Shared payer, not enough (Jay → Ajay $60, Jay → Jaysus $25) | Dashboard run: $25 COMPLETED, $60 FAILED (Jay $50). Two earlier runs: $60 COMPLETED, $25 FAILED (Jay $15). Never negative; all PASS. |
+| Delayed requests (second request +1000 ms) | Requests sent at 0 and 1000 ms; both COMPLETED; reversed delays reverse the order (0 / 1000 ms) |
+| Custom: Jaysus → Jay $30, Jay → Ajay $90, Ajay → Jaysus $20 (+250 ms) | $30 and $20 COMPLETED; $90 FAILED (insufficient funds); PASS |
+| User-created accounts (Node run): Alice/Bob 3-way custom, 5-way ring across 5 accounts | PASS; the ring left every balance unchanged |
+
+- Resilience Lab, from the dashboard (every experiment ended with exactly 1 ledger posting and invariants passed):
+
+| Experiment | Observed |
+|---|---|
+| Ledger processing paused, then resumed | System page showed "Ledger processing: PAUSED". A payment (Jay → Ajay $25 on the Payments page) stayed "Processing…" for 4 s with Jay's balance unchanged ($30.00 / $30.00), then COMPLETED after resume (Jay $30 → $5). Experiment card: PASS. |
+| Result processing paused, then resumed | Ledger outcome POSTED and payer already $75 while the payment still showed "Processing…"; COMPLETED after resume; PASS |
+| Lost result, recovered by reconciliation | Ledger POSTED; payment "Processing…"; recovered by the reconciler after 37–39 s (3 runs); the ledger sent its result twice (original + re-emitted); PASS |
+| 2 s ledger delay | Payment stayed "Processing…" 2.1 s, then COMPLETED; PASS |
+| 5 s ledger delay | 5.1–5.3 s, then COMPLETED; PASS |
+| Reset demo faults | Paused results and a 2 s delay, then reset: every control back to RUNNING / DELIVERED / NONE |
+
+- System page: Payment and Ledger services UP, invariants PASS, ledger and result processing RUNNING, "Deployment mode: Local single-instance demo · High availability: Not configured · Recovery/correctness: Verified".
+- Reliability Tests (dashboard, after all of the above): 8/8 PASS.

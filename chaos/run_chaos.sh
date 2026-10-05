@@ -23,26 +23,6 @@ CSV=$OUT/runs.csv
 echo "run,scenario,result,k6,recovery_s,settle_s,crashes,dup_ledger,dup_payment,dlt_new,e2e_ms_p50_p95_p99,violations,note" > "$CSV"
 log() { echo "[$(date +%T)] $*" | tee -a "$OUT/chaos.log"; }
 
-elapsed_since() { awk -v s="$1" -v e="$(date +%s.%N)" 'BEGIN { printf "%.1f", e - s }'; }
-
-probe_recovery() { # seconds from $1 (epoch) until a new probe payment completes end to end
-  local start=$1 key id s i
-  while [ "$(elapsed_since "$start" | cut -d. -f1)" -lt 300 ]; do
-    key="probe-$(date +%s%N)"
-    id=$(curl -fsS -m 5 -X POST "$PAYMENT_URL/api/payments" -H 'Content-Type: application/json' -H "Idempotency-Key: $key" \
-         -d '{"payerAccountId":30000,"payeeAccountId":20001,"amountMinor":1,"currency":"USD"}' 2>/dev/null | jq -r '.id // empty' 2>/dev/null)
-    if [ -n "$id" ]; then
-      for i in $(seq 1 50); do
-        s=$(curl -fsS -m 2 "$PAYMENT_URL/api/payments/$id" 2>/dev/null | jq -r '.status // empty' 2>/dev/null)
-        [ "$s" = COMPLETED ] && { elapsed_since "$start"; return 0; }
-        sleep 0.1
-      done
-    fi
-    sleep 0.5
-  done
-  echo TIMEOUT; return 1
-}
-
 restarts() { local n=0 svc; for svc in "$@"; do n=$(( n + $(docker inspect -f '{{.RestartCount}}' "$($C ps -q "$svc")") )); done; echo $n; }
 
 with_chaos() { # with_chaos SERVICE FAULT PROBABILITY  (recreates the service with the chaos profile)
