@@ -11,6 +11,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.kafka.KafkaContainer;
@@ -24,6 +25,7 @@ import org.testcontainers.utility.MountableFile;
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {PaymentServiceApplication.CONFIG_NAME, "ledgerflow.risk.blocked-accounts=666"})
+@ActiveProfiles("chaos") // FaultInjector present but idle; tests arm single faults
 abstract class PaymentTestSupport {
 
     static final long BLOCKED_ACCOUNT = 666;

@@ -10,6 +10,7 @@ import static com.ledgerflow.ledger.PostgresTestSupport.readAll;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
+import com.ledgerflow.common.FaultInjector;
 import com.ledgerflow.common.PaymentRequested;
 import com.ledgerflow.common.Topics;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -81,6 +82,26 @@ class LedgerKafkaTest {
         assertThat(outboxRows(event.paymentId())).isEqualTo(1);
         assertThat(balance(payer)).isEqualTo(750);
         assertThat(balance(payee)).isEqualTo(250);
+    }
+
+    @Test
+    void crashAfterLedgerCommitBeforeAckIsAbsorbedByDedupe() {
+        long payer = fundedCustomer(1_000);
+        long payee = createAccount(AccountType.MERCHANT);
+        var event = PaymentRequested.of(UUID.randomUUID(), payer, payee, 120);
+        double duplicatesBefore = duplicates();
+
+        context().getBean(FaultInjector.class).armOnce(FaultInjector.Point.AFTER_LEDGER_COMMIT_BEFORE_ACK);
+        send(event);
+
+        // First attempt commits then "crashes" before the offset commit; the redelivery is a duplicate.
+        await().atMost(WAIT).until(() -> duplicates() - duplicatesBefore >= 1);
+        assertThat(awaitOutcome(event.paymentId()).get("status")).isEqualTo("POSTED");
+        assertThat(ledgerTransactions(event.paymentId())).isEqualTo(1);
+        assertThat(outboxRows(event.paymentId())).isEqualTo(1);
+        assertThat(balance(payer)).isEqualTo(880);
+        assertThat(readAll(Topics.PAYMENTS_REQUESTED + Topics.DLT_SUFFIX).stream()
+                .noneMatch(r -> r.value().contains(event.eventId().toString()))).isTrue();
     }
 
     @Test

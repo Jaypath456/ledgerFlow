@@ -3,6 +3,7 @@ package com.ledgerflow.payment;
 import com.ledgerflow.common.OutboxRelay;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -55,6 +56,26 @@ class PaymentRepository {
 
     Optional<Payment> find(UUID id) {
         return jdbc.sql("SELECT * FROM payments WHERE id = ?").param(id).query(PaymentRepository::payment).optional();
+    }
+
+    /**
+     * Locks stale PENDING_LEDGER payments that have no unpublished outbox row (an unsent request
+     * is still on its way; re-requesting would only pile up duplicates).
+     */
+    List<Payment> lockStalePending(int staleAfterSeconds, int limit) {
+        return jdbc.sql("""
+                        SELECT * FROM payments p
+                        WHERE p.status = 'PENDING_LEDGER'
+                          AND p.updated_at < now() - (? * interval '1 second')
+                          AND NOT EXISTS (SELECT 1 FROM outbox o WHERE o.aggregate_id = p.id AND o.published_at IS NULL)
+                        ORDER BY p.updated_at LIMIT ? FOR UPDATE OF p SKIP LOCKED""")
+                .params(staleAfterSeconds, limit)
+                .query(PaymentRepository::payment)
+                .list();
+    }
+
+    void touch(UUID id) {
+        jdbc.sql("UPDATE payments SET updated_at = now() WHERE id = ?").param(id).update();
     }
 
     void insertOutbox(UUID aggregateId, String topic, String eventKey, String payloadJson) {

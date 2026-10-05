@@ -1,5 +1,6 @@
 package com.ledgerflow.ledger;
 
+import com.ledgerflow.common.FaultInjector;
 import com.ledgerflow.common.LedgerPosted;
 import com.ledgerflow.common.LedgerRejected;
 import com.ledgerflow.common.OutboxRelay;
@@ -9,6 +10,7 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -33,9 +35,11 @@ class PaymentRequestListener {
     private final TransactionTemplate savepoint;
     private final Counter duplicates;
     private final Counter reemitted;
+    private final ObjectProvider<FaultInjector> faults;
 
     PaymentRequestListener(JdbcClient jdbc, LedgerService ledger, JsonMapper json,
-                           PlatformTransactionManager tm, MeterRegistry meters) {
+                           PlatformTransactionManager tm, MeterRegistry meters, ObjectProvider<FaultInjector> faults) {
+        this.faults = faults;
         this.jdbc = jdbc;
         this.ledger = ledger;
         this.json = json;
@@ -50,6 +54,8 @@ class PaymentRequestListener {
     @KafkaListener(topics = Topics.PAYMENTS_REQUESTED)
     void onMessage(String value) {
         handle(json.readValue(value, PaymentRequested.class));
+        // Committed but offset not yet committed: a crash here means redelivery, absorbed by dedupe.
+        faults.ifAvailable(f -> f.hit(FaultInjector.Point.AFTER_LEDGER_COMMIT_BEFORE_ACK));
     }
 
     void handle(PaymentRequested event) {

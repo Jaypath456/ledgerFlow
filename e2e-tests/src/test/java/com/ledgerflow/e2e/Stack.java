@@ -53,7 +53,8 @@ final class Stack {
                 "--spring.datasource.url=" + POSTGRES.getJdbcUrl(),
                 "--spring.datasource.username=" + dbUser,
                 "--spring.datasource.password=" + dbUser,
-                "--spring.kafka.bootstrap-servers=" + KAFKA.getBootstrapServers());
+                "--spring.kafka.bootstrap-servers=" + KAFKA.getBootstrapServers(),
+                "--ledgerflow.reconcile.interval-ms=1000"); // stale threshold stays 30 s
     }
 
     static JdbcClient ledgerDb() {
@@ -79,6 +80,10 @@ final class Stack {
                 .query(Long.class).single();
     }
 
+    static void post(long fromAccount, long toAccount, long amountMinor) {
+        LEDGER.getBean(LedgerService.class).post(UUID.randomUUID(), fromAccount, toAccount, amountMinor);
+    }
+
     static long ledgerTransactions(UUID paymentId) {
         return ledgerDb().sql("SELECT count(*) FROM ledger_transactions WHERE payment_id = ?").param(paymentId)
                 .query(Long.class).single();
@@ -94,6 +99,11 @@ final class Stack {
                 .header("Content-Type", "application/json")
                 .header("Idempotency-Key", idempotencyKey)
                 .POST(HttpRequest.BodyPublishers.ofString(body)).build());
+    }
+
+    static JsonNode awaitTerminal(UUID id) {
+        return org.awaitility.Awaitility.await().atMost(java.time.Duration.ofSeconds(90))
+                .until(() -> payment(id), p -> !p.get("status").asString().equals("PENDING_LEDGER"));
     }
 
     static JsonNode payment(UUID id) throws Exception {

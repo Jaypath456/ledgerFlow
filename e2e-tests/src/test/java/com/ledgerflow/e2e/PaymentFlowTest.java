@@ -1,22 +1,19 @@
 package com.ledgerflow.e2e;
 
 import static com.ledgerflow.e2e.Stack.account;
+import static com.ledgerflow.e2e.Stack.awaitTerminal;
 import static com.ledgerflow.e2e.Stack.balance;
 import static com.ledgerflow.e2e.Stack.ledgerTransactions;
 import static com.ledgerflow.e2e.Stack.pay;
 import static com.ledgerflow.e2e.Stack.payment;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 
-import java.time.Duration;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
 
 /** POST → outbox → Kafka → ledger → outbox → Kafka → payment status, with both real services. */
 class PaymentFlowTest {
-
-    private static final Duration WAIT = Duration.ofSeconds(60);
 
     @Test
     void fundedPaymentReachesCompletedAndMovesMoneyOnce() throws Exception {
@@ -75,10 +72,5 @@ class PaymentFlowTest {
         assertThat(retry.body().get("id").asString()).isEqualTo(id.toString());
         assertThat(ledgerTransactions(id)).isEqualTo(1);
         assertThat(balance(payer)).isEqualTo(700);
-    }
-
-    private static JsonNode awaitTerminal(UUID id) {
-        return await().atMost(WAIT).until(() -> payment(id),
-                p -> !p.get("status").asString().equals("PENDING_LEDGER"));
     }
 }

@@ -1,8 +1,12 @@
 package com.ledgerflow.common;
 
+import java.util.Set;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
@@ -43,7 +47,17 @@ public class MessagingConfig {
     }
 
     @Bean
-    OutboxRelay outboxRelay(JdbcClient jdbc, PlatformTransactionManager tm, KafkaTemplate<String, String> kafka) {
-        return new OutboxRelay(jdbc, tm, kafka);
+    OutboxRelay outboxRelay(JdbcClient jdbc, PlatformTransactionManager tm, KafkaTemplate<String, String> kafka,
+                            ObjectProvider<FaultInjector> faults) {
+        return new OutboxRelay(jdbc, tm, kafka, faults);
+    }
+
+    @Bean
+    @Profile("chaos")
+    FaultInjector faultInjector(
+            @Value("${ledgerflow.chaos.faults:}") Set<FaultInjector.Point> points,
+            @Value("${ledgerflow.chaos.probability:0.01}") double probability,
+            @Value("${ledgerflow.chaos.action:halt}") String action) {
+        return new FaultInjector(points, probability, action.equals("halt"));
     }
 }

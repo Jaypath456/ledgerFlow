@@ -1,10 +1,12 @@
 package com.ledgerflow.payment;
 
+import com.ledgerflow.common.FaultInjector;
 import com.ledgerflow.common.PaymentRequested;
 import com.ledgerflow.common.Topics;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,11 +22,14 @@ public class PaymentService {
     private final PaymentRepository repo;
     private final List<RiskRule> riskRules;
     private final JsonMapper json;
+    private final ObjectProvider<FaultInjector> faults;
 
-    PaymentService(PaymentRepository repo, List<RiskRule> riskRules, JsonMapper json) {
+    PaymentService(PaymentRepository repo, List<RiskRule> riskRules, JsonMapper json,
+                   ObjectProvider<FaultInjector> faults) {
         this.repo = repo;
         this.riskRules = riskRules;
         this.json = json;
+        this.faults = faults;
     }
 
     /**
@@ -58,6 +63,7 @@ public class PaymentService {
             var event = PaymentRequested.of(id, request.payerAccountId(), request.payeeAccountId(), request.amountMinor());
             repo.insertOutbox(id, Topics.PAYMENTS_REQUESTED, String.valueOf(request.payerAccountId()),
                     json.writeValueAsString(event));
+            faults.ifAvailable(f -> f.hit(FaultInjector.Point.BEFORE_PAYMENT_OUTBOX_COMMIT));
             status = HttpStatus.ACCEPTED.value();
         }
         String body = json.writeValueAsString(repo.find(id).orElseThrow());

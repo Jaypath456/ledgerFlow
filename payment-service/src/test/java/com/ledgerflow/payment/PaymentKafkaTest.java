@@ -3,6 +3,7 @@ package com.ledgerflow.payment;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
+import com.ledgerflow.common.FaultInjector;
 import com.ledgerflow.common.LedgerPosted;
 import com.ledgerflow.common.LedgerRejected;
 import com.ledgerflow.common.Topics;
@@ -39,6 +40,12 @@ class PaymentKafkaTest extends PaymentTestSupport {
     @Autowired
     MeterRegistry meters;
 
+    @Autowired
+    FaultInjector faults;
+
+    @Autowired
+    Reconciler reconciler;
+
     @Test
     void acceptedPaymentIsRelayedToKafkaExactlyOnceAndMarkedPublished() {
         long payer = ACCOUNTS.incrementAndGet();
@@ -56,6 +63,43 @@ class PaymentKafkaTest extends PaymentTestSupport {
         assertThat(json.readTree(record.value()).get("paymentId").asString()).isEqualTo(id.toString());
         assertThat(jdbc.sql("SELECT count(*) FROM outbox WHERE aggregate_id = ?").param(id)
                 .query(Long.class).single()).isEqualTo(1);
+    }
+
+    @Test
+    void crashAfterPublishBeforeMarkRepublishesAndStillMarksOnce() {
+        faults.armOnce(FaultInjector.Point.AFTER_OUTBOX_PUBLISH_BEFORE_MARK);
+        UUID id = accept(ACCOUNTS.incrementAndGet());
+
+        await().atMost(WAIT).until(() -> jdbc.sql(
+                "SELECT published_at IS NOT NULL FROM outbox WHERE aggregate_id = ?").param(id).query(Boolean.class).single());
+        var copies = await().atMost(WAIT).until(
+                () -> readAll(Topics.PAYMENTS_REQUESTED).stream().filter(r -> r.value().contains(id.toString()))
+                        .map(r -> json.readTree(r.value()).get("eventId").asString()).toList(),
+                list -> list.size() >= 2);
+        assertThat(copies).containsOnly(copies.getFirst()); // same event published twice: consumers dedupe
+        assertThat(jdbc.sql("SELECT count(*) FROM outbox WHERE aggregate_id = ?").param(id)
+                .query(Long.class).single()).isEqualTo(1);
+    }
+
+    @Test
+    void reconcilerReRequestsOnlyStalePendingPayments() {
+        UUID stale = accept(ACCOUNTS.incrementAndGet());
+        UUID fresh = accept(ACCOUNTS.incrementAndGet());
+        await().atMost(WAIT).until(() -> jdbc.sql("SELECT count(*) FROM outbox WHERE published_at IS NULL")
+                .query(Long.class).single() == 0);
+        jdbc.sql("UPDATE payments SET updated_at = now() - interval '31 seconds' WHERE id = ?").param(stale).update();
+
+        // Other tests' payments may be stale too (and the scheduled run may get there first): assert ours only.
+        reconciler.reconcile();
+        assertThat(outboxRows(stale)).isEqualTo(2);
+        assertThat(outboxRows(fresh)).isEqualTo(1);
+        var requests = jdbc.sql("SELECT payload->>'eventId' FROM outbox WHERE aggregate_id = ?").param(stale)
+                .query(String.class).list();
+        assertThat(requests).doesNotHaveDuplicates(); // fresh eventId, so the ledger does not drop it as a duplicate
+
+        // Touched: not re-requested again until another stale period passes.
+        reconciler.reconcile();
+        assertThat(outboxRows(stale)).isEqualTo(2);
     }
 
     @Test
@@ -122,6 +166,10 @@ class PaymentKafkaTest extends PaymentTestSupport {
 
     private PaymentStatus status(UUID id) {
         return payments.find(id).orElseThrow().status();
+    }
+
+    private long outboxRows(UUID paymentId) {
+        return jdbc.sql("SELECT count(*) FROM outbox WHERE aggregate_id = ?").param(paymentId).query(Long.class).single();
     }
 
     private boolean processed(UUID eventId) {

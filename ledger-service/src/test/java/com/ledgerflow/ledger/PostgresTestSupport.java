@@ -55,7 +55,8 @@ final class PostgresTestSupport {
                             "--spring.datasource.password=ledger_user",
                             "--spring.datasource.hikari.maximum-pool-size=40",
                             "--spring.kafka.bootstrap-servers=" + KAFKA.getBootstrapServers(),
-                            "--" + LedgerServiceApplication.CONFIG_NAME);
+                            "--" + LedgerServiceApplication.CONFIG_NAME,
+                            "--spring.profiles.active=chaos"); // FaultInjector present but idle
         }
         return context;
     }

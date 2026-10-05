@@ -28,3 +28,12 @@
 - Poison (invalid JSON, missing fields, version 2, unknown eventType) → retried 3× at 500 ms, then `<topic>-dlt`; valid events behind them on the same partition were processed.
 - Ledger invariants I1, I2, I4, I5 asserted after every ledger Kafka test.
 - Environment note: the dev machine was under memory pressure during these runs (≈7.5 GB swap in use), so Spring context startup in tests took up to ~85 s.
+
+## Phase 4 (recovery, reconciliation, fault injection)
+- `./mvnw clean verify`: pass, 57 tests — payment-service 23 (API 14, Kafka 7, smoke 2), ledger-service 20 (Kafka 8, posting 6, concurrency 3, randomized 1, smoke 2), e2e-tests 14 (flow 4, recovery 3, invariant checker 7).
+- Stale PENDING_LEDGER after the ledger had **posted**: recovered to COMPLETED, still exactly 1 ledger transaction, balances unchanged, stored LedgerPosted re-emitted (2 result rows).
+- Stale PENDING_LEDGER after the ledger had **rejected**, with the payer funded in between: recovered to FAILED (`INSUFFICIENT_FUNDS`), no posting.
+- Accepted payment whose request never reached the ledger: reconciliation posted it once → COMPLETED.
+- Reconciler re-requests only stale payments, with a fresh eventId, at most once per stale period.
+- Fault points (armed once, throw): `BEFORE_PAYMENT_OUTBOX_COMMIT` → 500, no rows, same-key retry succeeds; `AFTER_OUTBOX_PUBLISH_BEFORE_MARK` → same event published twice, row marked once; `AFTER_LEDGER_COMMIT_BEFORE_ACK` → redelivery counted as a duplicate, 1 posting, nothing in the DLT.
+- `verify_invariants.sql`: 0 violations on settled real data from both services. 14 controlled corruptions (each in a rolled-back transaction), each reported under the expected invariant: I1 ×2, I2 ×3, I3 ×3, I4 ×1, I5 ×1, I6 ×4.

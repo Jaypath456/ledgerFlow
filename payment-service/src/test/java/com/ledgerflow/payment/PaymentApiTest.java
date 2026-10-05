@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 
+import com.ledgerflow.common.FaultInjector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -40,6 +41,9 @@ class PaymentApiTest extends PaymentTestSupport {
 
     @MockitoSpyBean
     PaymentRepository repo;
+
+    @Autowired
+    FaultInjector faults;
 
     private final HttpClient http = HttpClient.newHttpClient();
 
@@ -245,6 +249,22 @@ class PaymentApiTest extends PaymentTestSupport {
         var retry = post(key, request);
         assertThat(retry.status()).isEqualTo(202);
         assertThat(retry.raw().headers().firstValue("Idempotent-Replayed")).hasValue("false");
+        assertThat(paymentsForKey(key)).isEqualTo(1);
+        assertThat(outboxRows(UUID.fromString(retry.body().get("id").asString()))).isEqualTo(1);
+    }
+
+    @Test
+    void crashBeforeOutboxCommitLeavesNothingAndRetrySucceeds() throws Exception {
+        String key = UUID.randomUUID().toString();
+        String request = body(ACCOUNTS.incrementAndGet(), ACCOUNTS.incrementAndGet(), 310, "USD");
+        long before = count("payments") + count("idempotency_keys") + count("outbox");
+
+        faults.armOnce(FaultInjector.Point.BEFORE_PAYMENT_OUTBOX_COMMIT);
+        assertThat(post(key, request).status()).isEqualTo(500);
+        assertThat(count("payments") + count("idempotency_keys") + count("outbox")).isEqualTo(before);
+
+        var retry = post(key, request);
+        assertThat(retry.status()).isEqualTo(202);
         assertThat(paymentsForKey(key)).isEqualTo(1);
         assertThat(outboxRows(UUID.fromString(retry.body().get("id").asString()))).isEqualTo(1);
     }

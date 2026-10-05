@@ -18,3 +18,7 @@ Out of scope: Kafka clients, outbox relay, consumers, reconciliation, chaos/load
 ## Phase 3 — Kafka, outbox relay, idempotent consumers
 Shared versioned events (`PaymentRequested`, `LedgerPosted`, `LedgerRejected`) in `common`; topics `payments.requested` (key payer) and `ledger.results` (key paymentId), 3 partitions, DLT after 3 attempts; outbox relays in both services; ledger consumer (dedupe + posting + outcome + result outbox in one transaction); payment result consumer; `e2e-tests` module running both services.
 Out of scope: reconciliation, fault injection, invariant SQL, chaos/load, service containers.
+
+## Phase 4 — Recovery, reconciliation, fault injection
+Reconciler for PENDING_LEDGER payments older than 30 s; fault injection points under the `chaos` profile; `chaos/verify_invariants.sql` (I1–I6) proven against healthy data and controlled corruption.
+Out of scope: chaos runner, load tests, service containers.

@@ -5,6 +5,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -26,11 +27,14 @@ public class OutboxRelay {
     private final JdbcClient jdbc;
     private final TransactionTemplate tx;
     private final KafkaTemplate<String, String> kafka;
+    private final ObjectProvider<FaultInjector> faults;
 
-    OutboxRelay(JdbcClient jdbc, PlatformTransactionManager tm, KafkaTemplate<String, String> kafka) {
+    OutboxRelay(JdbcClient jdbc, PlatformTransactionManager tm, KafkaTemplate<String, String> kafka,
+                ObjectProvider<FaultInjector> faults) {
         this.jdbc = jdbc;
         this.tx = new TransactionTemplate(tm);
         this.kafka = kafka;
+        this.faults = faults;
     }
 
     /** Called inside the caller's transaction; the relay picks the row up after commit. */
@@ -72,6 +76,7 @@ public class OutboxRelay {
                     throw new IllegalStateException("Kafka send not acknowledged", e);
                 }
             }
+            faults.ifAvailable(f -> f.hit(FaultInjector.Point.AFTER_OUTBOX_PUBLISH_BEFORE_MARK));
             jdbc.sql("UPDATE outbox SET published_at = now() WHERE id IN (:ids)")
                     .param("ids", rows.stream().map(Row::id).toList())
                     .update();

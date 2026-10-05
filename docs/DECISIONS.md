@@ -39,3 +39,23 @@
 31. Duplicates absorbed are counted by the Micrometer counter `ledgerflow.events.duplicate` (both services); ledger re-emissions by `ledgerflow.outcomes.reemitted`.
 32. One JVM can host both apps (`e2e-tests`, a test-only module, not a service). To allow that, configs are `payment-service.yml` / `ledger-service.yml` (`spring.config.name` is set in `main` and in tests), migrations are in `db/migration/payments` / `db/migration/ledger`, and the executable jars carry the `exec` classifier. Flyway checksums do not depend on location.
 33. Listener concurrency 3 (= partitions). Gate is `./mvnw clean verify`: `Topics` constants are inlined at compile time, and an incremental build once ran a stale test class.
+
+## Phase 4 — recovery design
+34. **Why payments get stuck, and why nothing is lost.** Every hand-off is an outbox row committed in the same transaction as the state that produced it (payment → PaymentRequested; ledger posting/rejection → result). A crash anywhere leaves either nothing (the transaction rolled back, so the client retries with the same key) or a committed row the relay will (re)publish. Kafka redelivers anything not acknowledged. So a payment normally converges without reconciliation; the reconciler is the safety net for everything else (e.g. a request dead-lettered after 3 failed attempts, or a result that was never applied).
+35. **Reconciler** (payment-service, every 10 s): locks (`FOR UPDATE SKIP LOCKED`) up to 500 PENDING_LEDGER payments with `updated_at` older than 30 s and no *unpublished* outbox row (an unsent request is still in flight). For each, it enqueues a new PaymentRequested with a **fresh eventId** and the same paymentId, then bumps `updated_at`, so each payment is re-requested at most once per 30 s.
+36. **Why a fresh eventId.** A redelivery of the *same* eventId is dropped by the ledger's `processed_events`. That is safe because the original processing committed its result outbox row in the same transaction; the result is already on its way. But a dropped duplicate does nothing for a payment whose result was lost. A fresh eventId gets past dedupe and reaches the outcome lookup.
+37. **Why money never moves twice.** Under the per-payment advisory lock, the ledger checks `payment_outcomes` before posting. If an outcome exists, it re-emits that stored result (POSTED with the original `ledger_transaction_id`, or REJECTED with the original reason) and posts nothing. `ledger_transactions.payment_id UNIQUE` remains the last line of defence. The outcome is final: a payment rejected for insufficient funds stays FAILED even if funds arrive before the retry.
+38. **Applying a recovered result.** The payment consumer dedupes the new result eventId, and its `UPDATE … WHERE status = 'PENDING_LEDGER'` makes the transition at most once. Re-emitted results for already-terminal payments are no-ops.
+39. **Fault injection** exists only under the `chaos` Spring profile (`FaultInjector` bean). Settings: `ledgerflow.chaos.faults` (points), `ledgerflow.chaos.probability`, `ledgerflow.chaos.action=halt|throw`. Halt = `Runtime.halt(1)`, a real crash with no cleanup; Compose restarts the container. Points:
+    - `BEFORE_PAYMENT_OUTBOX_COMMIT`: payment transaction, after the outbox insert, before commit.
+    - `AFTER_OUTBOX_PUBLISH_BEFORE_MARK`: relay, after broker acks, before marking published.
+    - `AFTER_LEDGER_COMMIT_BEFORE_ACK`: ledger listener, after its DB commit, before the offset commit.
+    Tests run with the profile active but no points configured, and use `armOnce(point)` to throw exactly once.
+40. **Invariant checker** `chaos/verify_invariants.sql` (run as postgres across both schemas; one row per violation):
+    - I1: each ledger transaction has ≥ 2 entries summing to 0, and the global sum is 0.
+    - I2: one posting per payment, none for DECLINED/FAILED payments, and the posting's accounts and amount match the payment.
+    - I3: no PENDING_LEDGER; COMPLETED ⇔ ledger outcome POSTED (and a posting exists); FAILED ⇔ REJECTED; DECLINED has no outcome.
+    - I4: non-SYSTEM balances ≥ 0.
+    - I5: cached balance = sum of entries.
+    - I6: exactly one key per payment; each key's request hash (recomputed with `sha256` in SQL), stored response id and status code (201 declined / 202 accepted) match its payment.
+    Funding/seed postings (payment ids not in `payments`) are exempt from the I2/I3 cross-checks by construction. Health remains Spring Boot Actuator `/actuator/health`; no custom heartbeat.
