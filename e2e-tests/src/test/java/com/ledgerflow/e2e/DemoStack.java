@@ -22,6 +22,7 @@ import tools.jackson.databind.json.JsonMapper;
  */
 final class DemoStack {
 
+    @SuppressWarnings("resource")
     static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17")
             .withDatabaseName("ledgerflow")
             .withCopyFileToContainer(

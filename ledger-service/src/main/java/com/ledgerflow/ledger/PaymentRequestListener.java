@@ -103,10 +103,10 @@ class PaymentRequestListener {
 
     private static String reason(LedgerException e) {
         return switch (e) {
-            case LedgerException.InsufficientFunds x -> "INSUFFICIENT_FUNDS";
-            case LedgerException.AccountNotFound x -> "UNKNOWN_ACCOUNT";
-            case LedgerException.InvalidAmount x -> "INVALID_AMOUNT";
-            case LedgerException.SamePayerPayee x -> "SAME_PAYER_PAYEE";
+            case LedgerException.InsufficientFunds _ -> "INSUFFICIENT_FUNDS";
+            case LedgerException.AccountNotFound _ -> "UNKNOWN_ACCOUNT";
+            case LedgerException.InvalidAmount _ -> "INVALID_AMOUNT";
+            case LedgerException.SamePayerPayee _ -> "SAME_PAYER_PAYEE";
             case LedgerException.DuplicatePayment x -> throw new IllegalStateException(x);
         };
     }

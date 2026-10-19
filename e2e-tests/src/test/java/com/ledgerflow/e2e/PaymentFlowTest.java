@@ -5,7 +5,6 @@ import static com.ledgerflow.e2e.Stack.awaitTerminal;
 import static com.ledgerflow.e2e.Stack.balance;
 import static com.ledgerflow.e2e.Stack.ledgerTransactions;
 import static com.ledgerflow.e2e.Stack.pay;
-import static com.ledgerflow.e2e.Stack.payment;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.UUID;

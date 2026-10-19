@@ -34,6 +34,7 @@ final class PostgresTestSupport {
     static final long SEED_ENTRIES = 6;
 
     // Same init script as docker-compose: roles/schemas have a single source of truth.
+    @SuppressWarnings("resource")
     static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17")
             .withDatabaseName("ledgerflow")
             .withCopyFileToContainer(

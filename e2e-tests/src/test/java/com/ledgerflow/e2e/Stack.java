@@ -26,6 +26,7 @@ final class Stack {
 
     static final long SYSTEM_ACCOUNT = 1;
 
+    @SuppressWarnings("resource")
     static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17")
             .withDatabaseName("ledgerflow")
             .withCopyFileToContainer(
