@@ -15,7 +15,7 @@ class LedgerRepository {
         this.jdbc = jdbc;
     }
 
-    /** Row-locks the account until the surrounding transaction ends. */
+    /** Keep the account locked until the transaction ends. */
     Optional<Account> lockAccount(long id) {
         return jdbc.sql("SELECT id, type, balance_minor FROM accounts WHERE id = ? FOR UPDATE")
                 .param(id)
@@ -24,7 +24,6 @@ class LedgerRepository {
                 .optional();
     }
 
-    /** Empty when the payment_id already exists. */
     OptionalLong insertTransaction(UUID paymentId) {
         return jdbc.sql("""
                         INSERT INTO ledger_transactions (payment_id) VALUES (?)

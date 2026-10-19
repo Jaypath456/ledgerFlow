@@ -13,10 +13,7 @@ public class LedgerService {
         this.repo = repo;
     }
 
-    /**
-     * Moves amountMinor from payer to payee in one DB transaction.
-     * Locks are taken in ascending account-id order, so concurrent postings cannot deadlock.
-     */
+    /** Lock accounts in ID order to avoid deadlocks. */
     @Transactional
     public PostingResult post(UUID paymentId, long payerAccountId, long payeeAccountId, long amountMinor) {
         if (amountMinor <= 0) {
@@ -33,7 +30,7 @@ public class LedgerService {
         Account payer = a.id() == payerAccountId ? a : b;
         Account payee = a.id() == payerAccountId ? b : a;
 
-        // Before the funds check: replaying a posted payment reports "duplicate", not "insufficient".
+        // Check duplicates first so a replay can't fail the funds check.
         long txId = repo.insertTransaction(paymentId)
                 .orElseThrow(() -> new LedgerException.DuplicatePayment(paymentId));
 

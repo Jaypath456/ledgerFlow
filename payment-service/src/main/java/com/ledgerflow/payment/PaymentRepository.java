@@ -20,10 +20,7 @@ class PaymentRepository {
         this.jdbc = jdbc;
     }
 
-    /**
-     * False when the key exists. A concurrent insert of the same key blocks here until the
-     * other transaction ends, so at most one request per key gets past this point.
-     */
+    /** The unique key makes concurrent retries wait for the first transaction. */
     boolean insertKey(String key, String requestHash, UUID paymentId) {
         return jdbc.sql("""
                         INSERT INTO idempotency_keys (key, request_hash, payment_id) VALUES (?, ?, ?)
@@ -58,10 +55,7 @@ class PaymentRepository {
         return jdbc.sql("SELECT * FROM payments WHERE id = ?").param(id).query(PaymentRepository::payment).optional();
     }
 
-    /**
-     * Locks stale PENDING_LEDGER payments that have no unpublished outbox row (an unsent request
-     * is still on its way; re-requesting would only pile up duplicates).
-     */
+    /** Skip payments with unsent requests to avoid piling up retries. */
     List<Payment> lockStalePending(int staleAfterSeconds, int limit) {
         return jdbc.sql("""
                         SELECT * FROM payments p

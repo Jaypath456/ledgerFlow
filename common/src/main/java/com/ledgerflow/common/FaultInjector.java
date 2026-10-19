@@ -6,12 +6,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-/**
- * Crash simulation at named points. Exists only under the {@code chaos} Spring profile (see
- * {@link MessagingConfig}); without it, call sites find no bean and do nothing.
- * Configured points fire with the configured probability and either halt the JVM (a real crash,
- * the container restarts it) or throw. Tests arm a point to throw exactly once.
- */
+/** Only the chaos profile creates this bean, so normal runs have no injected faults. */
 public class FaultInjector {
 
     public enum Point { AFTER_LEDGER_COMMIT_BEFORE_ACK, AFTER_OUTBOX_PUBLISH_BEFORE_MARK, BEFORE_PAYMENT_OUTBOX_COMMIT }
@@ -49,7 +44,7 @@ public class FaultInjector {
         }
     }
 
-    /** Next hit of this point throws {@link InjectedFault}, once. */
+    /** Tests can make the next hit throw once. */
     public void armOnce(Point point) {
         armedOnce.add(point);
     }

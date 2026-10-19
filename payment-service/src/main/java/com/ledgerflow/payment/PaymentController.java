@@ -23,7 +23,7 @@ class PaymentController {
         this.service = service;
     }
 
-    /** 202 for accepted (PENDING_LEDGER), 201 for declined; a replay returns the stored original response. */
+    /** Replays keep the original status: 202 for accepted, 201 for declined. */
     @PostMapping
     ResponseEntity<String> create(@RequestHeader("Idempotency-Key") String key, @RequestBody PaymentRequest request) {
         if (key.isBlank() || key.length() > 255) {

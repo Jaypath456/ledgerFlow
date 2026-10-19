@@ -19,10 +19,7 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.json.JsonMapper;
 
-/**
- * Consumes PaymentRequested. One DB transaction covers dedupe, the ledger effect, the stored
- * outcome and the result outbox row; the Kafka offset is committed only after it commits.
- */
+/** Commit dedupe, posting and result outbox together before acknowledging Kafka. */
 @Component
 class PaymentRequestListener {
 
@@ -50,11 +47,11 @@ class PaymentRequestListener {
         this.reemitted = meters.counter("ledgerflow.outcomes.reemitted");
     }
 
-    /** Malformed JSON or an invalid event throws, so the error handler retries and then dead-letters it. */
+    /** Let invalid events reach the retry and dead-letter handler. */
     @KafkaListener(topics = Topics.PAYMENTS_REQUESTED)
     void onMessage(String value) {
         handle(json.readValue(value, PaymentRequested.class));
-        // Committed but offset not yet committed: a crash here means redelivery, absorbed by dedupe.
+        // A crash before the offset commit is safe: redelivery hits dedupe.
         faults.ifAvailable(f -> f.hit(FaultInjector.Point.AFTER_LEDGER_COMMIT_BEFORE_ACK));
     }
 
@@ -70,7 +67,7 @@ class PaymentRequestListener {
             return;
         }
 
-        // Serializes all events for one payment (redeliveries, reconciliation retries) until commit.
+        // Serialize requests for the same payment until commit.
         jdbc.sql("SELECT pg_advisory_xact_lock(hashtextextended(?, 0))").param(e.paymentId().toString())
                 .query().listOfRows();
         Optional<Outcome> stored = findOutcome(e.paymentId());
@@ -86,7 +83,7 @@ class PaymentRequestListener {
                     ledger.post(e.paymentId(), e.payerAccountId(), e.payeeAccountId(), e.amountMinor()).transactionId());
             outcome = new Outcome("POSTED", txId, null);
         } catch (LedgerException.DuplicatePayment dup) {
-            // Posted outside this consumer (e.g. seed data): report the existing posting, never post again.
+            // Reuse postings made outside this consumer, such as seed funding.
             outcome = new Outcome("POSTED", existingTransactionId(e.paymentId()), null);
         } catch (LedgerException rejected) {
             outcome = new Outcome("REJECTED", null, reason(rejected));

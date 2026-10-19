@@ -15,7 +15,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.backoff.FixedBackOff;
 
-/** Kafka wiring shared by both services; each imports it. */
 @Configuration(proxyBeanMethods = false)
 @EnableScheduling
 public class MessagingConfig {
@@ -40,7 +39,7 @@ public class MessagingConfig {
         return new NewTopic(Topics.LEDGER_RESULTS + Topics.DLT_SUFFIX, Topics.PARTITIONS, (short) 1);
     }
 
-    /** 3 processing attempts (1 + 2 retries, 500 ms apart), then the record goes to {@code <topic>-dlt}. */
+    /** Send records to their dead-letter partition after three failed attempts. */
     @Bean
     DefaultErrorHandler kafkaErrorHandler(KafkaTemplate<String, String> kafka) {
         return new DefaultErrorHandler(new DeadLetterPublishingRecoverer(kafka), new FixedBackOff(500L, 2L));

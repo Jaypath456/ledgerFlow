@@ -11,11 +11,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.json.JsonMapper;
 
-/**
- * Recovers payments stuck in PENDING_LEDGER by asking the ledger again with a fresh eventId.
- * The ledger answers from its stored outcome if it already decided (no second posting), or
- * decides now if it never saw the request. Either way the payment converges to the ledger's result.
- */
+/** A fresh event ID lets retries recover the stored outcome without posting twice. */
 @Component
 class Reconciler {
 
@@ -41,7 +37,7 @@ class Reconciler {
         reconcile();
     }
 
-    /** Returns how many payments were re-requested; each is then left alone for another stale period. */
+    /** Touch each payment so it waits another stale period before retrying. */
     int reconcile() {
         Integer count = tx.execute(s -> {
             var stale = repo.lockStalePending(staleAfterSeconds, BATCH);

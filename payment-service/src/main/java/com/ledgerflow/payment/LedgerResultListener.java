@@ -16,11 +16,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
-/**
- * Applies ledger results. Dedupe and the state transition commit in one DB transaction before the
- * listener returns (and the offset is committed). Only PENDING_LEDGER moves, so a repeated or
- * re-emitted result can never cause a second transition.
- */
+/** Commit dedupe and the payment update together before acknowledging Kafka. */
 @Component
 class LedgerResultListener {
 
@@ -38,7 +34,7 @@ class LedgerResultListener {
         this.duplicates = meters.counter("ledgerflow.events.duplicate");
     }
 
-    /** Malformed or unknown events throw, so the error handler retries and then dead-letters them. */
+    /** Let invalid events reach the retry and dead-letter handler. */
     @KafkaListener(topics = Topics.LEDGER_RESULTS)
     void onMessage(String value) {
         JsonNode node = json.readTree(value);

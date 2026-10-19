@@ -39,8 +39,7 @@ public interface RiskRule {
         }
     }
 
-    // ponytail: soft limit, concurrent requests from one payer can each see the same count;
-    // a per-payer advisory lock would make it strict.
+    // Concurrent requests can see the same count, so this is a soft limit.
     @Component
     @Order(3)
     class Velocity implements RiskRule {

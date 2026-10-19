@@ -2,7 +2,7 @@ package com.ledgerflow.ledger;
 
 import java.util.UUID;
 
-/** Business rejections of a posting. Unchecked so the surrounding transaction rolls back. */
+/** Unchecked rejections roll back the posting transaction. */
 public abstract sealed class LedgerException extends RuntimeException {
 
     private LedgerException(String message) {

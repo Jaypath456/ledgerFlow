@@ -24,7 +24,7 @@ public record PaymentRequest(Long payerAccountId, Long payeeAccountId, Long amou
         }
     }
 
-    /** SHA-256 over a fixed field order, so equal requests hash equally regardless of JSON layout. */
+    /** A fixed field order makes the hash independent of JSON layout. */
     String canonicalHash() {
         String canonical = payerAccountId + "|" + payeeAccountId + "|" + amountMinor + "|" + currency;
         try {

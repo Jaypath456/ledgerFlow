@@ -16,7 +16,7 @@ import tools.jackson.databind.json.JsonMapper;
 @Service
 public class PaymentService {
 
-    /** The exact HTTP response (status + JSON body) for this key; replays return the stored one verbatim. */
+    /** Keep the original response so retries can replay it exactly. */
     public record Result(int status, String body, boolean replayed) {}
 
     private final PaymentRepository repo;
@@ -32,10 +32,7 @@ public class PaymentService {
         this.faults = faults;
     }
 
-    /**
-     * One transaction: idempotency key, payment and (if accepted) the PaymentRequested outbox row
-     * commit together or not at all. Nothing is sent to Kafka here.
-     */
+    /** Commit the key, payment and outbox together so a crash can't split them. */
     @Transactional
     public Result create(String idempotencyKey, PaymentRequest request) {
         String hash = request.canonicalHash();

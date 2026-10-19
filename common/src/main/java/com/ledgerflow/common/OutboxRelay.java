@@ -12,11 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-/**
- * Publishes unpublished outbox rows to Kafka, then marks them published. Runs in its own short
- * transaction, never inside the business transaction that wrote the row. At-least-once: a crash
- * between the broker ack and the mark republishes the batch, which consumers dedupe by eventId.
- */
+/** Publish in a separate transaction; consumers dedupe resends after a crash. */
 public class OutboxRelay {
 
     private static final Log log = LogFactory.getLog(OutboxRelay.class);
@@ -48,14 +44,13 @@ public class OutboxRelay {
     public void drain() {
         try {
             while (publishBatch() == BATCH) {
-                // keep draining a backlog
             }
         } catch (RuntimeException e) {
             log.warn("outbox publish failed, will retry: " + e);
         }
     }
 
-    /** Returns the number of rows published. Rows stay unpublished if any send is not acked. */
+    /** Keep rows unpublished unless every send is acknowledged. */
     public int publishBatch() {
         Integer published = tx.execute(status -> {
             List<Row> rows = jdbc.sql("""

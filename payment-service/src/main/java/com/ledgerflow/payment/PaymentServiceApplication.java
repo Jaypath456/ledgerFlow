@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Import;
 @Import(MessagingConfig.class)
 public class PaymentServiceApplication {
 
-    /** Config file is payment-service.yml, so both services' configs can share one classpath (e2e-tests). */
+    /** Separate config names let both services share a test classpath. */
     public static final String CONFIG_NAME = "spring.config.name=payment-service";
 
     public static void main(String[] args) {
