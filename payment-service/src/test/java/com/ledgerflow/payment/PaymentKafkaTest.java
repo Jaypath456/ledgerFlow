@@ -65,11 +65,14 @@ class PaymentKafkaTest extends PaymentTestSupport {
                 .query(Long.class).single()).isEqualTo(1);
     }
 
+    
     @Test
     void crashAfterPublishBeforeMarkRepublishesAndStillMarksOnce() {
+        await().atMost(WAIT).until(() -> jdbc.sql("SELECT count(*) FROM outbox WHERE published_at IS NULL")
+                .query(Long.class).single() == 0);
         faults.armOnce(FaultInjector.Point.AFTER_OUTBOX_PUBLISH_BEFORE_MARK);
         UUID id = accept(ACCOUNTS.incrementAndGet());
-
+        
         await().atMost(WAIT).until(() -> jdbc.sql(
                 "SELECT published_at IS NOT NULL FROM outbox WHERE aggregate_id = ?").param(id).query(Boolean.class).single());
         var copies = await().atMost(WAIT).until(
