@@ -25,7 +25,7 @@ import org.testcontainers.utility.MountableFile;
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {PaymentServiceApplication.CONFIG_NAME, "ledgerflow.risk.blocked-accounts=666"})
-@ActiveProfiles({"chaos", "demo"}) // FaultInjector idle (tests arm single faults); demo endpoints active
+@ActiveProfiles("chaos") // FaultInjector idle (tests arm single faults)
 abstract class PaymentTestSupport {
 
     static final long BLOCKED_ACCOUNT = 666;

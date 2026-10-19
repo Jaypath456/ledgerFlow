@@ -36,13 +36,10 @@ class PaymentRequestListener {
     private final Counter duplicates;
     private final Counter reemitted;
     private final ObjectProvider<FaultInjector> faults;
-    private final ObjectProvider<DemoLedgerControls> demo;
 
     PaymentRequestListener(JdbcClient jdbc, LedgerService ledger, JsonMapper json,
-                           PlatformTransactionManager tm, MeterRegistry meters, ObjectProvider<FaultInjector> faults,
-                           ObjectProvider<DemoLedgerControls> demo) {
+                           PlatformTransactionManager tm, MeterRegistry meters, ObjectProvider<FaultInjector> faults) {
         this.faults = faults;
-        this.demo = demo;
         this.jdbc = jdbc;
         this.ledger = ledger;
         this.json = json;
@@ -56,7 +53,6 @@ class PaymentRequestListener {
     /** Malformed JSON or an invalid event throws, so the error handler retries and then dead-letters it. */
     @KafkaListener(topics = Topics.PAYMENTS_REQUESTED)
     void onMessage(String value) {
-        demo.ifAvailable(DemoLedgerControls::beforeProcessing); // demo profile only: optional processing delay
         handle(json.readValue(value, PaymentRequested.class));
         // Committed but offset not yet committed: a crash here means redelivery, absorbed by dedupe.
         faults.ifAvailable(f -> f.hit(FaultInjector.Point.AFTER_LEDGER_COMMIT_BEFORE_ACK));
