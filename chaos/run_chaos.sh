@@ -41,7 +41,14 @@ reset_group() { # reset_group GROUP TOPIC SHIFT  (group must have no running mem
 log "starting stack ($PROJECT)"
 $C up -d --build --wait >/dev/null 2>&1 || { log "stack failed to start"; exit 1; }
 if [ "$(sql "SELECT count(*) FROM ledger.accounts WHERE id = 10001")" = 0 ]; then log "seeding accounts"; seed; fi
-log "host: $(nproc) CPUs, $(free -g | awk '/Mem/ {print $2}') GiB RAM, $(uname -sr); load ${LOAD_RATE}/s for ${LOAD_SECONDS}s per run"
+if [ "$(uname -s)" = Darwin ]; then
+  host_cpus=$(sysctl -n hw.ncpu)
+  host_ram=$(sysctl -n hw.memsize | awk '{printf "%.0f", $1 / 1073741824}')
+else
+  host_cpus=$(nproc)
+  host_ram=$(free -g | awk '/Mem/ {print $2}')
+fi
+log "host: $host_cpus CPUs, $host_ram GiB RAM, $(uname -sr); load ${LOAD_RATE}/s for ${LOAD_SECONDS}s per run"
 
 failures=0
 for run in $(seq 1 "$RUNS"); do
