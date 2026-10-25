@@ -54,7 +54,7 @@ The 896 abandoned payments appeared only in 8 runs: kill-payment (3 of 3), repla
 
 In the CSV, the `dup_ledger` and `dup_payment` columns count duplicate events absorbed by idempotency. They do not count duplicate payments.
 
-To rerun it, I need bash 4 or newer, k6, jq and Docker:
+To rerun it, I need bash 4 or newer (macOS ships 3.2, so I install a newer one with Homebrew), k6, jq and Docker:
 
 ```sh
 RESET=1 bash chaos/run_chaos.sh 27
@@ -64,4 +64,4 @@ Results are written to `chaos/results/`, which git ignores.
 
 ## Scope
 
-This project uses one Kafka broker and one PostgreSQL instance, so it is not highly available and I make no production or high-availability claims. An earlier demo dashboard and a local Kubernetes setup were removed in commit `3605f33`. The docs in `docs/` may still describe them as history.
+This project uses one Kafka broker and one PostgreSQL instance, so it is not highly available and I make no production or high-availability claims. An earlier demo dashboard and a local Kubernetes setup were removed in commit `3605f33`. They remain on the `phase-7-demo-experience` and `feature/kubernetes-v1.1.0` branches, and `docs/` marks those phases as removed.

@@ -147,6 +147,8 @@ Earlier attempts, kept for the record:
 - `./mvnw clean verify`: pass, 58 tests.
 
 ## Phase 7 (demo experience), 2026-10-05
+
+> **Removed in `3605f33`.** The demo dashboard and the local Kubernetes setup are no longer on `main`. The code is still available on the `phase-7-demo-experience` and `feature/kubernetes-v1.1.0` branches and in tags `v1.0.0` (Phase 7) and `v1.1.0` (Phases 7 and 8). Test counts in this section include tests that were removed with them.
 Same host as Phase 5. Single runs, recorded as observed. These are demonstrations, not benchmarks; the historical sessions above are unchanged.
 - `./mvnw clean verify`: pass, **70 tests**: the 58 existing plus 12 new.
   - payment-service 28 (+5 `DemoPaymentTest`): dashboard served, burst, cap, config, invariant summary.
@@ -180,6 +182,8 @@ Same host as Phase 5. Single runs, recorded as observed. These are demonstration
 | `postgres-pause` (10 s) | 0.2 s after unpause | 250/250 COMPLETED; 0 duplicates; 0 violations |
 
 ## Phase 7 — interactive accounts, Transaction Playground, Resilience Lab (2026-10-05)
+
+> **Removed in `3605f33`.** The demo dashboard and the local Kubernetes setup are no longer on `main`. The code is still available on the `phase-7-demo-experience` and `feature/kubernetes-v1.1.0` branches and in tags `v1.0.0` (Phase 7) and `v1.1.0` (Phases 7 and 8). Test counts in this section include tests that were removed with them.
 Single observed runs on the same host, recorded as they happened. These are demonstrations, not benchmarks. Race outcomes vary between runs; every run was judged by correctness properties only.
 - `./mvnw clean verify`: pass, **94 tests**: the 70 existing plus 24 new.
   - ledger-service 33 (+7 `DemoNamedAccountsTest`).
@@ -214,6 +218,8 @@ Single observed runs on the same host, recorded as they happened. These are demo
 - Reliability Tests (dashboard, after all of the above): 8/8 PASS.
 
 ## Phase 8 — local Kubernetes (k3d), 2026-10-05
+
+> **Removed in `3605f33`.** The demo dashboard and the local Kubernetes setup are no longer on `main`. The code is still available on the `phase-7-demo-experience` and `feature/kubernetes-v1.1.0` branches and in tags `v1.0.0` (Phase 7) and `v1.1.0` (Phases 7 and 8). Test counts in this section include tests that were removed with them.
 Single observed runs on one laptop (one k3d server node, Linux kernel 6.17, ~100 GiB root disk). Times are wall-clock measurements from the commands shown. Only these runs are reported. Nothing here is a benchmark, and nothing was re-run to get a better number.
 
 Cluster state before the restarts: node Ready, DiskPressure False, all four workloads 1/1, both PVCs Bound.
@@ -273,3 +279,19 @@ One observed run from the committed repository state. The verified cluster was d
 - `./k8s/demo-restart.sh`: **PASS**. Replacement created 0.7 s after delete, Ready 8.9 s after delete, post-ready convergence 0.2 s. 250 of 250 accepted, 0 client retries, 250 COMPLETED, 0 duplicate postings, payer $750.00 (expected $750.00).
 - Invariants: `chaos/verify_invariants.sql` 0 violations, service checks 0 violations, global ledger entry sum 0, 0 pending payments (252 payments in total).
 - `./mvnw clean verify` (JDK 25.0.4.1): **BUILD SUCCESS**, exit 0, **94 tests, 0 failures** (payment-service 33, ledger-service 33, e2e-tests 28).
+
+
+## Current verification, 2026-10-25
+
+Run on a MacBook Air (10 CPUs, 16 GiB RAM, Docker Desktop, JDK 25.0.4.1 Temurin) at commit `75c618e`. Raw output is in `docs/evidence/`.
+
+- `./mvnw -B clean verify`: **BUILD SUCCESS**, exit 0, **58 tests, 0 failures, 0 errors, 0 skipped**
+  - payment-service 23
+  - ledger-service 21
+  - e2e-tests 14
+- Chaos campaign (`RESET=1 bash chaos/run_chaos.sh 27`, 100 payments/s for 60 s per run): **27 of 27 PASS**, 9 scenarios x 3 runs. Results: `chaos-campaign-2026-10-25-75c618e.csv`.
+  - Ledger invariant violations: 0. New dead-letter messages: 0.
+  - JVM halts recorded by the runner: 30 (the earlier campaign recorded 14).
+  - k6 client counters: 157,083 payments accepted, 16,734 retries with the same idempotency key, 896 abandoned after 5 attempts. The abandoned payments occurred in 8 runs (kill-payment, replay and crash-before-payment-outbox-commit). Accepted plus abandoned does not always add up to 6,000 per run, so these are counters and not a success rate.
+  - `dup_ledger` and `dup_payment` count duplicate events absorbed by idempotency, not duplicate payments.
+- Local laptop only. One Kafka broker and one PostgreSQL instance: no high-availability or production claim.

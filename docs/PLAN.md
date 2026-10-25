@@ -26,13 +26,17 @@ Service images (`Dockerfile`) and Compose services; `chaos/bench.sh` (k6 load + 
 ## Phase 6 — Local final package
 `docker compose -f infra/docker-compose.yml up --build` runs Postgres, Kafka and both services (Actuator health UP); README; docs updated; CI keeps running `./mvnw -B verify` (no image builds or publishing).
 
-Status: Phases 0–7 complete. No cloud deployment, Redis, auth, gateway or extra services by design. Kubernetes was added later as Phase 8 (optional, local only).
+Status: Phases 0–6 are the current scope on `main`. Phases 7 (demo dashboard) and 8 (local Kubernetes) were built and later removed in `3605f33`; they remain on the `phase-7-demo-experience` and `feature/kubernetes-v1.1.0` branches. No cloud deployment, Redis, auth, gateway or extra services by design.
 
 ## Phase 7 — Demo experience
+
+> **Removed in `3605f33`.** The demo dashboard and the local Kubernetes setup are no longer on `main`. The code is still available on the `phase-7-demo-experience` and `feature/kubernetes-v1.1.0` branches and in tags `v1.0.0` (Phase 7) and `v1.1.0` (Phases 7 and 8). Test counts in this section include tests that were removed with them.
 `./start.sh` / `./stop.sh` / `./reset.sh` (Compose project `ledgerflow-demo` + `infra/docker-compose.demo.yml`); static dashboard served by payment-service under the `demo` profile; narrow demo-only endpoints in both services; `demo/` self-checking scenario scripts (application races and shell-driven infrastructure faults).
 Out of scope: changes to the payment/Kafka/ledger design, new services, HTTP control of infrastructure.
 
 ## Phase 8 — Optional local Kubernetes (k3d)
+
+> **Removed in `3605f33`.** The demo dashboard and the local Kubernetes setup are no longer on `main`. The code is still available on the `phase-7-demo-experience` and `feature/kubernetes-v1.1.0` branches and in tags `v1.0.0` (Phase 7) and `v1.1.0` (Phases 7 and 8). Test counts in this section include tests that were removed with them.
 Plain Kubernetes YAML in `infra/k8s/` on a single-server k3d cluster (`k8s/start.sh`, `status.sh`, `logs.sh`, `demo-restart.sh`, `stop.sh`): namespace, PostgreSQL and Kafka StatefulSets with PVCs, one Deployment and Service per application service, ConfigMap, Secret, startup/readiness/liveness probes, `demo,k8s` Spring profiles. Dashboard on localhost:8081, ledger health on localhost:8082.
 Verified on this cluster: application pod replacement, PostgreSQL and Kafka pod restarts on preserved PVCs, the existing pod-recovery demo, and the Compose demo still working.
 Out of scope: cloud or managed Kubernetes, Helm, Terraform, GitOps, service mesh, operators, autoscaling, multi-node clusters, and any high-availability claim. Compose remains the primary local stack.
