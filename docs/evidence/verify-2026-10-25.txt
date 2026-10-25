@@ -1,0 +1,40 @@
+	transaction.timeout.ms = 60000
+	transaction.two.phase.commit.enable = false
+	transactional.id = null
+	value.serializer = class org.apache.kafka.common.serialization.StringSerializer
+
+2026-10-25T03:31:10.096-04:00  INFO 36436 --- [ledger-service] [   scheduling-1] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-10-25T03:31:10.096-04:00  INFO 36436 --- [ledger-service] [   scheduling-1] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=ledger-service-producer-1] Instantiated an idempotent producer.
+2026-10-25T03:31:10.099-04:00  INFO 36436 --- [ledger-service] [   scheduling-1] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.1
+2026-10-25T03:31:10.099-04:00  INFO 36436 --- [ledger-service] [   scheduling-1] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: 92f61c44867f39dc
+2026-10-25T03:31:10.100-04:00  INFO 36436 --- [ledger-service] [   scheduling-1] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: 1792913470099
+2026-10-25T03:31:10.108-04:00  INFO 36436 --- [ledger-service] [vice-producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=ledger-service-producer-1] Cluster ID: 4L6g3nShT-eMCtK--X86sw
+2026-10-25T03:31:10.109-04:00  INFO 36436 --- [ledger-service] [vice-producer-1] o.a.k.c.p.internals.TransactionManager   : [Producer clientId=ledger-service-producer-1] ProducerId set to 1 with epoch 0
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.28 s -- in com.ledgerflow.e2e.InvariantCheckerTest
+[INFO] Running com.ledgerflow.e2e.PaymentFlowTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.533 s -- in com.ledgerflow.e2e.PaymentFlowTest
+[INFO] Running com.ledgerflow.e2e.RecoveryTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.287 s -- in com.ledgerflow.e2e.RecoveryTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ e2e-tests ---
+[WARNING] JAR will be empty - no content was marked for inclusion!
+[INFO] Building jar: /Users/jayz/Documents/Projects/LEDGER/ledgerFLow/e2e-tests/target/e2e-tests-1.1.0.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for ledgerflow 1.1.0:
+[INFO] 
+[INFO] ledgerflow ......................................... SUCCESS [  0.072 s]
+[INFO] common ............................................. SUCCESS [  1.223 s]
+[INFO] payment-service .................................... SUCCESS [ 23.265 s]
+[INFO] ledger-service ..................................... SUCCESS [ 28.212 s]
+[INFO] e2e-tests .......................................... SUCCESS [ 16.246 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:09 min
+[INFO] Finished at: 2026-10-25T03:31:15-04:00
+[INFO] ------------------------------------------------------------------------
