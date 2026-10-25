@@ -283,7 +283,7 @@ One observed run from the committed repository state. The verified cluster was d
 
 ## Current verification, 2026-10-25
 
-Run on a MacBook Air (10 CPUs, 16 GiB RAM, Docker Desktop, JDK 25.0.4.1 Temurin) at commit `75c618e`. Raw output is in `docs/evidence/`.
+Run on a MacBook Air (10 CPUs, 16 GiB RAM, Docker Desktop, JDK 25.0.4.1 Temurin). The test run was on `c617bef` (the tip of `main` when this branch was created) and the chaos campaign on `75c618e`. No code under `src/` changed in between. Raw output is in `docs/evidence/`.
 
 - `./mvnw -B clean verify`: **BUILD SUCCESS**, exit 0, **58 tests, 0 failures, 0 errors, 0 skipped**
   - payment-service 23

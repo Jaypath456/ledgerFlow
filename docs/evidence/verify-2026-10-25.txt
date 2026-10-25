@@ -1,3 +1,11 @@
+Date: 2026-10-25
+Commit: c617bef
+Command: ./mvnw -B clean verify
+Host: MacBook Air, 10 CPUs, 16 GiB RAM, Docker Desktop
+openjdk version "25.0.4.1" 2026-08-18 LTS
+OpenJDK Runtime Environment Temurin-25.0.4.1+1 (build 25.0.4.1+1-LTS)
+OpenJDK 64-Bit Server VM Temurin-25.0.4.1+1 (build 25.0.4.1+1-LTS, mixed mode, sharing)
+
 [INFO] Tests run: 23, Failures: 0, Errors: 0, Skipped: 0
 [INFO] Tests run: 21, Failures: 0, Errors: 0, Skipped: 0
 [INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0
