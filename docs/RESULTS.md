@@ -1,5 +1,8 @@
 # Results
 
+> **PostgreSQL version.** Unless a section says otherwise, this document describes the PostgreSQL version of LedgerFlow, tagged `v1.2.0-postgres`. LedgerFlow now runs on MongoDB (single-node replica set) and on a local k3d cluster. See the section at the end of this file and the README.
+
+
 ## Phase 0
 - `./mvnw verify`: pass (2 Testcontainers tests per service).
 - `docker compose up --wait`: Postgres and Kafka healthy.
@@ -295,3 +298,53 @@ Run on a MacBook Air (10 CPUs, 16 GiB RAM, Docker Desktop, JDK 25.0.4.1 Temurin)
   - k6 client counters: 157,083 payments accepted, 16,734 retries with the same idempotency key, 896 abandoned after 5 attempts. The abandoned payments occurred in 8 runs (kill-payment, replay and crash-before-payment-outbox-commit). Accepted plus abandoned does not always add up to 6,000 per run, so these are counters and not a success rate.
   - `dup_ledger` and `dup_payment` count duplicate events absorbed by idempotency, not duplicate payments.
 - Local laptop only. One Kafka broker and one PostgreSQL instance: no high-availability or production claim.
+
+## MongoDB and Kubernetes verification, 2026-10-26
+
+These results are for the MongoDB version on a local laptop. They replace nothing above: the sections above are PostgreSQL results and stay historical.
+
+**Build.** `./mvnw -B clean verify` ran 58 tests (23 payment-service, 21 ledger-service, 14 e2e) with 0 failures, 0 errors and 0 skipped on MongoDB and Kafka through Testcontainers (`docs/evidence/verify-mongodb-2026-10-26.txt`).
+
+**Chaos campaign.**
+
+The latest campaign ran on 2026-10-26 at commit `6a63c33` on a MacBook Air (10 CPUs, 16 GiB RAM, macOS kernel Darwin 27.0.0) with Docker Desktop, with 100 payments per second for 60 seconds per run. It is a local laptop, not a production environment. The raw results are in `docs/evidence/chaos-campaign-mongodb-2026-10-26-6a63c33.csv`.
+
+| Result | Value |
+|---|---|
+| Runs passed | 27 of 27 |
+| Ledger invariant violations | 0 |
+| New dead-letter messages | 0 |
+| Payments accepted by the API | 152,815 |
+| Client retries (same idempotency key) | 26,297 |
+| Payments abandoned after 5 attempts | 3,563 (in 10 of 27 runs) |
+| JVM halts recorded by the runner | 12 |
+
+Abandoned payments are requests where the client gave up after 5 attempts, one second apart. They appeared only in these scenarios: `kill-payment`, `replay`, `crash-before-payment-outbox-commit`, `crash-after-publish-before-mark`. The invariant checker passed in every run regardless. Accepted plus abandoned does not always add up to 6,000 per run, so these are counters and not a success rate.
+
+| Scenario (3 runs each) | Abandoned per run | Recovery seconds |
+|---|---|---|
+| kill-ledger | 0 | 54.2 to 54.6 |
+| kill-payment | 386 to 461 | 42.8 to 43.5 |
+| pause-mongodb | 0 | 1.8 to 2.3 |
+| restart-kafka | 0 | 20.5 to 25.6 |
+| replay | 460 to 534 | 29.6 to 32 |
+| hot-account | 0 | 1.5 to 2.8 |
+| crash-before-payment-outbox-commit | 0 to 361 | 7.6 to 49.8 |
+| crash-after-publish-before-mark | 0 to 350 | 27.6 to 65.9 |
+| crash-after-ledger-commit-before-ack | 0 | 11.9 to 69.5 |
+
+The earlier PostgreSQL campaign (tag `v1.2.0-postgres`, `docs/evidence/chaos-campaign-2026-10-25-75c618e.csv`) also passed 27 of 27 with 0 violations: 157,083 payments accepted and 896 abandoned. This MongoDB campaign abandoned more client requests (3,563). In `replay`, which restarts both services while load is running, abandoned payments per run were 7 to 27 on PostgreSQL and 460 to 534 on MongoDB, and recovery took 6.4 to 6.6 seconds against 29.6 to 32 seconds. Restarts took longer on the MongoDB build in these runs. I did not measure service startup time separately, so I do not know why.
+
+In the CSV, the `dup_ledger` and `dup_payment` columns count duplicate events absorbed by idempotency. They do not count duplicate payments.
+
+**Kubernetes smoke run** (cluster deleted and rebuilt from scratch, then `k8s/smoke.sh`):
+
+```text
+PASS: Funded payment reached COMPLETED
+PASS: Insufficient-funds payment reached FAILED
+PASS: Idempotency replay returned identical HTTP status and response body
+PASS: Replacement ledger-service pod ledger-service-6dc8c657c4-gb2vp is Ready; new payment reached COMPLETED
+PASS: Tests run: 4, Failures: 0; cluster left running
+```
+
+Evidence: `docs/evidence/k8s-smoke-2026-10-26-a54fed0.txt`. Single-node local cluster; no high-availability, failover or production claim.
