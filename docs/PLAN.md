@@ -1,5 +1,8 @@
 # Plan
 
+> **PostgreSQL version.** Unless a section says otherwise, this document describes the PostgreSQL version of LedgerFlow, tagged `v1.2.0-postgres`. LedgerFlow now runs on MongoDB (single-node replica set) and on a local k3d cluster. See the section at the end of this file and the README.
+
+
 ## Phase 0 — Foundation
 Maven multi-module, minimal Spring Boot services, Postgres + Kafka (KRaft) via Compose, Flyway, isolated DB users/schemas, Testcontainers smoke tests, CI.
 No payments, ledger, idempotency, risk, Kafka clients, outbox, reconciliation, chaos or load tests.
@@ -40,3 +43,7 @@ Out of scope: changes to the payment/Kafka/ledger design, new services, HTTP con
 Plain Kubernetes YAML in `infra/k8s/` on a single-server k3d cluster (`k8s/start.sh`, `status.sh`, `logs.sh`, `demo-restart.sh`, `stop.sh`): namespace, PostgreSQL and Kafka StatefulSets with PVCs, one Deployment and Service per application service, ConfigMap, Secret, startup/readiness/liveness probes, `demo,k8s` Spring profiles. Dashboard on localhost:8081, ledger health on localhost:8082.
 Verified on this cluster: application pod replacement, PostgreSQL and Kafka pod restarts on preserved PVCs, the existing pod-recovery demo, and the Compose demo still working.
 Out of scope: cloud or managed Kubernetes, Helm, Terraform, GitOps, service mesh, operators, autoscaling, multi-node clusters, and any high-availability claim. Compose remains the primary local stack.
+
+## Status update, October 2026
+
+The PostgreSQL version of Phases 0 to 6 is tagged `v1.2.0-postgres`. LedgerFlow now runs on MongoDB (single-node replica set) in Docker Compose and on a local k3d cluster. Phase 7 (demo dashboard) remains removed. See the README and the end of `docs/RESULTS.md`.

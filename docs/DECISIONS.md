@@ -1,5 +1,8 @@
 # Decisions
 
+> **PostgreSQL version.** Unless a section says otherwise, this document describes the PostgreSQL version of LedgerFlow, tagged `v1.2.0-postgres`. LedgerFlow now runs on MongoDB (single-node replica set) and on a local k3d cluster. See the section at the end of this file and the README.
+
+
 1. Spring Boot 4.1.1 on Java 25 (Temurin).
 2. `apache/kafka:4.0.0`, single combined broker/controller node, KRaft, PLAINTEXT. External port 29092.
 3. One Postgres 17 DB `ledgerflow`; schemas/roles created by `infra/postgres/init/01-roles-schemas.sql`, reused by Testcontainers tests (single source of truth).
@@ -142,3 +145,13 @@
 72. **Scripts never delete data.** `start.sh` is idempotent: an existing cluster is started, not recreated. `stop.sh` deletes the cluster and its volumes, and says so. The scripts refuse to start while the Compose demo holds ports 8081/8082. `status.sh`, `logs.sh` and `demo-restart.sh` only read state, or delete a single pod in `demo-restart.sh`.
 73. **Recovery demo reuses the existing helpers.** `k8s/demo-restart.sh` uses `demo/lib.sh` and `chaos/verify_invariants.sql`. Only the fault (`kubectl delete pod`) and the database access (`kubectl exec`) are Kubernetes-specific. The shared probe timer starts after the replacement pod is Ready, not at the deletion, so this script labels that line "Post-ready convergence" (`RECOVERY_LABEL`; the Compose demos keep "Recovered after"). The deletion-to-Ready time is printed separately.
 74. **Not highly available.** One k3d node, one replica of each service, one PostgreSQL and one Kafka broker. Pod restarts are recovered by Kubernetes; the infrastructure single points of failure remain. The docs do not claim zero downtime, HA, multi-node, production readiness or Kafka HA.
+
+## MongoDB migration (October 2026)
+
+- MongoDB replaces PostgreSQL as the only database. It runs as a single-node replica set `rs0` because multi-document transactions need a replica set. This is not replication or high availability.
+- Two databases: `payments` (`payments`, `idempotency_keys`, `outbox`, `processed_events`) and `ledger` (`accounts`, `ledger_transactions`, `ledger_entries`, `payment_outcomes`, `outbox`, `processed_events`). Each service has its own database-scoped user, and a test checks that it cannot use the other database.
+- Uniqueness that PostgreSQL enforced with constraints is enforced with unique indexes (for example `payment_id` on `ledger_transactions` and `key` on `idempotency_keys`).
+- The migration had to keep every test: the hot-account test still expects exactly 50 completed and 150 failed, and the invariant checker tests (`InvariantCheckerTest`, 7 tests) run `chaos/verify_invariants.js` against a MongoDB container and still require the exact invariant and message for each deliberate corruption.
+- MongoDB runs with authentication and a replica-set key file. The root user `local_admin` and the service users have fixed passwords that are for local use only.
+- Kubernetes (k3d) was restored for the MongoDB version: plain YAML in `infra/k8s/`, scripts in `k8s/`. With Docker Desktop's containerd image store turned on, `k3d image import` fails, so that setting must be off.
+- The invariant checker was rewritten from a quadratic version (nested scans over whole collections) to a linear one. In the first MongoDB campaign attempt, run durations grew with the square of the stored payments (9, 27, 57 and 102 minutes for runs 1 to 4), so that campaign was discarded. The evidence campaign was run after the fix.

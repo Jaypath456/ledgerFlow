@@ -1,0 +1,14 @@
+command: ./mvnw -B clean verify (run on the working tree that became commit b5e3df4)
+jdk: openjdk version "25.0.4.1" 2026-08-18 LTS
+
+[INFO] Tests run: 23, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 21, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Reactor Summary for ledgerflow 1.1.0:
+[INFO] ledgerflow ......................................... SUCCESS [  0.068 s]
+[INFO] common ............................................. SUCCESS [  1.622 s]
+[INFO] payment-service .................................... SUCCESS [ 21.442 s]
+[INFO] ledger-service ..................................... SUCCESS [ 47.270 s]
+[INFO] e2e-tests .......................................... SUCCESS [ 23.669 s]
+[INFO] BUILD SUCCESS
+[INFO] Total time:  01:34 min
