@@ -1,0 +1,16 @@
+# Local development settings; database-scoped credentials match infra/docker-compose.yml.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ledgerflow-config
+  namespace: ledgerflow
+data:
+  PAYMENT_MONGODB_URI: mongodb://payment_user:payment_user@mongodb-0.mongodb.ledgerflow.svc.cluster.local:27017/payments?replicaSet=rs0&authSource=payments
+  LEDGER_MONGODB_URI: mongodb://ledger_user:ledger_user@mongodb-0.mongodb.ledgerflow.svc.cluster.local:27017/ledger?replicaSet=rs0&authSource=ledger
+  KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  SPRING_PROFILES_ACTIVE: k8s
+  LEDGERFLOW_OUTBOX_POLL_MS: "10"
+  RISK_VELOCITY_MAX: "1000000"
+  RISK_BLOCKED_ACCOUNTS: "999999"
+  # Heap as a share of the container memory limit instead of a fixed -Xmx.
+  JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=60
