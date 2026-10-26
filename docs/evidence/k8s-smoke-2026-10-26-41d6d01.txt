@@ -1,0 +1,10 @@
+date: 2026-10-26T15:34:35Z
+commit: 41d6d01
+host: Darwin arm64, Docker Desktop, k3d version v5.9.0
+PASS: Funded payment reached COMPLETED
+PASS: Insufficient-funds payment reached FAILED
+PASS: Idempotency replay returned identical HTTP status and response body
+Deleting ledger-service pod ledger-service-6cb89dd4c-vgqcx and waiting for its replacement...
+PASS: Replacement ledger-service pod ledger-service-6cb89dd4c-kd5hf is Ready; new payment reached COMPLETED
+PASS: Tests run: 4, Failures: 0; cluster left running
+Logs: /Users/jayz/Documents/Projects/ledgerFLow/.overnight/smoke-step-3.j0JHgD
