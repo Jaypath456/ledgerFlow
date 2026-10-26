@@ -4,7 +4,11 @@ import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
-import org.springframework.jdbc.core.simple.JdbcClient;
+import com.ledgerflow.common.MongoStore;
+import java.time.Instant;
+import java.util.Date;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Component;
 
 /** Returns a decline reason, or empty to allow. */
@@ -43,21 +47,18 @@ public interface RiskRule {
     @Component
     @Order(3)
     class Velocity implements RiskRule {
-        private final JdbcClient jdbc;
+        private final MongoStore store;
         private final int maxPerMinute;
 
-        Velocity(JdbcClient jdbc, @Value("${ledgerflow.risk.velocity-max:5}") int maxPerMinute) {
-            this.jdbc = jdbc;
+        Velocity(MongoStore store, @Value("${ledgerflow.risk.velocity-max:5}") int maxPerMinute) {
+            this.store = store;
             this.maxPerMinute = maxPerMinute;
         }
 
         @Override
         public Optional<String> check(PaymentRequest r) {
-            long recent = jdbc.sql("""
-                            SELECT count(*) FROM payments
-                            WHERE payer_account_id = ? AND status <> 'DECLINED'
-                              AND created_at > now() - interval '60 seconds'""")
-                    .param(r.payerAccountId()).query(Long.class).single();
+            long recent = store.mongo().count(Query.query(Criteria.where("payer_account_id").is(r.payerAccountId())
+                    .and("status").ne("DECLINED").and("created_at").gt(Date.from(Instant.now().minusSeconds(60)))), "payments");
             return recent >= maxPerMinute ? Optional.of("VELOCITY_LIMIT") : Optional.empty();
         }
     }

@@ -4,15 +4,19 @@ C="docker compose -p $PROJECT -f infra/docker-compose.yml"
 PAYMENT_URL=${PAYMENT_URL:-http://localhost:8081}
 LEDGER_URL=${LEDGER_URL:-http://localhost:8082}
 
-sql() { $C exec -T postgres psql -U postgres -d ledgerflow -At -v ON_ERROR_STOP=1 -c "$1"; }
-now_ts() { sql "SELECT now()"; }
+mongo() { $C exec -T mongo mongosh admin --quiet --username local_admin --password local_admin --eval "$1"; }
+now_ts() { mongo 'print(new Date().toISOString())'; }
+
+create_accounts() { # FIRST COUNT TYPE AMOUNT
+  { printf "const FIRST=%s,COUNT=%s,TYPE='%s',AMOUNT=%s;\n" "$1" "$2" "$3" "$4"; cat chaos/create_accounts.js; } |
+    $C exec -T mongo mongosh admin --quiet --username local_admin --password local_admin --file /dev/stdin
+}
 
 # Funded accounts: customers 10001-10200, merchants 20001-20020, probe 30000.
 seed() {
-  local args="-q -v ON_ERROR_STOP=1 -f -"
-  $C exec -T postgres psql -U postgres -d ledgerflow $args -v first=10001 -v count=200 -v type=CUSTOMER -v amount=1000000 < chaos/create_accounts.sql >/dev/null
-  $C exec -T postgres psql -U postgres -d ledgerflow $args -v first=20001 -v count=20 -v type=MERCHANT -v amount=0 < chaos/create_accounts.sql >/dev/null
-  $C exec -T postgres psql -U postgres -d ledgerflow $args -v first=30000 -v count=1 -v type=CUSTOMER -v amount=1000000000 < chaos/create_accounts.sql >/dev/null
+  create_accounts 10001 200 CUSTOMER 1000000 >/dev/null
+  create_accounts 20001 20 MERCHANT 0 >/dev/null
+  create_accounts 30000 1 CUSTOMER 1000000000 >/dev/null
 }
 
 healthy() { curl -fsS "$1/actuator/health" 2>/dev/null | grep -q '"status":"UP"'; }
@@ -27,9 +31,9 @@ wait_healthy() { # seconds until both services report UP
 }
 
 backlog() { # pending payments + unpublished outbox rows in both services
-  sql "SELECT (SELECT count(*) FROM payments.payments WHERE status = 'PENDING_LEDGER')
-            + (SELECT count(*) FROM payments.outbox WHERE published_at IS NULL)
-            + (SELECT count(*) FROM ledger.outbox WHERE published_at IS NULL)"
+  mongo "print(db.getSiblingDB('payments').payments.countDocuments({status:'PENDING_LEDGER'})
+             + db.getSiblingDB('payments').outbox.countDocuments({published_at:null})
+             + db.getSiblingDB('ledger').outbox.countDocuments({published_at:null}))"
 }
 
 settle() { # seconds until nothing is pending anywhere (reconciliation may be needed)
@@ -43,14 +47,13 @@ settle() { # seconds until nothing is pending anywhere (reconciliation may be ne
 
 # Prints one line per violation. Fails (non-zero) if the checker itself could not run:
 # an error must never read as "0 violations".
-violations() { $C exec -T postgres psql -U postgres -d ledgerflow -At -F ' | ' -v ON_ERROR_STOP=1 -f - < chaos/verify_invariants.sql; }
+violations() { $C exec -T mongo mongosh admin --quiet --username local_admin --password local_admin --file /dev/stdin < chaos/verify_invariants.js; }
 
 e2e_latency_ms() { # p50/p95/p99 request-to-terminal for accepted payments created since $1
-  sql "SELECT round(percentile_cont(0.50) WITHIN GROUP (ORDER BY ms)) || '/' ||
-              round(percentile_cont(0.95) WITHIN GROUP (ORDER BY ms)) || '/' ||
-              round(percentile_cont(0.99) WITHIN GROUP (ORDER BY ms))
-       FROM (SELECT extract(epoch FROM updated_at - created_at) * 1000 AS ms FROM payments.payments
-             WHERE created_at >= '$1' AND status IN ('COMPLETED', 'FAILED')) t"
+  mongo "const rows=db.getSiblingDB('payments').payments.find({created_at:{\$gte:new Date('$1')},status:{\$in:['COMPLETED','FAILED']}}).toArray();
+         const ms=rows.map(p=>p.updated_at-p.created_at).sort((a,b)=>a-b);
+         const percentile=q=>{if(!ms.length)return '';const i=(ms.length-1)*q;const low=Math.floor(i);return Math.round(ms[low]+(ms[Math.ceil(i)]-ms[low])*(i-low));};
+         print([.50,.95,.99].map(percentile).join('/'))"
 }
 
 metric() { # current value of a Micrometer counter on a service (resets when the service restarts)

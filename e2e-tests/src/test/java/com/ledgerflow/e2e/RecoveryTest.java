@@ -12,6 +12,11 @@ import static com.ledgerflow.e2e.Stack.post;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.UUID;
+import java.util.Date;
+import java.time.Instant;
+import org.bson.Document;
+import org.springframework.data.mongodb.core.query.Update;
+import static com.ledgerflow.common.MongoStore.eq;
 import org.junit.jupiter.api.Test;
 
 /** Reconciliation of stale PENDING_LEDGER payments with both real services. */
@@ -57,16 +62,15 @@ class RecoveryTest {
         long payee = account("MERCHANT", 0);
         UUID id = UUID.randomUUID();
         // An accepted payment whose PaymentRequested never got processed (no outbox row left).
-        paymentDb().sql("""
-                        INSERT INTO payments (id, payer_account_id, payee_account_id, amount_minor, currency, status,
-                                              created_at, updated_at)
-                        VALUES (?, ?, ?, 250, 'USD', 'PENDING_LEDGER', now() - interval '31 seconds', now() - interval '31 seconds')""")
-                .params(id, payer, payee).update();
-        paymentDb().sql("""
-                        INSERT INTO idempotency_keys (key, request_hash, payment_id, response_status, response_body)
-                        VALUES (?, encode(sha256(convert_to(?, 'UTF8')), 'hex'), ?, 202,
-                                json_build_object('id', ?::text, 'status', 'PENDING_LEDGER')::text)""")
-                .params(UUID.randomUUID().toString(), payer + "|" + payee + "|250|USD", id, id.toString()).update();
+        Date stale = Date.from(Instant.now().minusSeconds(31));
+        paymentDb().insert(new Document("_id", id.toString()).append("payer_account_id", payer).append("payee_account_id", payee)
+                .append("amount_minor", 250L).append("currency", "USD").append("status", "PENDING_LEDGER")
+                .append("created_at", stale).append("updated_at", stale), "payments");
+        String key = UUID.randomUUID().toString();
+        paymentDb().insert(new Document("_id", key).append("key", key)
+                .append("request_hash", Stack.requestHash(payer, payee, 250L))
+                .append("payment_id", id.toString()).append("response_status", 202)
+                .append("response_body", "{\"id\":\"" + id + "\",\"status\":\"PENDING_LEDGER\"}"), "idempotency_keys");
 
         assertThat(awaitTerminal(id).get("status").asString()).isEqualTo("COMPLETED");
         assertThat(ledgerTransactions(id)).isEqualTo(1);
@@ -75,15 +79,11 @@ class RecoveryTest {
     }
 
     private static void markStalePending(UUID id) {
-        paymentDb().sql("""
-                        UPDATE payments SET status = 'PENDING_LEDGER', decline_reason = NULL,
-                                            updated_at = now() - interval '31 seconds'
-                        WHERE id = ?""")
-                .param(id).update();
+        paymentDb().updateFirst(eq("_id", id), Update.update("status", "PENDING_LEDGER").set("decline_reason", null)
+                .set("updated_at", Date.from(Instant.now().minusSeconds(31))), "payments");
     }
 
     private static long ledgerResults(UUID paymentId) {
-        return ledgerDb().sql("SELECT count(*) FROM outbox WHERE aggregate_id = ?").param(paymentId)
-                .query(Long.class).single();
+        return ledgerDb().count(eq("aggregate_id", paymentId), "outbox");
     }
 }

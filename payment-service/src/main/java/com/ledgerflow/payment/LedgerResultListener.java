@@ -8,11 +8,14 @@ import io.micrometer.core.instrument.MeterRegistry;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.simple.JdbcClient;
+import com.ledgerflow.common.MongoStore;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import java.util.Date;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -22,15 +25,13 @@ class LedgerResultListener {
 
     private static final Logger log = LoggerFactory.getLogger(LedgerResultListener.class);
 
-    private final JdbcClient jdbc;
+    private final MongoStore store;
     private final JsonMapper json;
-    private final TransactionTemplate tx;
     private final Counter duplicates;
 
-    LedgerResultListener(JdbcClient jdbc, JsonMapper json, PlatformTransactionManager tm, MeterRegistry meters) {
-        this.jdbc = jdbc;
+    LedgerResultListener(MongoStore store, JsonMapper json, MeterRegistry meters) {
+        this.store = store;
         this.json = json;
-        this.tx = new TransactionTemplate(tm);
         this.duplicates = meters.counter("ledgerflow.events.duplicate");
     }
 
@@ -53,21 +54,21 @@ class LedgerResultListener {
     }
 
     private void apply(UUID eventId, UUID paymentId, PaymentStatus status, String reason) {
-        tx.executeWithoutResult(s -> {
-            boolean firstDelivery = jdbc.sql("INSERT INTO processed_events (event_id) VALUES (?) ON CONFLICT DO NOTHING")
-                    .param(eventId).update() == 1;
-            if (!firstDelivery) {
-                duplicates.increment();
-                return;
-            }
-            int moved = jdbc.sql("""
-                            UPDATE payments SET status = ?, decline_reason = ?, updated_at = now()
-                            WHERE id = ? AND status = 'PENDING_LEDGER'""")
-                    .params(status.name(), reason, paymentId)
-                    .update();
-            if (moved == 0) {
-                log.info("result {} for payment {} ignored: not PENDING_LEDGER", status, paymentId);
-            }
-        });
+        try {
+            boolean first = store.transaction(() -> {
+                if (store.processed(eventId)) return false;
+                store.recordEvent(eventId);
+                long moved = store.mongo().updateFirst(Query.query(Criteria.where("_id").is(paymentId.toString())
+                                .and("status").is("PENDING_LEDGER")),
+                        Update.update("status", status.name()).set("decline_reason", reason).set("updated_at", new Date()), "payments")
+                        .getModifiedCount();
+                if (moved == 0) log.info("result {} for payment {} ignored: not PENDING_LEDGER", status, paymentId);
+                return true;
+            });
+            if (!first) duplicates.increment();
+        } catch (DuplicateKeyException duplicate) {
+            if (!store.processed(eventId)) throw duplicate;
+            duplicates.increment();
+        }
     }
 }

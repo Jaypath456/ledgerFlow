@@ -2,7 +2,6 @@ package com.ledgerflow.ledger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,55 +14,50 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import com.ledgerflow.common.MongoFixture;
+import com.ledgerflow.common.MongoStore;
+import org.bson.Document;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Criteria;
+import static com.ledgerflow.common.MongoStore.eq;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.testcontainers.kafka.KafkaContainer;
-import org.testcontainers.postgresql.PostgreSQLContainer;
-import org.testcontainers.utility.MountableFile;
+import org.testcontainers.mongodb.MongoDBContainer;
 
 /**
- * One real Postgres 17, one real Kafka and one real application context shared by all ledger
+ * One real MongoDB 8.0, one real Kafka and one real application context shared by all ledger
  * tests in the JVM. Tests create their own accounts and payment ids, so they don't interfere.
  */
-final class PostgresTestSupport {
+final class MongoTestSupport {
 
-    /** Canonical balances of the accounts seeded by Flyway V3 (account id → balance). */
+    /** Canonical balances of the accounts seeded by startup (account id → balance). */
     static final Map<Long, Long> SEED_BALANCES =
             Map.of(1L, -175_000L, 2L, 100_000L, 3L, 50_000L, 4L, 25_000L, 5L, 0L, 6L, 0L);
     /** V3 posts 3 funding transactions with 2 entries each; nothing else may touch seeded accounts. */
     static final long SEED_ENTRIES = 6;
 
-    // Same init script as docker-compose: roles/schemas have a single source of truth.
-    @SuppressWarnings("resource")
-    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17")
-            .withDatabaseName("ledgerflow")
-            .withCopyFileToContainer(
-                    MountableFile.forHostPath(Path.of("../infra/postgres/init/01-roles-schemas.sql")),
-                    "/docker-entrypoint-initdb.d/01-roles-schemas.sql");
+    static final MongoDBContainer MONGO = MongoFixture.start();
 
     static final KafkaContainer KAFKA = new KafkaContainer("apache/kafka:4.0.0");
 
     private static ConfigurableApplicationContext context;
     // Tests fund their accounts from this SYSTEM account, never from the seeded account 1, so the
-    // Flyway seed stays at its baseline no matter which tests ran before (shared container).
+    // startup seed stays at its baseline no matter which tests ran before (shared container).
     private static long testTreasury;
 
     static {
-        POSTGRES.start();
         KAFKA.start();
     }
 
-    private PostgresTestSupport() {}
+    private MongoTestSupport() {}
 
     static synchronized ConfigurableApplicationContext context() {
         if (context == null) {
             context = new SpringApplicationBuilder(LedgerServiceApplication.class)
                     .web(org.springframework.boot.WebApplicationType.NONE)
                     .run(
-                            "--spring.datasource.url=" + POSTGRES.getJdbcUrl(),
-                            "--spring.datasource.username=ledger_user",
-                            "--spring.datasource.password=ledger_user",
-                            "--spring.datasource.hikari.maximum-pool-size=40",
+                            "--spring.mongodb.uri=" + MongoFixture.uri(MONGO, "ledger"),
                             "--spring.kafka.bootstrap-servers=" + KAFKA.getBootstrapServers(),
                             "--" + LedgerServiceApplication.CONFIG_NAME,
                             "--spring.profiles.active=chaos"); // FaultInjector idle
@@ -76,13 +70,14 @@ final class PostgresTestSupport {
         return context().getBean(LedgerService.class);
     }
 
-    static JdbcClient jdbc() {
-        return context().getBean(JdbcClient.class);
+    static MongoTemplate mongo() {
+        return context().getBean(MongoTemplate.class);
     }
 
     static long createAccount(AccountType type) {
-        return jdbc().sql("INSERT INTO accounts (type) VALUES (?) RETURNING id")
-                .param(type.name()).query(Long.class).single();
+        long id = MongoStore.nextId();
+        mongo().insert(MongoStore.account(id, type.name()), "accounts");
+        return id;
     }
 
     /** Creates a customer account funded from the test treasury (a SYSTEM account) through a normal posting. */
@@ -95,18 +90,16 @@ final class PostgresTestSupport {
         return id;
     }
 
-    /** The Flyway-seeded accounts are exactly as V3 left them. */
+    /** The startup-seeded accounts are exactly as V3 left them. */
     static void assertSeedBaseline() {
         SEED_BALANCES.forEach((id, expected) ->
                 assertThat(balance(id)).as("balance of seeded account %d", id).isEqualTo(expected));
-        assertThat(jdbc().sql("SELECT count(*) FROM ledger_entries WHERE account_id IN (:ids)")
-                .param("ids", SEED_BALANCES.keySet()).query(Long.class).single())
+        assertThat(mongo().count(Query.query(Criteria.where("account_id").in(SEED_BALANCES.keySet())), "ledger_entries"))
                 .as("ledger entries on seeded accounts").isEqualTo(SEED_ENTRIES);
     }
 
     static long balance(long accountId) {
-        return jdbc().sql("SELECT balance_minor FROM accounts WHERE id = ?")
-                .param(accountId).query(Long.class).single();
+        return mongo().findOne(eq("_id", accountId), Document.class, "accounts").getLong("balance_minor");
     }
 
     @SuppressWarnings("unchecked")
@@ -135,6 +128,6 @@ final class PostgresTestSupport {
     }
 
     static long count(String table) {
-        return jdbc().sql("SELECT count(*) FROM " + table).query(Long.class).single();
+        return mongo().count(new Query(), table);
     }
 }

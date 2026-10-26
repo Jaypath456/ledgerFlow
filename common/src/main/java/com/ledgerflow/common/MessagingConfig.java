@@ -7,12 +7,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.jdbc.core.simple.JdbcClient;
+import com.mongodb.client.MongoClient;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.backoff.FixedBackOff;
 
 @Configuration(proxyBeanMethods = false)
@@ -46,9 +46,14 @@ public class MessagingConfig {
     }
 
     @Bean
-    OutboxRelay outboxRelay(JdbcClient jdbc, PlatformTransactionManager tm, KafkaTemplate<String, String> kafka,
+    MongoStore mongoStore(MongoClient client, MongoTemplate template) {
+        return new MongoStore(client, template);
+    }
+
+    @Bean
+    OutboxRelay outboxRelay(MongoStore store, KafkaTemplate<String, String> kafka,
                             ObjectProvider<FaultInjector> faults) {
-        return new OutboxRelay(jdbc, tm, kafka, faults);
+        return new OutboxRelay(store, kafka, faults);
     }
 
     @Bean

@@ -1,82 +1,63 @@
 package com.ledgerflow.common;
 
-import java.util.List;
+import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import org.bson.Document;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
 
-/** Publish in a separate transaction; consumers dedupe resends after a crash. */
+/** Publish after commit; consumers dedupe resends after a crash. */
 public class OutboxRelay {
-
     private static final Log log = LogFactory.getLog(OutboxRelay.class);
     static final int BATCH = 100;
-
-    private record Row(long id, String topic, String key, String payload) {}
-
-    private final JdbcClient jdbc;
-    private final TransactionTemplate tx;
+    private final MongoStore store;
     private final KafkaTemplate<String, String> kafka;
     private final ObjectProvider<FaultInjector> faults;
 
-    OutboxRelay(JdbcClient jdbc, PlatformTransactionManager tm, KafkaTemplate<String, String> kafka,
-                ObjectProvider<FaultInjector> faults) {
-        this.jdbc = jdbc;
-        this.tx = new TransactionTemplate(tm);
+    OutboxRelay(MongoStore store, KafkaTemplate<String, String> kafka, ObjectProvider<FaultInjector> faults) {
+        this.store = store;
         this.kafka = kafka;
         this.faults = faults;
     }
 
-    /** Called inside the caller's transaction; the relay picks the row up after commit. */
-    public static void enqueue(JdbcClient jdbc, UUID aggregateId, String topic, String key, String payloadJson) {
-        jdbc.sql("INSERT INTO outbox (aggregate_id, topic, event_key, payload) VALUES (?, ?, ?, CAST(? AS jsonb))")
-                .params(aggregateId, topic, key, payloadJson)
-                .update();
+    /** The caller's session commits this document with its business changes. */
+    public static void enqueue(MongoStore store, UUID aggregateId, String topic, String key, String payloadJson) {
+        store.mongo().insert(new Document("aggregate_id", aggregateId.toString()).append("topic", topic)
+                .append("event_key", key).append("payload", payloadJson).append("created_at", new Date())
+                .append("published_at", null), "outbox");
     }
 
     @Scheduled(fixedDelayString = "${ledgerflow.outbox.poll-ms:10}")
     public void drain() {
         try {
-            while (publishBatch() == BATCH) {
-            }
+            while (publishBatch() == BATCH) { }
         } catch (RuntimeException e) {
             log.warn("outbox publish failed, will retry: " + e);
         }
     }
 
-    /** Keep rows unpublished unless every send is acknowledged. */
-    public int publishBatch() {
-        Integer published = tx.execute(status -> {
-            List<Row> rows = jdbc.sql("""
-                            SELECT id, topic, event_key, payload::text AS payload FROM outbox
-                            WHERE published_at IS NULL ORDER BY id LIMIT ? FOR UPDATE SKIP LOCKED""")
-                    .param(BATCH)
-                    .query((rs, n) -> new Row(rs.getLong("id"), rs.getString("topic"),
-                            rs.getString("event_key"), rs.getString("payload")))
-                    .list();
-            if (rows.isEmpty()) {
-                return 0;
-            }
-            var acks = rows.stream().map(r -> kafka.send(r.topic(), r.key(), r.payload())).toList();
-            for (var ack : acks) {
-                try {
-                    ack.get(30, TimeUnit.SECONDS);
-                } catch (Exception e) {
-                    throw new IllegalStateException("Kafka send not acknowledged", e);
-                }
-            }
+    /** Single replica: serialize scheduled/manual drains and mark only acknowledged sends. */
+    public synchronized int publishBatch() {
+        var rows = store.mongo().find(Query.query(Criteria.where("published_at").is(null))
+                .with(Sort.by("_id")).limit(BATCH), Document.class, "outbox");
+        var acks = rows.stream().map(r -> kafka.send(r.getString("topic"), r.getString("event_key"), r.getString("payload"))).toList();
+        for (var ack : acks) {
+            try { ack.get(30, TimeUnit.SECONDS); }
+            catch (Exception e) { throw new IllegalStateException("Kafka send not acknowledged", e); }
+        }
+        if (!rows.isEmpty()) {
             faults.ifAvailable(f -> f.hit(FaultInjector.Point.AFTER_OUTBOX_PUBLISH_BEFORE_MARK));
-            jdbc.sql("UPDATE outbox SET published_at = now() WHERE id IN (:ids)")
-                    .param("ids", rows.stream().map(Row::id).toList())
-                    .update();
-            return rows.size();
-        });
-        return published == null ? 0 : published;
+            store.mongo().updateMulti(Query.query(Criteria.where("_id").in(rows.stream().map(r -> r.get("_id")).toList())),
+                    Update.update("published_at", new Date()), "outbox");
+        }
+        return rows.size();
     }
 }

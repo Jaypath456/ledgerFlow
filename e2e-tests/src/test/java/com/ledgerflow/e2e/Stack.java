@@ -7,31 +7,28 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.file.Path;
 import java.util.UUID;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import com.ledgerflow.common.MongoStore;
+import com.ledgerflow.common.MongoFixture;
+import org.bson.Document;
+import static com.ledgerflow.common.MongoStore.eq;
 import org.testcontainers.kafka.KafkaContainer;
-import org.testcontainers.postgresql.PostgreSQLContainer;
-import org.testcontainers.utility.MountableFile;
+import org.testcontainers.mongodb.MongoDBContainer;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Both real services (each with its own DB user/schema) against one Postgres 17 and one Kafka,
+ * Both real services (each with its own database and user) against one MongoDB 8.0 and one Kafka,
  * started once per JVM.
  */
 final class Stack {
 
     static final long SYSTEM_ACCOUNT = 1;
 
-    @SuppressWarnings("resource")
-    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17")
-            .withDatabaseName("ledgerflow")
-            .withCopyFileToContainer(
-                    MountableFile.forHostPath(Path.of("../infra/postgres/init/01-roles-schemas.sql")),
-                    "/docker-entrypoint-initdb.d/01-roles-schemas.sql");
+    static final MongoDBContainer MONGO = MongoFixture.start();
     static final KafkaContainer KAFKA = new KafkaContainer("apache/kafka:4.0.0");
 
     static final ConfigurableApplicationContext LEDGER;
@@ -40,36 +37,33 @@ final class Stack {
     private static final HttpClient HTTP = HttpClient.newHttpClient();
 
     static {
-        POSTGRES.start();
         KAFKA.start();
-        LEDGER = start(LedgerServiceApplication.class, LedgerServiceApplication.CONFIG_NAME, "ledger_user");
-        PAYMENT = start(PaymentServiceApplication.class, PaymentServiceApplication.CONFIG_NAME, "payment_user");
+        LEDGER = start(LedgerServiceApplication.class, LedgerServiceApplication.CONFIG_NAME, "ledger");
+        PAYMENT = start(PaymentServiceApplication.class, PaymentServiceApplication.CONFIG_NAME, "payments");
     }
 
     private Stack() {}
 
-    private static ConfigurableApplicationContext start(Class<?> app, String configName, String dbUser) {
+    private static ConfigurableApplicationContext start(Class<?> app, String configName, String database) {
         return new SpringApplicationBuilder(app).properties(configName).run(
                 "--server.port=0",
-                "--spring.datasource.url=" + POSTGRES.getJdbcUrl(),
-                "--spring.datasource.username=" + dbUser,
-                "--spring.datasource.password=" + dbUser,
+                "--spring.mongodb.uri=" + MongoFixture.uri(MONGO, database),
                 "--spring.kafka.bootstrap-servers=" + KAFKA.getBootstrapServers(),
                 "--ledgerflow.reconcile.interval-ms=1000"); // stale threshold stays 30 s
     }
 
-    static JdbcClient ledgerDb() {
-        return LEDGER.getBean(JdbcClient.class);
+    static MongoTemplate ledgerDb() {
+        return LEDGER.getBean(MongoTemplate.class);
     }
 
-    static JdbcClient paymentDb() {
-        return PAYMENT.getBean(JdbcClient.class);
+    static MongoTemplate paymentDb() {
+        return PAYMENT.getBean(MongoTemplate.class);
     }
 
     /** Creates an account in the ledger; customers are funded from SYSTEM through a normal posting. */
     static long account(String type, long fundedMinor) {
-        long id = ledgerDb().sql("INSERT INTO accounts (type) VALUES (?) RETURNING id").param(type)
-                .query(Long.class).single();
+        long id = MongoStore.nextId();
+        ledgerDb().insert(MongoStore.account(id, type), "accounts");
         if (fundedMinor > 0) {
             LEDGER.getBean(LedgerService.class).post(UUID.randomUUID(), SYSTEM_ACCOUNT, id, fundedMinor);
         }
@@ -77,8 +71,7 @@ final class Stack {
     }
 
     static long balance(long accountId) {
-        return ledgerDb().sql("SELECT balance_minor FROM accounts WHERE id = ?").param(accountId)
-                .query(Long.class).single();
+        return ledgerDb().findOne(eq("_id", accountId), Document.class, "accounts").getLong("balance_minor");
     }
 
     static void post(long fromAccount, long toAccount, long amountMinor) {
@@ -86,8 +79,16 @@ final class Stack {
     }
 
     static long ledgerTransactions(UUID paymentId) {
-        return ledgerDb().sql("SELECT count(*) FROM ledger_transactions WHERE payment_id = ?").param(paymentId)
-                .query(Long.class).single();
+        return ledgerDb().count(eq("payment_id", paymentId), "ledger_transactions");
+    }
+
+    static String requestHash(long payer, long payee, long amount) {
+        try {
+            return java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256")
+                    .digest((payer + "|" + payee + "|" + amount + "|USD").getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     record Response(int status, JsonNode body) {}

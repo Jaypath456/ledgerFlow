@@ -6,17 +6,17 @@
     <artifactId>ledgerflow</artifactId>
     <version>1.1.0</version>
   </parent>
-  <!-- Test-only module: boots both services in one JVM against shared Postgres + Kafka. Not a service. -->
+  <!-- Test-only module: boots both services in one JVM against shared MongoDB + Kafka. Not a service. -->
   <artifactId>e2e-tests</artifactId>
 
   <dependencies>
     <dependency><groupId>com.ledgerflow</groupId><artifactId>payment-service</artifactId><version>${project.version}</version><scope>test</scope></dependency>
     <dependency><groupId>com.ledgerflow</groupId><artifactId>ledger-service</artifactId><version>${project.version}</version><scope>test</scope></dependency>
-    <dependency><groupId>org.postgresql</groupId><artifactId>postgresql</artifactId><scope>test</scope></dependency>
 
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
-    <dependency><groupId>org.testcontainers</groupId><artifactId>testcontainers-postgresql</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>org.testcontainers</groupId><artifactId>testcontainers-mongodb</artifactId><scope>test</scope></dependency>
     <dependency><groupId>org.testcontainers</groupId><artifactId>testcontainers-kafka</artifactId><scope>test</scope></dependency>
     <dependency><groupId>org.awaitility</groupId><artifactId>awaitility</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>com.ledgerflow</groupId><artifactId>common</artifactId><version>${project.version}</version><type>test-jar</type><scope>test</scope></dependency>
   </dependencies>
 </project>
