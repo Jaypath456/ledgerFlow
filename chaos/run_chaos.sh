@@ -12,7 +12,7 @@ source chaos/lib.sh
 RUNS=${1:-27}
 LOAD_RATE=${LOAD_RATE:-100}
 LOAD_SECONDS=${LOAD_SECONDS:-60}
-SCENARIOS=(kill-ledger kill-payment pause-mongo restart-kafka replay hot-account
+SCENARIOS=(kill-ledger kill-payment pause-mongodb restart-kafka replay hot-account
            crash-before-payment-outbox-commit crash-after-publish-before-mark crash-after-ledger-commit-before-ack)
 [ -n "${ONLY:-}" ] && read -ra SCENARIOS <<< "${ONLY//,/ }" # e.g. ONLY=replay,hot-account
 export RISK_VELOCITY_MAX=1000000 # load and hot-account runs must reach the ledger (DECISIONS 21)
@@ -73,7 +73,7 @@ for run in $(seq 1 "$RUNS"); do
   case $scenario in
     kill-ledger)    $C kill ledger-service >/dev/null 2>&1; sleep 5; t=$(date +%s.%N); $C start ledger-service >/dev/null 2>&1 ;;
     kill-payment)   $C kill payment-service >/dev/null 2>&1; sleep 5; t=$(date +%s.%N); $C start payment-service >/dev/null 2>&1 ;;
-    pause-mongo) $C pause mongo >/dev/null 2>&1; sleep 10; t=$(date +%s.%N); $C unpause mongo >/dev/null 2>&1 ;;
+    pause-mongodb) $C pause mongo >/dev/null 2>&1; sleep 10; t=$(date +%s.%N); $C unpause mongo >/dev/null 2>&1 ;;
     restart-kafka)  $C restart kafka >/dev/null 2>&1; t=$(date +%s.%N) ;;
     replay)
       # Re-deliver >= 1000 already-processed events to each consumer (1000 per partition x 3 partitions).
