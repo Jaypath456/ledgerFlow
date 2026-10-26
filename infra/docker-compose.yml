@@ -8,9 +8,9 @@ services:
       - mongodata:/data/db
       - ./mongo:/scripts:ro
     healthcheck:
-      test: ["CMD-SHELL", "test -f /tmp/ledgerflow-ready && mongosh --quiet --username local_admin --password local_admin --authenticationDatabase admin --eval 'quit(db.adminCommand({ping:1}).ok ? 0 : 1)'"]
+      test: ["CMD", "bash", "/scripts/healthcheck.sh"]
       interval: 5s
-      timeout: 3s
+      timeout: 10s
       retries: 20
 
   kafka:
