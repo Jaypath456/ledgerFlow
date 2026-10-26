@@ -12,7 +12,7 @@ source chaos/lib.sh
 RUNS=${1:-27}
 LOAD_RATE=${LOAD_RATE:-100}
 LOAD_SECONDS=${LOAD_SECONDS:-60}
-SCENARIOS=(kill-ledger kill-payment pause-postgres restart-kafka replay hot-account
+SCENARIOS=(kill-ledger kill-payment pause-mongodb restart-kafka replay hot-account
            crash-before-payment-outbox-commit crash-after-publish-before-mark crash-after-ledger-commit-before-ack)
 [ -n "${ONLY:-}" ] && read -ra SCENARIOS <<< "${ONLY//,/ }" # e.g. ONLY=replay,hot-account
 export RISK_VELOCITY_MAX=1000000 # load and hot-account runs must reach the ledger (DECISIONS 21)
@@ -40,7 +40,7 @@ reset_group() { # reset_group GROUP TOPIC SHIFT  (group must have no running mem
 [ "${RESET:-0}" = 1 ] && $C down -v >/dev/null 2>&1
 log "starting stack ($PROJECT)"
 $C up -d --build --wait >/dev/null 2>&1 || { log "stack failed to start"; exit 1; }
-if [ "$(sql "SELECT count(*) FROM ledger.accounts WHERE id = 10001")" = 0 ]; then log "seeding accounts"; seed; fi
+if [ "$(mongo "print(db.getSiblingDB('ledger').accounts.countDocuments({_id:Long('10001')}))")" = 0 ]; then log "seeding accounts"; seed; fi
 if [ "$(uname -s)" = Darwin ]; then
   host_cpus=$(sysctl -n hw.ncpu)
   host_ram=$(sysctl -n hw.memsize | awk '{printf "%.0f", $1 / 1073741824}')
@@ -73,7 +73,7 @@ for run in $(seq 1 "$RUNS"); do
   case $scenario in
     kill-ledger)    $C kill ledger-service >/dev/null 2>&1; sleep 5; t=$(date +%s.%N); $C start ledger-service >/dev/null 2>&1 ;;
     kill-payment)   $C kill payment-service >/dev/null 2>&1; sleep 5; t=$(date +%s.%N); $C start payment-service >/dev/null 2>&1 ;;
-    pause-postgres) $C pause postgres >/dev/null 2>&1; sleep 10; t=$(date +%s.%N); $C unpause postgres >/dev/null 2>&1 ;;
+    pause-mongodb) $C pause mongo >/dev/null 2>&1; sleep 10; t=$(date +%s.%N); $C unpause mongo >/dev/null 2>&1 ;;
     restart-kafka)  $C restart kafka >/dev/null 2>&1; t=$(date +%s.%N) ;;
     replay)
       # Re-deliver >= 1000 already-processed events to each consumer (1000 per partition x 3 partitions).
@@ -83,9 +83,8 @@ for run in $(seq 1 "$RUNS"); do
       $C start payment-service >/dev/null 2>&1 ;;
     hot-account)
       # Fresh account every run (the database is cumulative across runs and campaigns).
-      hot=$(sql "SELECT COALESCE(max(id), 40000) + 1 FROM ledger.accounts WHERE id BETWEEN 40001 AND 49999")
-      $C exec -T postgres psql -U postgres -d ledgerflow -q -v ON_ERROR_STOP=1 -v first=$hot -v count=1 -v type=CUSTOMER \
-        -v amount=5000 -f - < chaos/create_accounts.sql >/dev/null || { ok=0; note+="hot account setup failed;"; }
+      hot=$(mongo "const last=db.getSiblingDB('ledger').accounts.find({_id:{\$gte:Long('40001'),\$lte:Long('49999')}}).sort({_id:-1}).limit(1).toArray();print(last.length ? Number(last[0]._id)+1 : 40001)")
+      create_accounts "$hot" 1 CUSTOMER 5000 >/dev/null || { ok=0; note+="hot account setup failed;"; }
       t=$(date +%s.%N)
       seq 1 200 | xargs -P 200 -I{} curl -sS -m 30 -o /dev/null -X POST "$PAYMENT_URL/api/payments" \
         -H 'Content-Type: application/json' -H "Idempotency-Key: hot-$hot-{}" \
@@ -113,9 +112,8 @@ for run in $(seq 1 "$RUNS"); do
   fi
 
   if [ "$scenario" = hot-account ]; then
-    r=$(sql "SELECT count(*) FILTER (WHERE status = 'COMPLETED') || '/' || count(*) FILTER (WHERE status = 'FAILED') || '/' || count(*)
-             FROM payments.payments WHERE payer_account_id = $hot")
-    bal=$(sql "SELECT balance_minor FROM ledger.accounts WHERE id = $hot")
+    r=$(mongo "const p=db.getSiblingDB('payments').payments;const q={payer_account_id:Long('$hot')};print(p.countDocuments({...q,status:'COMPLETED'})+'/'+p.countDocuments({...q,status:'FAILED'})+'/'+p.countDocuments(q))")
+    bal=$(mongo "print(db.getSiblingDB('ledger').accounts.findOne({_id:Long('$hot')}).balance_minor.toString())")
     note+="hot completed/failed/total=$r balance=$bal;"
     [ "$r" = "50/150/200" ] && [ "$bal" = 0 ] || { ok=0; note+="hot account check FAILED;"; }
   fi

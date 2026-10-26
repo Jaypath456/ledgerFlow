@@ -1,6 +1,6 @@
 package com.ledgerflow.ledger;
 
-import static com.ledgerflow.ledger.PostgresTestSupport.*;
+import static com.ledgerflow.ledger.MongoTestSupport.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
@@ -67,7 +67,7 @@ class LedgerConcurrencyTest {
         long succeeded = outcomes.stream().filter(o -> o == null).count();
         long insufficient = outcomes.stream().filter(o -> o instanceof LedgerException.InsufficientFunds).count();
         assertThat(succeeded).isEqualTo(50);
-        assertThat(insufficient).isEqualTo(150); // anything else (deadlock, SQL error...) fails here
+        assertThat(insufficient).isEqualTo(150); // anything else (deadlock, database error...) fails here
         assertThat(balance(payer)).isZero();
         assertThat(balance(payee)).isEqualTo(5_000);
     }

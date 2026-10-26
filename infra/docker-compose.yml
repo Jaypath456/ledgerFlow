@@ -1,21 +1,17 @@
 name: ledgerflow
 services:
-  postgres:
-    image: postgres:17
-    shm_size: 256mb # parallel queries (invariant checker) need more than Docker's 64 MB default
-    environment:
-      POSTGRES_DB: ledgerflow
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports: ["5432:5432"]
+  mongo:
+    image: mongo:8.0
+    entrypoint: ["bash", "/scripts/start-mongo.sh"]
+    ports: ["27017:27017"]
     volumes:
-      - pgdata:/var/lib/postgresql/data
-      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+      - mongodata:/data/db
+      - ./mongo:/scripts:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d ledgerflow"]
+      test: ["CMD", "bash", "/scripts/healthcheck.sh"]
       interval: 5s
-      timeout: 3s
-      retries: 10
+      timeout: 10s
+      retries: 20
 
   kafka:
     image: apache/kafka:4.0.0
@@ -44,7 +40,7 @@ services:
     build: { context: .., target: payment-service }
     ports: ["8081:8081"]
     environment: &app-env
-      DB_URL: jdbc:postgresql://postgres:5432/ledgerflow
+      MONGODB_URI: mongodb://payment_user:payment_user@mongo:27017/payments?replicaSet=rs0&authSource=payments&directConnection=true
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       JAVA_TOOL_OPTIONS: -Xmx384m
       RISK_VELOCITY_MAX: ${RISK_VELOCITY_MAX:-5}
@@ -54,7 +50,7 @@ services:
       LEDGERFLOW_CHAOS_FAULTS: ${PAYMENT_CHAOS_FAULTS:-}
       LEDGERFLOW_CHAOS_PROBABILITY: ${PAYMENT_CHAOS_PROBABILITY:-0}
     depends_on: &app-deps
-      postgres: { condition: service_healthy }
+      mongo: { condition: service_healthy }
       kafka: { condition: service_healthy }
     restart: unless-stopped
     healthcheck:
@@ -70,6 +66,7 @@ services:
     ports: ["8082:8082"]
     environment:
       <<: *app-env
+      MONGODB_URI: mongodb://ledger_user:ledger_user@mongo:27017/ledger?replicaSet=rs0&authSource=ledger&directConnection=true
       SPRING_PROFILES_ACTIVE: ${LEDGER_PROFILES:-default}
       LEDGERFLOW_CHAOS_FAULTS: ${LEDGER_CHAOS_FAULTS:-}
       LEDGERFLOW_CHAOS_PROBABILITY: ${LEDGER_CHAOS_PROBABILITY:-0}
@@ -83,4 +80,4 @@ services:
       start_period: 120s
 
 volumes:
-  pgdata:
+  mongodata:

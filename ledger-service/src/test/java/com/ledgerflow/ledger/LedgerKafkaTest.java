@@ -1,12 +1,12 @@
 package com.ledgerflow.ledger;
 
-import static com.ledgerflow.ledger.PostgresTestSupport.balance;
-import static com.ledgerflow.ledger.PostgresTestSupport.context;
-import static com.ledgerflow.ledger.PostgresTestSupport.createAccount;
-import static com.ledgerflow.ledger.PostgresTestSupport.fundedCustomer;
-import static com.ledgerflow.ledger.PostgresTestSupport.jdbc;
-import static com.ledgerflow.ledger.PostgresTestSupport.kafka;
-import static com.ledgerflow.ledger.PostgresTestSupport.readAll;
+import static com.ledgerflow.ledger.MongoTestSupport.balance;
+import static com.ledgerflow.ledger.MongoTestSupport.context;
+import static com.ledgerflow.ledger.MongoTestSupport.createAccount;
+import static com.ledgerflow.ledger.MongoTestSupport.fundedCustomer;
+import static com.ledgerflow.ledger.MongoTestSupport.mongo;
+import static com.ledgerflow.ledger.MongoTestSupport.kafka;
+import static com.ledgerflow.ledger.MongoTestSupport.readAll;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
@@ -23,13 +23,17 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import org.bson.Document;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Criteria;
+import static com.ledgerflow.common.MongoStore.eq;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
-/** Ledger consumer against real Kafka + Postgres: dedupe, rejections, re-emission, poison handling. */
+/** Ledger consumer against real Kafka + MongoDB: dedupe, rejections, re-emission, poison handling. */
 class LedgerKafkaTest {
 
     private static final Duration WAIT = Duration.ofSeconds(30);
@@ -129,7 +133,7 @@ class LedgerKafkaTest {
     void insufficientFundsIsRejectedWithNoLedgerWrites() {
         long payer = fundedCustomer(100);
         long payee = createAccount(AccountType.MERCHANT);
-        long entriesBefore = PostgresTestSupport.count("ledger_entries");
+        long entriesBefore = MongoTestSupport.count("ledger_entries");
         var event = PaymentRequested.of(UUID.randomUUID(), payer, payee, 500);
 
         send(event);
@@ -138,7 +142,7 @@ class LedgerKafkaTest {
         assertThat(outcome.get("status")).isEqualTo("REJECTED");
         assertThat(outcome.get("reason")).isEqualTo("INSUFFICIENT_FUNDS");
         assertThat(ledgerTransactions(event.paymentId())).isZero();
-        assertThat(PostgresTestSupport.count("ledger_entries")).isEqualTo(entriesBefore);
+        assertThat(MongoTestSupport.count("ledger_entries")).isEqualTo(entriesBefore);
         assertThat(balance(payer)).isEqualTo(100);
         assertThat(balance(payee)).isZero();
 
@@ -210,8 +214,8 @@ class LedgerKafkaTest {
         assertThat(ledgerTransactions(paymentId)).isEqualTo(1);
         assertThat(balance(payer)).isEqualTo(900);
         assertThat(outboxRows(paymentId)).isEqualTo(threads);
-        List<String> payloads = jdbc().sql("SELECT payload->>'ledgerTransactionId' FROM outbox WHERE aggregate_id = ?")
-                .param(paymentId).query(String.class).list();
+        List<String> payloads = mongo().find(eq("aggregate_id", paymentId), Document.class, "outbox").stream()
+                .map(d -> json.readTree(d.getString("payload")).get("ledgerTransactionId").asString()).toList();
         assertThat(payloads).hasSize(threads).containsOnly(payloads.getFirst());
     }
 
@@ -221,8 +225,7 @@ class LedgerKafkaTest {
 
     private static Map<String, Object> awaitOutcome(UUID paymentId) {
         return await().atMost(WAIT).until(
-                () -> jdbc().sql("SELECT * FROM payment_outcomes WHERE payment_id = ?").param(paymentId)
-                        .query().listOfRows(),
+                () -> mongo().find(eq("payment_id", paymentId), Document.class, "payment_outcomes"),
                 rows -> !rows.isEmpty()).getFirst();
     }
 
@@ -236,18 +239,15 @@ class LedgerKafkaTest {
     }
 
     private static long ledgerTransactions(UUID paymentId) {
-        return jdbc().sql("SELECT count(*) FROM ledger_transactions WHERE payment_id = ?").param(paymentId)
-                .query(Long.class).single();
+        return mongo().count(eq("payment_id", paymentId), "ledger_transactions");
     }
 
     private static long outboxRows(UUID paymentId) {
-        return jdbc().sql("SELECT count(*) FROM outbox WHERE aggregate_id = ?").param(paymentId)
-                .query(Long.class).single();
+        return mongo().count(eq("aggregate_id", paymentId), "outbox");
     }
 
     private static long unpublishedOutbox(UUID paymentId) {
-        return jdbc().sql("SELECT count(*) FROM outbox WHERE aggregate_id = ? AND published_at IS NULL")
-                .param(paymentId).query(Long.class).single();
+        return mongo().count(Query.query(Criteria.where("aggregate_id").is(paymentId.toString()).and("published_at").is(null)), "outbox");
     }
 
     private static double duplicates() {

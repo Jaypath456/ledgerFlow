@@ -1,91 +1,82 @@
 package com.ledgerflow.payment;
 
+import com.ledgerflow.common.MongoStore;
 import com.ledgerflow.common.OutboxRelay;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.jdbc.core.simple.JdbcClient;
+import org.bson.Document;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.index.Index;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
+import static com.ledgerflow.common.MongoStore.eq;
 
 @Repository
 class PaymentRepository {
-
     record IdempotencyKey(String requestHash, int responseStatus, String responseBody) {}
+    private final MongoStore store;
 
-    private final JdbcClient jdbc;
-
-    PaymentRepository(JdbcClient jdbc) {
-        this.jdbc = jdbc;
+    PaymentRepository(MongoStore store) {
+        this.store = store;
+        store.collection("payments");
+        store.collection("idempotency_keys");
+        store.unique("idempotency_keys", "key");
+        store.unique("idempotency_keys", "payment_id");
+        store.mongo().indexOps("payments").createIndex(new Index().on("payer_account_id", Sort.Direction.ASC).on("created_at", Sort.Direction.ASC));
+        store.mongo().indexOps("payments").createIndex(new Index().on("status", Sort.Direction.ASC).on("updated_at", Sort.Direction.ASC));
     }
 
-    /** The unique key makes concurrent retries wait for the first transaction. */
-    boolean insertKey(String key, String requestHash, UUID paymentId) {
-        return jdbc.sql("""
-                        INSERT INTO idempotency_keys (key, request_hash, payment_id) VALUES (?, ?, ?)
-                        ON CONFLICT (key) DO NOTHING""")
-                .params(key, requestHash, paymentId)
-                .update() == 1;
+    void insertKey(String key, String requestHash, UUID paymentId) {
+        store.mongo().insert(new Document("_id", key).append("key", key).append("request_hash", requestHash)
+                .append("payment_id", paymentId.toString()).append("created_at", new Date()), "idempotency_keys");
     }
 
     Optional<IdempotencyKey> findKey(String key) {
-        return jdbc.sql("SELECT request_hash, response_status, response_body FROM idempotency_keys WHERE key = ?")
-                .param(key)
-                .query((rs, n) -> new IdempotencyKey(
-                        rs.getString("request_hash"), rs.getInt("response_status"), rs.getString("response_body")))
-                .optional();
+        return Optional.ofNullable(store.mongo().findOne(eq("_id", key), Document.class, "idempotency_keys"))
+                .map(d -> new IdempotencyKey(d.getString("request_hash"), d.getInteger("response_status"), d.getString("response_body")));
     }
 
     void storeResponse(String key, int status, String body) {
-        jdbc.sql("UPDATE idempotency_keys SET response_status = ?, response_body = ? WHERE key = ?")
-                .params(status, body, key)
-                .update();
+        store.mongo().updateFirst(eq("_id", key), Update.update("response_status", status).set("response_body", body), "idempotency_keys");
     }
 
     void insertPayment(UUID id, PaymentRequest r, PaymentStatus status, String declineReason) {
-        jdbc.sql("""
-                        INSERT INTO payments (id, payer_account_id, payee_account_id, amount_minor, currency, status, decline_reason)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)""")
-                .params(id, r.payerAccountId(), r.payeeAccountId(), r.amountMinor(), r.currency(), status.name(), declineReason)
-                .update();
+        Date now = new Date();
+        store.mongo().insert(new Document("_id", id.toString()).append("payer_account_id", r.payerAccountId())
+                .append("payee_account_id", r.payeeAccountId()).append("amount_minor", r.amountMinor())
+                .append("currency", r.currency()).append("status", status.name()).append("decline_reason", declineReason)
+                .append("created_at", now).append("updated_at", now), "payments");
     }
 
     Optional<Payment> find(UUID id) {
-        return jdbc.sql("SELECT * FROM payments WHERE id = ?").param(id).query(PaymentRepository::payment).optional();
+        return Optional.ofNullable(store.mongo().findOne(eq("_id", id), Document.class, "payments")).map(PaymentRepository::payment);
     }
 
-    /** Skip payments with unsent requests to avoid piling up retries. */
+    /** The transaction's touch conflicts with a concurrent result or reconciliation. */
     List<Payment> lockStalePending(int staleAfterSeconds, int limit) {
-        return jdbc.sql("""
-                        SELECT * FROM payments p
-                        WHERE p.status = 'PENDING_LEDGER'
-                          AND p.updated_at < now() - (? * interval '1 second')
-                          AND NOT EXISTS (SELECT 1 FROM outbox o WHERE o.aggregate_id = p.id AND o.published_at IS NULL)
-                        ORDER BY p.updated_at LIMIT ? FOR UPDATE OF p SKIP LOCKED""")
-                .params(staleAfterSeconds, limit)
-                .query(PaymentRepository::payment)
-                .list();
+        return store.mongo().find(Query.query(Criteria.where("status").is("PENDING_LEDGER")
+                        .and("updated_at").lt(Date.from(Instant.now().minusSeconds(staleAfterSeconds))))
+                .with(Sort.by("updated_at")).limit(limit), Document.class, "payments").stream()
+                .filter(d -> !store.mongo().exists(Query.query(Criteria.where("aggregate_id").is(d.getString("_id"))
+                        .and("published_at").is(null)), "outbox")).map(PaymentRepository::payment).toList();
     }
 
     void touch(UUID id) {
-        jdbc.sql("UPDATE payments SET updated_at = now() WHERE id = ?").param(id).update();
+        store.mongo().updateFirst(eq("_id", id), Update.update("updated_at", new Date()), "payments");
     }
 
     void insertOutbox(UUID aggregateId, String topic, String eventKey, String payloadJson) {
-        OutboxRelay.enqueue(jdbc, aggregateId, topic, eventKey, payloadJson);
+        OutboxRelay.enqueue(store, aggregateId, topic, eventKey, payloadJson);
     }
 
-    private static Payment payment(ResultSet rs, int n) throws SQLException {
-        return new Payment(
-                rs.getObject("id", UUID.class),
-                rs.getLong("payer_account_id"),
-                rs.getLong("payee_account_id"),
-                rs.getLong("amount_minor"),
-                rs.getString("currency"),
-                PaymentStatus.valueOf(rs.getString("status")),
-                rs.getString("decline_reason"),
-                rs.getTimestamp("created_at").toInstant(),
-                rs.getTimestamp("updated_at").toInstant());
+    private static Payment payment(Document d) {
+        return new Payment(UUID.fromString(d.getString("_id")), d.getLong("payer_account_id"), d.getLong("payee_account_id"),
+                d.getLong("amount_minor"), d.getString("currency"), PaymentStatus.valueOf(d.getString("status")),
+                d.getString("decline_reason"), d.getDate("created_at").toInstant(), d.getDate("updated_at").toInstant());
     }
 }

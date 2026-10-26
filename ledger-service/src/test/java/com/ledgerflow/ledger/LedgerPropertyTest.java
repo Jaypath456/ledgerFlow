@@ -1,6 +1,6 @@
 package com.ledgerflow.ledger;
 
-import static com.ledgerflow.ledger.PostgresTestSupport.*;
+import static com.ledgerflow.ledger.MongoTestSupport.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Random;

@@ -20,6 +20,6 @@ class SeedIsolationTest {
         new LedgerKafkaTest().fundedPaymentIsPostedAndLedgerPostedIsPublished();
 
         new LedgerPostingTest().seedIsBalancedAndFunded();
-        PostgresTestSupport.assertSeedBaseline();
+        MongoTestSupport.assertSeedBaseline();
     }
 }

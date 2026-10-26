@@ -9,7 +9,8 @@ import java.util.UUID;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.ledgerflow.common.MongoStore;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -19,13 +20,15 @@ public class PaymentService {
     /** Keep the original response so retries can replay it exactly. */
     public record Result(int status, String body, boolean replayed) {}
 
+    private final MongoStore store;
     private final PaymentRepository repo;
     private final List<RiskRule> riskRules;
     private final JsonMapper json;
     private final ObjectProvider<FaultInjector> faults;
 
-    PaymentService(PaymentRepository repo, List<RiskRule> riskRules, JsonMapper json,
+    PaymentService(MongoStore store, PaymentRepository repo, List<RiskRule> riskRules, JsonMapper json,
                    ObjectProvider<FaultInjector> faults) {
+        this.store = store;
         this.repo = repo;
         this.riskRules = riskRules;
         this.json = json;
@@ -33,19 +36,27 @@ public class PaymentService {
     }
 
     /** Commit the key, payment and outbox together so a crash can't split them. */
-    @Transactional
     public Result create(String idempotencyKey, PaymentRequest request) {
-        String hash = request.canonicalHash();
-        UUID id = UUID.randomUUID();
-
-        if (!repo.insertKey(idempotencyKey, hash, id)) {
-            var stored = repo.findKey(idempotencyKey).orElseThrow();
-            if (!stored.requestHash().equals(hash)) {
-                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_CONTENT,
-                        "Idempotency-Key was already used with a different request");
-            }
-            return new Result(stored.responseStatus(), stored.responseBody(), true);
+        try {
+            return store.transaction(() -> createNew(idempotencyKey, request));
+        } catch (DuplicateKeyException duplicate) {
+            return replay(idempotencyKey, request);
         }
+    }
+
+    private Result replay(String key, PaymentRequest request) {
+        var stored = repo.findKey(key).orElseThrow();
+        if (!stored.requestHash().equals(request.canonicalHash())) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_CONTENT,
+                    "Idempotency-Key was already used with a different request");
+        }
+        return new Result(stored.responseStatus(), stored.responseBody(), true);
+    }
+
+    private Result createNew(String idempotencyKey, PaymentRequest request) {
+        if (repo.findKey(idempotencyKey).isPresent()) return replay(idempotencyKey, request);
+        UUID id = UUID.randomUUID();
+        repo.insertKey(idempotencyKey, request.canonicalHash(), id);
 
         Optional<String> declineReason = riskRules.stream()
                 .map(rule -> rule.check(request))

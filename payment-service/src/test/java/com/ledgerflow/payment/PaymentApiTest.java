@@ -17,10 +17,15 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
+import org.bson.Document;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import java.util.Date;
+import static com.ledgerflow.common.MongoStore.eq;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -34,7 +39,7 @@ class PaymentApiTest extends PaymentTestSupport {
     int port;
 
     @Autowired
-    JdbcClient jdbc;
+    MongoTemplate mongo;
 
     @Autowired
     JsonMapper json;
@@ -60,8 +65,7 @@ class PaymentApiTest extends PaymentTestSupport {
         assertThat(r.raw().headers().firstValue("Idempotent-Replayed")).hasValue("false");
         UUID id = UUID.fromString(r.body().get("id").asString());
 
-        var outbox = jdbc.sql("SELECT topic, event_key, payload::text AS payload FROM outbox WHERE aggregate_id = ?")
-                .param(id).query().listOfRows();
+        var outbox = mongo.find(eq("aggregate_id", id), Document.class, "outbox");
         assertThat(outbox).hasSize(1);
         assertThat(outbox.getFirst().get("topic")).isEqualTo("payments.requested");
         assertThat(outbox.getFirst().get("event_key")).isEqualTo(String.valueOf(payer));
@@ -175,8 +179,8 @@ class PaymentApiTest extends PaymentTestSupport {
         String key = UUID.randomUUID().toString();
         String request = body(ACCOUNTS.incrementAndGet(), ACCOUNTS.incrementAndGet(), 450, "USD");
         var first = post(key, request);
-        jdbc.sql("UPDATE payments SET status = 'COMPLETED', updated_at = now() WHERE id = ?")
-                .param(UUID.fromString(first.body().get("id").asString())).update();
+        mongo.updateFirst(eq("_id", first.body().get("id").asString()),
+                Update.update("status", "COMPLETED").set("updated_at", new Date()), "payments");
 
         var replay = post(key, request);
         assertThat(replay.status()).isEqualTo(202);
@@ -276,8 +280,7 @@ class PaymentApiTest extends PaymentTestSupport {
         assertThat(r.body().get("declineReason").asString()).isEqualTo(reason);
         UUID id = UUID.fromString(r.body().get("id").asString());
         assertThat(outboxRows(id)).isZero();
-        assertThat(jdbc.sql("SELECT count(*) FROM idempotency_keys WHERE payment_id = ?").param(id)
-                .query(Long.class).single()).isEqualTo(1);
+        assertThat(mongo.count(eq("payment_id", id), "idempotency_keys")).isEqualTo(1);
     }
 
     private static String body(long payer, long payee, long amount, String currency) {
@@ -307,15 +310,15 @@ class PaymentApiTest extends PaymentTestSupport {
     }
 
     private long count(String table) {
-        return jdbc.sql("SELECT count(*) FROM " + table).query(Long.class).single();
+        return mongo.count(new Query(), table);
     }
 
     private long paymentsForKey(String key) {
-        return jdbc.sql("SELECT count(*) FROM payments p JOIN idempotency_keys k ON k.payment_id = p.id WHERE k.key = ?")
-                .param(key).query(Long.class).single();
+        return mongo.find(eq("key", key), Document.class, "idempotency_keys").stream()
+                .filter(k -> mongo.exists(eq("_id", k.getString("payment_id")), "payments")).count();
     }
 
     private long outboxRows(UUID paymentId) {
-        return jdbc.sql("SELECT count(*) FROM outbox WHERE aggregate_id = ?").param(paymentId).query(Long.class).single();
+        return mongo.count(eq("aggregate_id", paymentId), "outbox");
     }
 }

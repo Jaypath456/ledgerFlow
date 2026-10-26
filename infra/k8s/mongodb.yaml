@@ -1,0 +1,60 @@
+# Single-node replica set with a PVC (k3s local-path). k8s/start.sh initializes rs0 and users.
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+  namespace: ledgerflow
+spec:
+  clusterIP: None
+  selector: { app: mongodb }
+  ports: [{ name: mongodb, port: 27017 }]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+  namespace: ledgerflow
+spec:
+  serviceName: mongodb
+  replicas: 1
+  selector:
+    matchLabels: { app: mongodb }
+  template:
+    metadata:
+      labels: { app: mongodb }
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: mongodb
+          image: mongo:8.0
+          command: [bash, -ec]
+          args:
+            - |
+              printf '%s' ledgerflowLocalReplicaSetKey > /data/db/replica-key
+              chmod 400 /data/db/replica-key
+              exec mongod --replSet rs0 --bind_ip_all --keyFile /data/db/replica-key
+          ports: [{ containerPort: 27017 }]
+          startupProbe:
+            exec: { command: [mongosh, --quiet, --eval, "quit(db.adminCommand({ping:1}).ok ? 0 : 1)"] }
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            exec: { command: [mongosh, --quiet, --eval, "quit(db.adminCommand({ping:1}).ok ? 0 : 1)"] }
+            periodSeconds: 5
+            timeoutSeconds: 5
+          livenessProbe:
+            exec: { command: [mongosh, --quiet, --eval, "quit(db.adminCommand({ping:1}).ok ? 0 : 1)"] }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          resources:
+            requests: { memory: 256Mi }
+            limits: { memory: 1Gi }
+          volumeMounts:
+            - { name: data, mountPath: /data/db }
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: { requests: { storage: 2Gi } }
