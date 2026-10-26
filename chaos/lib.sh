@@ -40,7 +40,7 @@ settle() { # seconds until nothing is pending anywhere (reconciliation may be ne
   local start=$SECONDS
   until [ "$(backlog 2>/dev/null)" = "0" ]; do
     (( SECONDS - start > ${1:-300} )) && { echo "TIMEOUT"; return 1; }
-    sleep 1
+    sleep 2
   done
   echo $(( SECONDS - start ))
 }
