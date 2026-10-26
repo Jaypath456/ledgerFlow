@@ -37,7 +37,7 @@ bash k8s/stop.sh
 
 `start.sh` builds the images, creates the cluster and waits for MongoDB, Kafka and both services. `smoke.sh` makes a funded payment, an insufficient-funds payment and an idempotent replay, then deletes a ledger-service pod and checks that a new payment still completes. `stop.sh` deletes the cluster and its data.
 
-Requirements: Docker Desktop with at least 8 GB of memory, k3d and kubectl, and ports 8081 and 8082 free (stop the Compose stack first). The Docker Desktop setting "Use containerd for pulling and storing images" must be off, because with it on `k3d image import` fails with a missing content digest.
+Requirements: Docker Desktop (I ran it with its memory limit set to 10 GB), k3d and kubectl, and ports 8081 and 8082 free (stop the Compose stack first). The Docker Desktop setting "Use containerd for pulling and storing images" must be off, because with it on `k3d image import` fails with a missing content digest.
 
 The latest from-scratch run (`docs/evidence/k8s-smoke-2026-10-26-a54fed0.txt`) passed every check. It is a local single-node cluster: it shows that the services start, talk to each other and recover from a deleted pod, not high availability.
 
