@@ -1,0 +1,6 @@
+Python demo parse: PASS
+Final XML totals: {"payment-service": {"tests": 28, "failures": 0, "errors": 0, "skipped": 0}, "ledger-service": {"tests": 21, "failures": 0, "errors": 0, "skipped": 0}, "e2e-tests": {"tests": 17, "failures": 0, "errors": 0, "skipped": 0}}
+Live scenarios and final financial state: PASS
+Authenticated k6 client: PASS
+Archived command outputs: 108 SHA-256 checks PASS
+Delivery evidence links: PASS

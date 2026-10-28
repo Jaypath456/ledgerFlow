@@ -6,6 +6,8 @@ mkdir -p "$repo_root/.overnight"
 run_dir=$(mktemp -d "$repo_root/.overnight/smoke-step-3.XXXXXX")
 run_key=$(basename "$run_dir")
 payment_url=http://localhost:8081/api/payments
+payment_auth=${PAYMENT_AUTH:-alice:${ALICE_PASSWORD:-alice-local}}
+bob_auth=${BOB_AUTH:-bob:${BOB_PASSWORD:-bob-local}}
 k=(kubectl --context k3d-ledgerflow -n ledgerflow)
 passed=0
 
@@ -43,8 +45,10 @@ for port in 8081 8082; do
 done
 
 post_payment() {
-  local name=$1 key=$2 body=$3 status
+  local name=$1 key=$2 body=$3 status auth=$payment_auth
+  [[ $name != insufficient ]] || auth=$bob_auth
   status=$(curl --silent --show-error --connect-timeout 5 --max-time 15 \
+    -u "$auth" \
     -D "$run_dir/$name.headers" -o "$run_dir/$name.json" -w '%{http_code}' \
     -H 'Content-Type: application/json' -H "Idempotency-Key: $key" \
     -d "$body" "$payment_url")
@@ -59,6 +63,7 @@ await_status() {
   id=$(jq -r '.id' "$run_dir/$name.json")
   for ((attempt = 0; attempt < 60; attempt++)); do
     curl --fail --silent --show-error --connect-timeout 5 --max-time 5 \
+      -u "$([[ $name = insufficient ]] && echo "$bob_auth" || echo "$payment_auth")" \
       "$payment_url/$id" -o "$run_dir/$name-final.json"
     status=$(jq -er '.status' "$run_dir/$name-final.json")
     [[ $status != "$expected" ]] || return 0

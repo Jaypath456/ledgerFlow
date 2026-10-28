@@ -1,0 +1,6 @@
+# Only for new, isolated delivery projects. Keep the existing broker configuration unchanged.
+services:
+  kafka:
+    ports: !override ["127.0.0.1:${KAFKA_PORT:-39092}:29092"]
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:${KAFKA_PORT:-39092}

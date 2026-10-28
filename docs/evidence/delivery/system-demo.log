@@ -1,0 +1,14 @@
+Starting ledgerflow-delivery-cd37ed388b evidence: /Users/jayz/Documents/Projects/ledgerFLow/docs/evidence/delivery/system
+PASS: successful payment {"postings": 1, "balance": 3500} I1-I6 violations=0
+PASS: risk-declined payment {"postings": 0, "balance": 3500} I1-I6 violations=0
+PASS: insufficient funds {"postings": 0, "balance": 100} I1-I6 violations=0
+PASS: idempotent replay and payload conflict {"postings": 1, "balance": 3500} I1-I6 violations=0
+PASS: unauthorized and unowned debit rejected {"unauthenticated": 401, "unowned": 403} I1-I6 violations=0
+PASS: concurrent velocity limit {"requests": 32, "completed": 5, "declined": 27, "balance": 9500} I1-I6 violations=0
+PASS: ledger service interruption {"postings": 1, "balance": 9900} I1-I6 violations=0
+PASS: payment process killed after acceptance {"postings": 1, "balance": 9900} I1-I6 violations=0
+PASS: MongoDB paused during submission {"postings": 1, "balance": 9900} I1-I6 violations=0
+PASS: Kafka interruption and failed outbox publish {"postings": 1, "balance": 9900} I1-I6 violations=0
+PASS: poison messages route to both DLTs and processing continues {"postings": 1, "balance": 9900} I1-I6 violations=0
+PASS: 11 scenarios; evidence: /Users/jayz/Documents/Projects/ledgerFLow/docs/evidence/delivery/system
+Containers and data kept. Stop with: docker compose -p ledgerflow-delivery-cd37ed388b -f /Users/jayz/Documents/Projects/ledgerFLow/infra/docker-compose.yml stop

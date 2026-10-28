@@ -9,7 +9,7 @@ docker compose -f infra/docker-compose.yml up --build
 Once both services are ready, I can send $15 from seeded customer account 2 to merchant account 5. Amounts are in cents. I reuse the idempotency key when retrying the same request:
 
 ```sh
-curl -X POST http://localhost:8081/api/payments \
+curl -u alice:alice-local -X POST http://localhost:8081/api/payments \
   -H 'Content-Type: application/json' \
   -H 'Idempotency-Key: study-1' \
   -d '{"payerAccountId":2,"payeeAccountId":5,"amountMinor":1500,"currency":"USD"}'
@@ -19,11 +19,31 @@ When I submit a payment, payment-service checks risk rules and commits the payme
 
 Kafka delivery is at-least-once. Idempotency keys and deduplication make the effects idempotent, so a repeated message does not post twice.
 
-I run all 58 tests (23 payment-service, 21 ledger-service and 14 e2e) with Docker running and JDK 25 selected through `JAVA_HOME`. The tests use real MongoDB (a single-node replica set) and Kafka through Testcontainers:
+The API uses local HTTP Basic identities: `alice` can debit account 2 and `bob` can debit account 4. Payment reads also require credentials and ownership of either participating account. Configure explicit ownership with `ALICE_ACCOUNTS` / `BOB_ACCOUNTS` (comma-separated ids) and passwords with `ALICE_PASSWORD` / `BOB_PASSWORD`. The defaults are `alice-local` / `bob-local`. Application and MongoDB host ports bind to loopback. The default Kafka binding stays unchanged to preserve existing brokers; the isolated smoke runner uses a loopback-only overlay. This is a local CLI demonstration with a trusted host; it has no browser login or external identity provider.
+
+Velocity admission is a strict rolling limit of 5 non-declined payments per payer per 60 seconds, enforced inside the MongoDB payment transaction. Replays consume no additional slot. Ledger failures such as insufficient funds still count as admissions.
+
+I run all 66 tests (28 payment-service, 21 ledger-service, 17 end-to-end) with Docker running and JDK 25 selected through `JAVA_HOME`. The tests use real MongoDB (a single-node replica set) and Kafka through Testcontainers:
 
 ```sh
 ./mvnw clean verify -fae
 ```
+
+When saving test output, collect a sanitized distributable log:
+
+```sh
+python3 -B scripts/evidence.py capture /tmp/ledgerflow-verify.log -- ./mvnw -B verify
+```
+
+For a self-checking demonstration of successful/declined payments, idempotency, authentication, concurrent velocity admission and service recovery:
+
+```sh
+bash scripts/smoke.sh
+# Add real payment-process kill, MongoDB/Kafka interruptions and both dead-letter topics:
+bash scripts/smoke.sh --extended
+```
+
+Each run creates a new isolated `ledgerflow-delivery-*` project on ports 18081, 18082, 37017 and 39092 (override with `PAYMENT_PORT`, `LEDGER_PORT`, `MONGO_PORT`, `KAFKA_PORT`). Python 3 and Docker Compose with `!override` support are required (verified with Compose 5.6.0). The runner applies `infra/docker-compose.delivery.yml` only to its new project, preserves its containers and volume, sanitizes saved command output, refuses to reuse an existing environment even under Python optimization, and prints the exact non-destructive stop command. Stop an earlier delivery project before reusing its ports. See [delivery evidence and limitations](docs/LEDGERFLOW_DELIVERY.md) and [review remediation](docs/REVIEW_REMEDIATION.md).
 
 ## Kubernetes (k3d)
 
@@ -88,8 +108,10 @@ In the CSV, the `dup_ledger` and `dup_payment` columns count duplicate events ab
 To rerun it, I need bash 4 or newer (macOS ships 3.2, so I install a newer one with Homebrew), k6, jq and Docker:
 
 ```sh
-RESET=1 bash chaos/run_chaos.sh 27
+PROJECT=ledgerflow-chaos-new bash chaos/run_chaos.sh 27
 ```
+
+The historical campaign used `RESET=1`; destructive reset flags are now disabled. Choose a new project with free ports for a fresh campaign. Load scripts configure an explicit fixture account inventory for `alice` and send credentials; `PAYMENT_AUTH` overrides the CLI credential pair. No new 27-run campaign is claimed by the delivery verification.
 
 Results are written to `chaos/results/`, which git ignores.
 

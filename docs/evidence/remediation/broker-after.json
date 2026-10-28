@@ -1,0 +1,26 @@
+{
+  "id": "b3bfb59b39fadac06babfafd49ac55e206eb82f77899fe3f007c6c4b77779f58",
+  "created": "2026-10-28T18:36:12.326130257Z",
+  "status": "exited",
+  "startedAt": "2026-10-28T18:36:12.705866799Z",
+  "finishedAt": "2026-10-28T18:44:13.682476549Z",
+  "restartCount": 0,
+  "configHash": "7f9654c560e92c60704292d31bae6caf30fbf3f0a4f1f8d1d5a76d302ffc86e2",
+  "mounts": [
+    [
+      "5e1d9858b6fd6c5e24b4f9f956817d32cbc860969fa62e2d6600bcaed84b92d7",
+      "/etc/kafka/secrets"
+    ],
+    [
+      "aab2b8698d6eac6de3360530e2128c43bfe86df82b69ddec1e62fafc3226d13b",
+      "/mnt/shared/config"
+    ],
+    [
+      "fc8d8ca141170f3e8a3eea032ae134c0d9da17587fb60716cee8d8d20a020e48",
+      "/var/lib/kafka/data"
+    ]
+  ],
+  "dataFileCount": 331,
+  "dataBytes": 106562,
+  "dataInventorySha256": "28701ead74acfe8664e5afb318def2e0489ba05c15b029190d37624c357aa4b1"
+}

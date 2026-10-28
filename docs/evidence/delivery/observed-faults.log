@@ -1,0 +1,1 @@
+payment-service-1  | 2026-10-28T18:52:10.719Z  WARN 1 --- [payment-service] [   scheduling-1] com.ledgerflow.common.OutboxRelay        : outbox publish failed, will retry: org.springframework.kafka.KafkaException: Send failed

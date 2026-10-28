@@ -19,6 +19,11 @@ import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.mongodb.MongoDBContainer;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import com.ledgerflow.payment.PaymentSecurity;
+import java.util.Base64;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Both real services (each with its own database and user) against one MongoDB 8.0 and one Kafka,
@@ -98,6 +103,7 @@ final class Stack {
                 {"payerAccountId":%d,"payeeAccountId":%d,"amountMinor":%d,"currency":"USD"}"""
                 .formatted(payer, payee, amountMinor);
         return send(HttpRequest.newBuilder(uri("/api/payments"))
+                .header("Authorization", authorization(payer))
                 .header("Content-Type", "application/json")
                 .header("Idempotency-Key", idempotencyKey)
                 .POST(HttpRequest.BodyPublishers.ofString(body)).build());
@@ -109,7 +115,17 @@ final class Stack {
     }
 
     static JsonNode payment(UUID id) throws Exception {
-        return send(HttpRequest.newBuilder(uri("/api/payments/" + id)).GET().build()).body();
+        long payer = paymentDb().findOne(eq("_id", id), Document.class, "payments").getLong("payer_account_id");
+        return send(HttpRequest.newBuilder(uri("/api/payments/" + id))
+                .header("Authorization", authorization(payer)).GET().build()).body();
+    }
+
+    static synchronized String authorization(long account) {
+        var users = PAYMENT.getBean(InMemoryUserDetailsManager.class);
+        String name = "test-" + account;
+        if (!users.userExists(name)) users.createUser(User.withUsername(name).password("{noop}test-only")
+                .authorities(PaymentSecurity.accountAuthority(account)).build());
+        return "Basic " + Base64.getEncoder().encodeToString((name + ":test-only").getBytes(StandardCharsets.UTF_8));
     }
 
     private static URI uri(String path) {

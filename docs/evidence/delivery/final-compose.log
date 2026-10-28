@@ -1,0 +1,5 @@
+NAME                                               IMAGE                                            COMMAND                  SERVICE           CREATED         STATUS                   PORTS
+ledgerflow-delivery-cd37ed388b-kafka-1             apache/kafka:4.0.0                               "/__cacert_entrypoin…"   kafka             9 minutes ago   Up 4 minutes (healthy)   127.0.0.1:39092->29092/tcp
+ledgerflow-delivery-cd37ed388b-ledger-service-1    ledgerflow-delivery-cd37ed388b-ledger-service    "java -jar /app.jar"     ledger-service    9 minutes ago   Up 6 minutes (healthy)   127.0.0.1:18082->8082/tcp
+ledgerflow-delivery-cd37ed388b-mongo-1             mongo:8.0                                        "bash /scripts/start…"   mongo             9 minutes ago   Up 9 minutes (healthy)   127.0.0.1:37017->27017/tcp
+ledgerflow-delivery-cd37ed388b-payment-service-1   ledgerflow-delivery-cd37ed388b-payment-service   "java -jar /app.jar"     payment-service   9 minutes ago   Up 6 minutes (healthy)   127.0.0.1:18081->8081/tcp

@@ -348,3 +348,34 @@ PASS: Tests run: 4, Failures: 0; cluster left running
 ```
 
 Evidence: `docs/evidence/k8s-smoke-2026-10-26-a54fed0.txt`. Single-node local cluster; no high-availability, failover or production claim.
+
+## Local delivery hardening, 2026-10-28
+
+Started from clean `main` at `1a39aed43f7d144f594b329fa4c8e65035f677a5`. Host: macOS 27.0.1 arm64, Temurin 25.0.4.1, Maven 3.9.11, Docker Desktop 4.95.0 / Engine 29.8.2 / Compose 5.6.0. Runtime MongoDB 8.0.34 and Kafka broker 4.0.0; actual Java dependencies: Boot 4.1.1, Spring Kafka 4.1.1, Kafka client 4.2.1, MongoDB driver 5.8.1, Testcontainers 2.0.5; local authentication uses Spring Security 7.1.1.
+
+- Unmodified baseline `JAVA_HOME=$(/usr/libexec/java_home -v 25) ./mvnw -B verify`: **58 tests passed**; documented Compose stack healthy; three smoke HTTP scenarios passed; zero invariant violations. Existing outbox, DLT, idempotency and reconciliation were reused.
+- Reproduced gaps: an unauthenticated request completed and moved 2500 minor units; a 32-request burst admitted **27** despite velocity maximum **5**.
+- Authentication increment: **25 payment tests passed**, including invalid/missing credentials, unowned debits, authorized replay, participant reads and browser-origin rejection.
+- Strict velocity increment: **28 payment tests passed**; 64-way hot payer admitted **5**, declined **59**; replay, rolling expiry, pre-existing history and rollback verified.
+- Three-partition ordering investigation: **3 end-to-end tests passed**. An initial harness failure (`mongosh --eval` printed a function value) was fixed and retained in evidence. Shared receiver contention, opposite directions, duplicate/fresh-event replay and group reassignment preserved terminal states and unique balanced postings. No partition-key change was justified.
+- Final `./mvnw -B verify`: **66 tests, 0 failures, 0 errors, 0 skipped** (payment 28, ledger 21, e2e 17), exit 0 at 14:55:22 America/New_York, elapsed **5:12**.
+- `bash scripts/smoke.sh --extended --output docs/evidence/delivery/system`: **11/11 scenarios passed** in fresh project `ledgerflow-delivery-cd37ed388b`, zero I1–I6 violations after each. Includes actual payment SIGKILL, ledger restart, MongoDB pause, Kafka interruption with a logged outbox publish failure, and poison messages to both DLTs followed by successful processing.
+- Authenticated k6 functional check: **5 accepted, 0 declined, 0 failed, 0 retries**; all completed. Authenticated chaos metric/probe/drain/invariant helpers also passed. No performance claim or new 27-run campaign.
+- Final isolated history: **46 payments: 17 COMPLETED, 1 FAILED, 28 DECLINED; 0 pending, 0 unpublished; global ledger entry sum 0; duplicate posting groups 0; negative non-SYSTEM balances 0; I1–I6 violations 0**.
+- Existing volumes and unrelated services were preserved. Baseline containers were stopped without removal; the isolated delivery stack remains healthy on loopback ports 18081/18082/37017/39092. No Kubernetes command or destructive chaos reset was run.
+
+Commands, reproduction steps, exact failure evidence, file list and limitations: [LEDGERFLOW_DELIVERY.md](LEDGERFLOW_DELIVERY.md). Raw logs and archived byte-verified Docker command outputs: `docs/evidence/delivery/`.
+
+## Independent review remediation, 2026-10-28
+
+Limited to the three review findings; no Java service, transaction, risk, ledger or invariant logic changed in this remediation.
+
+- Restored the original base Kafka service configuration. Its rendered hash exactly matches existing broker `b3bfb59b39fa…`: `7f9654c560e92c60704292d31bae6caf30fbf3f0a4f1f8d1d5a76d302ffc86e2`. New isolated projects use a Kafka loopback overlay. No migration was required or performed; no existing broker was started, recreated or deleted.
+- Before/after inspection preserved the stopped broker identity/timestamps/mounts and all **331 data files / 106562 bytes**, with identical sorted inventory hash `28701ead74acfe8664e5afb318def2e0489ba05c15b029190d37624c357aa4b1`. Topic checkpoints and committed offsets were inspected from read-only copies using an offline tool container.
+- Replaced every demo assertion with explicit exceptions and retained side-effecting probes. **19 Python regression tests passed normally and 19 with `PYTHONOPTIMIZE=1`**, including collision refusal, financial-check failures and evidence sanitization.
+- Sanitized generated authentication credentials in exactly three delivery logs; retained originals with mode 0600 in a mode-0700 private directory outside the repository. Collector sanitization now precedes persistence. Text/JSON and compressed evidence were rescanned; hashes/manifests regenerated. Credential values are not included in reports.
+- Full Maven rerun: **66 tests, 0 failures/errors/skips**, exit 0, 1:51; finished 16:33:38 America/New_York. The collector redacted generated credentials before saving this new log.
+- Fresh isolated optimized-Python demo: **11/11 scenarios passed**, zero I1–I6 violations after each, on `ledgerflow-delivery-30168829bc` (ports 18281/18282/37217/39292). Final: **40 payments, 11 COMPLETED, 1 FAILED, 28 DECLINED; 0 pending/unpublished; ledger sum 0; duplicate posting groups 0; negative non-SYSTEM balances 0**.
+- `git diff --check` passed. Existing environments/data preserved; changes remain uncommitted.
+
+Exact commands, sanitized evidence, file list and remaining Kafka/exposure limits: [REVIEW_REMEDIATION.md](REVIEW_REMEDIATION.md).

@@ -4,6 +4,7 @@
 import http from 'k6/http';
 import { sleep } from 'k6';
 import { Counter, Trend } from 'k6/metrics';
+import encoding from 'k6/encoding';
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8081';
 const PAYERS_FIRST = Number(__ENV.PAYERS_FIRST || 10001);
@@ -36,7 +37,8 @@ export default function () {
   const payee = PAYEES_FIRST + Math.floor(Math.random() * PAYEES);
   const key = `k6-${__VU}-${__ITER}-${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
   const body = JSON.stringify({ payerAccountId: payer, payeeAccountId: payee, amountMinor: 100 + Math.floor(Math.random() * 900), currency: 'USD' });
-  const params = { headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key }, timeout: '15s' };
+  const params = { headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key,
+    Authorization: `Basic ${encoding.b64encode(__ENV.PAYMENT_AUTH || 'alice:alice-local')}` }, timeout: '15s' };
 
   for (let attempt = 1; attempt <= 5; attempt++) {
     const res = http.post(`${BASE_URL}/api/payments`, body, params);

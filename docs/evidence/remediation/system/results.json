@@ -1,0 +1,103 @@
+[
+  {
+    "scenario": "successful payment",
+    "result": "PASS",
+    "violations": 0,
+    "details": {
+      "postings": 1,
+      "balance": 3500
+    }
+  },
+  {
+    "scenario": "risk-declined payment",
+    "result": "PASS",
+    "violations": 0,
+    "details": {
+      "postings": 0,
+      "balance": 3500
+    }
+  },
+  {
+    "scenario": "insufficient funds",
+    "result": "PASS",
+    "violations": 0,
+    "details": {
+      "postings": 0,
+      "balance": 100
+    }
+  },
+  {
+    "scenario": "idempotent replay and payload conflict",
+    "result": "PASS",
+    "violations": 0,
+    "details": {
+      "postings": 1,
+      "balance": 3500
+    }
+  },
+  {
+    "scenario": "unauthorized and unowned debit rejected",
+    "result": "PASS",
+    "violations": 0,
+    "details": {
+      "unauthenticated": 401,
+      "unowned": 403
+    }
+  },
+  {
+    "scenario": "concurrent velocity limit",
+    "result": "PASS",
+    "violations": 0,
+    "details": {
+      "requests": 32,
+      "completed": 5,
+      "declined": 27,
+      "balance": 9500
+    }
+  },
+  {
+    "scenario": "ledger service interruption",
+    "result": "PASS",
+    "violations": 0,
+    "details": {
+      "postings": 1,
+      "balance": 9900
+    }
+  },
+  {
+    "scenario": "payment process killed after acceptance",
+    "result": "PASS",
+    "violations": 0,
+    "details": {
+      "postings": 1,
+      "balance": 9900
+    }
+  },
+  {
+    "scenario": "MongoDB paused during submission",
+    "result": "PASS",
+    "violations": 0,
+    "details": {
+      "postings": 1,
+      "balance": 9900
+    }
+  },
+  {
+    "scenario": "Kafka interruption and failed outbox publish",
+    "result": "PASS",
+    "violations": 0,
+    "details": {
+      "postings": 1,
+      "balance": 9900
+    }
+  },
+  {
+    "scenario": "poison messages route to both DLTs and processing continues",
+    "result": "PASS",
+    "violations": 0,
+    "details": {
+      "postings": 1,
+      "balance": 9900
+    }
+  }
+]

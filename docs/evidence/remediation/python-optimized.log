@@ -1,0 +1,24 @@
+test_default_broker_exactly_matches_original_configuration (test_demo.ComposeCompatibilityTest.test_default_broker_exactly_matches_original_configuration) ... ok
+test_only_isolated_overlay_uses_loopback_and_alternate_port (test_demo.ComposeCompatibilityTest.test_only_isolated_overlay_uses_loopback_and_alternate_port) ... ok
+test_all_authorization_and_conflict_probes_execute (test_demo.DemoSafetyTest.test_all_authorization_and_conflict_probes_execute) ... ok
+test_command_output_is_sanitized_before_persistence (test_demo.DemoSafetyTest.test_command_output_is_sanitized_before_persistence) ... ok
+test_demo_contains_no_optimization_sensitive_assertions (test_demo.DemoSafetyTest.test_demo_contains_no_optimization_sensitive_assertions) ... ok
+test_existing_containers_prevent_startup (test_demo.DemoSafetyTest.test_existing_containers_prevent_startup) ... ok
+test_existing_volume_prevents_startup_even_without_containers (test_demo.DemoSafetyTest.test_existing_volume_prevents_startup_even_without_containers) ... ok
+test_full_history_violation_fails_before_pass_record (test_demo.DemoSafetyTest.test_full_history_violation_fails_before_pass_record) ... ok
+test_outbox_timeout_still_fails (test_demo.DemoSafetyTest.test_outbox_timeout_still_fails) ... ok
+test_posting_and_balance_mismatch_fails (test_demo.DemoSafetyTest.test_posting_and_balance_mismatch_fails) ... ok
+test_wrong_authorization_and_conflict_responses_fail (test_demo.DemoSafetyTest.test_wrong_authorization_and_conflict_responses_fail) ... ok
+test_capture_redacts_before_writing_and_preserves_exit_code (test_evidence.EvidenceTest.test_capture_redacts_before_writing_and_preserves_exit_code) ... ok
+test_capture_redacts_multiline_credentials (test_evidence.EvidenceTest.test_capture_redacts_multiline_credentials) ... ok
+test_configured_nondefault_password_is_redacted (test_evidence.EvidenceTest.test_configured_nondefault_password_is_redacted) ... ok
+test_generated_password_redacted_without_losing_diagnostics (test_evidence.EvidenceTest.test_generated_password_redacted_without_losing_diagnostics) ... ok
+test_json_remains_valid_and_authorization_is_sanitized (test_evidence.EvidenceTest.test_json_remains_valid_and_authorization_is_sanitized) ... ok
+test_nested_archive_sanitization_and_detection (test_evidence.EvidenceTest.test_nested_archive_sanitization_and_detection) ... ok
+test_private_original_and_updated_archive_manifest (test_evidence.EvidenceTest.test_private_original_and_updated_archive_manifest) ... ok
+test_raw_evidence_cannot_be_preserved_inside_repository (test_evidence.EvidenceTest.test_raw_evidence_cannot_be_preserved_inside_repository) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 1.163s
+
+OK

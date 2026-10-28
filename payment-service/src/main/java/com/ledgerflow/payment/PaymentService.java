@@ -37,10 +37,15 @@ public class PaymentService {
 
     /** Commit the key, payment and outbox together so a crash can't split them. */
     public Result create(String idempotencyKey, PaymentRequest request) {
-        try {
-            return store.transaction(() -> createNew(idempotencyKey, request));
-        } catch (DuplicateKeyException duplicate) {
-            return replay(idempotencyKey, request);
+        while (true) {
+            try {
+                return store.transaction(() -> createNew(idempotencyKey, request));
+            } catch (RiskRule.Velocity.GuardCreatedConcurrently retry) {
+                // The winner created the payer guard; use a fresh transaction and snapshot.
+            } catch (DuplicateKeyException duplicate) {
+                if (repo.findKey(idempotencyKey).isEmpty()) throw duplicate;
+                return replay(idempotencyKey, request);
+            }
         }
     }
 

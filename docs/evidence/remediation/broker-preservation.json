@@ -1,0 +1,50 @@
+{
+  "unchanged": true,
+  "defaultConfigHashMatchesExisting": true,
+  "brokerStartedOrRecreated": false,
+  "dataPath": "/tmp/kafka-logs",
+  "metadata": {
+    "cluster.id": "5L6g3nShT-eMCtK--X86sw",
+    "directory.id": "dw0Na16YyEevO41lISkSDw",
+    "node.id": "1",
+    "version": "1"
+  },
+  "topicRecoveryOffsets": {
+    "payments.requested-dlt": {
+      "1": 0,
+      "0": 0,
+      "2": 0
+    },
+    "ledger.results-dlt": {
+      "2": 0,
+      "0": 0,
+      "1": 0
+    },
+    "payments.requested": {
+      "0": 0,
+      "2": 28,
+      "1": 1
+    },
+    "ledger.results": {
+      "2": 10,
+      "1": 8,
+      "0": 11
+    }
+  },
+  "committedConsumerOffsets": {
+    "payment-service": {
+      "ledger.results": {
+        "1": 8,
+        "0": 11,
+        "2": 10
+      }
+    },
+    "ledger-service": {
+      "payments.requested": {
+        "2": 28,
+        "1": 1
+      }
+    }
+  },
+  "dataInventorySha256": "28701ead74acfe8664e5afb318def2e0489ba05c15b029190d37624c357aa4b1"
+}

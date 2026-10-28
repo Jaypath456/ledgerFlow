@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Chaos runs against the Compose stack (project "ledgerflow-chaos", its own volume).
 #   chaos/run_chaos.sh [RUNS]          default 27 = each of the 9 scenarios 3 times
-# Env: LOAD_RATE (payments/s, default 100), LOAD_SECONDS (60), RESET=1 (fresh volume first),
+# Env: LOAD_RATE (payments/s, default 100), LOAD_SECONDS (60), PROJECT (use a new name for fresh data),
 #      KEEP_GOING=1 (do not stop at the first failed run), ONLY=a,b (subset of scenarios).
 # Each run: background k6 load -> one fault -> recovery probe -> settle -> invariants (+ scenario checks).
 # A run fails on any invariant violation, a checker error, a settle timeout or a failed scenario check.
@@ -37,7 +37,10 @@ reset_group() { # reset_group GROUP TOPIC SHIFT  (group must have no running mem
 }
 
 # --- stack ---
-[ "${RESET:-0}" = 1 ] && $C down -v >/dev/null 2>&1
+if [ "${RESET:-0}" = 1 ]; then
+  echo 'RESET is disabled to preserve data. Choose a new PROJECT for an isolated campaign.' >&2
+  exit 1
+fi
 log "starting stack ($PROJECT)"
 $C up -d --build --wait >/dev/null 2>&1 || { log "stack failed to start"; exit 1; }
 if [ "$(mongo "print(db.getSiblingDB('ledger').accounts.countDocuments({_id:Long('10001')}))")" = 0 ]; then log "seeding accounts"; seed; fi
@@ -86,7 +89,7 @@ for run in $(seq 1 "$RUNS"); do
       hot=$(mongo "const last=db.getSiblingDB('ledger').accounts.find({_id:{\$gte:Long('40001'),\$lte:Long('49999')}}).sort({_id:-1}).limit(1).toArray();print(last.length ? Number(last[0]._id)+1 : 40001)")
       create_accounts "$hot" 1 CUSTOMER 5000 >/dev/null || { ok=0; note+="hot account setup failed;"; }
       t=$(date +%s.%N)
-      seq 1 200 | xargs -P 200 -I{} curl -sS -m 30 -o /dev/null -X POST "$PAYMENT_URL/api/payments" \
+      seq 1 200 | xargs -P 200 -I{} curl -sS -u "$PAYMENT_AUTH" -m 30 -o /dev/null -X POST "$PAYMENT_URL/api/payments" \
         -H 'Content-Type: application/json' -H "Idempotency-Key: hot-$hot-{}" \
         -d "{\"payerAccountId\":$hot,\"payeeAccountId\":20001,\"amountMinor\":100,\"currency\":\"USD\"}" ;;
     crash-*) wait $k6_pid; t=$(date +%s.%N)

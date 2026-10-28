@@ -3,7 +3,7 @@ services:
   mongo:
     image: mongo:8.0
     entrypoint: ["bash", "/scripts/start-mongo.sh"]
-    ports: ["27017:27017"]
+    ports: ["127.0.0.1:${MONGO_PORT:-27017}:27017"]
     volumes:
       - mongodata:/data/db
       - ./mongo:/scripts:ro
@@ -38,12 +38,16 @@ services:
 
   payment-service:
     build: { context: .., target: payment-service }
-    ports: ["8081:8081"]
+    ports: ["127.0.0.1:${PAYMENT_PORT:-8081}:8081"]
     environment: &app-env
       MONGODB_URI: mongodb://payment_user:payment_user@mongo:27017/payments?replicaSet=rs0&authSource=payments&directConnection=true
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       JAVA_TOOL_OPTIONS: -Xmx384m
       RISK_VELOCITY_MAX: ${RISK_VELOCITY_MAX:-5}
+      ALICE_PASSWORD: ${ALICE_PASSWORD:-alice-local}
+      ALICE_ACCOUNTS: ${ALICE_ACCOUNTS:-2}
+      BOB_PASSWORD: ${BOB_PASSWORD:-bob-local}
+      BOB_ACCOUNTS: ${BOB_ACCOUNTS:-4}
       LEDGERFLOW_OUTBOX_POLL_MS: ${OUTBOX_POLL_MS:-10}
       # Fault injection: only with SPRING_PROFILES_ACTIVE=chaos (see docs/DECISIONS.md).
       SPRING_PROFILES_ACTIVE: ${PAYMENT_PROFILES:-default}
@@ -63,7 +67,7 @@ services:
 
   ledger-service:
     build: { context: .., target: ledger-service }
-    ports: ["8082:8082"]
+    ports: ["127.0.0.1:${LEDGER_PORT:-8082}:8082"]
     environment:
       <<: *app-env
       MONGODB_URI: mongodb://ledger_user:ledger_user@mongo:27017/ledger?replicaSet=rs0&authSource=ledger&directConnection=true

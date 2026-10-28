@@ -1,0 +1,190 @@
+ Image ledgerflow-ledger-service Building 
+ Image ledgerflow-payment-service Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.13kB done
+#1 DONE 0.0s
+
+#2 [payment-service internal] load build definition from Dockerfile
+#2 transferring dockerfile: 935B 0.0s done
+#2 DONE 0.0s
+
+#3 [ledger-service internal] load metadata for docker.io/library/maven:3.9.11-eclipse-temurin-25
+#3 ...
+
+#4 [auth] library/maven:pull token for registry-1.docker.io
+#4 DONE 0.0s
+
+#5 [auth] library/eclipse-temurin:pull token for registry-1.docker.io
+#5 DONE 0.0s
+
+#6 [ledger-service internal] load metadata for docker.io/library/eclipse-temurin:25-jre
+#6 ...
+
+#3 [payment-service internal] load metadata for docker.io/library/maven:3.9.11-eclipse-temurin-25
+#3 DONE 0.8s
+
+#6 [ledger-service internal] load metadata for docker.io/library/eclipse-temurin:25-jre
+#6 DONE 1.4s
+
+#7 [ledger-service internal] load .dockerignore
+#7 transferring context: 88B done
+#7 DONE 0.0s
+
+#8 [payment-service build  1/11] FROM docker.io/library/maven:3.9.11-eclipse-temurin-25@sha256:407c4423cec0cf2981055bc2c6c0dc211d9605b6669279b95997f2d1c7e91e2c
+#8 DONE 0.0s
+
+#9 [payment-service internal] load build context
+#9 transferring context: 5.98kB 0.1s done
+#9 transferring context: 5.98kB 0.1s done
+#9 DONE 0.1s
+
+#10 [payment-service build  3/11] COPY pom.xml ./
+#10 CACHED
+
+#11 [payment-service build  8/11] COPY common/src common/src
+#11 CACHED
+
+#12 [payment-service build  9/11] COPY payment-service/src payment-service/src
+#12 CACHED
+
+#13 [payment-service build  5/11] COPY payment-service/pom.xml payment-service/
+#13 CACHED
+
+#14 [payment-service build 10/11] COPY ledger-service/src ledger-service/src
+#14 CACHED
+
+#15 [payment-service build  7/11] COPY e2e-tests/pom.xml e2e-tests/
+#15 CACHED
+
+#16 [payment-service build  2/11] WORKDIR /src
+#16 CACHED
+
+#17 [payment-service build  4/11] COPY common/pom.xml common/
+#17 CACHED
+
+#18 [payment-service build  6/11] COPY ledger-service/pom.xml ledger-service/
+#18 CACHED
+
+#19 [payment-service build 11/11] RUN --mount=type=cache,target=/root/.m2 mvn -B -q -pl payment-service,ledger-service -am package -DskipTests
+#19 CACHED
+
+#20 [payment-service ledger-service 1/2] FROM docker.io/library/eclipse-temurin:25-jre@sha256:78f1f183913482ef390c2722f46c3f0ce76ada341d69590e7c482ec943ee72d5
+#20 resolve docker.io/library/eclipse-temurin:25-jre@sha256:78f1f183913482ef390c2722f46c3f0ce76ada341d69590e7c482ec943ee72d5 done
+#20 sha256:78f1f183913482ef390c2722f46c3f0ce76ada341d69590e7c482ec943ee72d5 5.92kB / 5.92kB done
+#20 sha256:2434982eb9697f69cedd18da6d795b4dccb24081f934528d15cbd92659b3dde9 2.14kB / 2.14kB done
+#20 sha256:705b48fc8a90258d8ff9183934776341eb31fc4c8fddb54eaafd9ba5717accf9 9.04kB / 9.04kB done
+#20 sha256:afa7f7d582de8ee3433df193ede10fc2c50d3398de31c14d329b643e7a69b852 0B / 41.12MB 0.2s
+#20 sha256:6f01cc7d6fb3d703f324d1ccddfddeaa2e8c97cf4b5d6936a66396eaf4089d99 388B / 388B 0.1s done
+#20 sha256:af1c280fe5fb98a7c2966fe55cf93fc37617281ae248eb6c28ebd1e39f3b1fd6 0B / 12.11MB 0.2s
+#20 sha256:2ae025f5cf29bb8aa8ed72fbff480c7eed1286d19afe1f555d32c1d9a955a1f4 0B / 61.93MB 0.2s
+#20 sha256:6f01cc7d6fb3d703f324d1ccddfddeaa2e8c97cf4b5d6936a66396eaf4089d99 388B / 388B 0.1s done
+#20 sha256:afa7f7d582de8ee3433df193ede10fc2c50d3398de31c14d329b643e7a69b852 7.34MB / 41.12MB 0.7s
+#20 sha256:af1c280fe5fb98a7c2966fe55cf93fc37617281ae248eb6c28ebd1e39f3b1fd6 1.05MB / 12.11MB 0.7s
+#20 sha256:afa7f7d582de8ee3433df193ede10fc2c50d3398de31c14d329b643e7a69b852 13.63MB / 41.12MB 0.8s
+#20 sha256:af1c280fe5fb98a7c2966fe55cf93fc37617281ae248eb6c28ebd1e39f3b1fd6 3.15MB / 12.11MB 0.8s
+#20 sha256:afa7f7d582de8ee3433df193ede10fc2c50d3398de31c14d329b643e7a69b852 19.92MB / 41.12MB 1.0s
+#20 sha256:af1c280fe5fb98a7c2966fe55cf93fc37617281ae248eb6c28ebd1e39f3b1fd6 5.24MB / 12.11MB 1.0s
+#20 sha256:2ae025f5cf29bb8aa8ed72fbff480c7eed1286d19afe1f555d32c1d9a955a1f4 5.24MB / 61.93MB 1.0s
+#20 sha256:afa7f7d582de8ee3433df193ede10fc2c50d3398de31c14d329b643e7a69b852 22.02MB / 41.12MB 1.1s
+#20 sha256:af1c280fe5fb98a7c2966fe55cf93fc37617281ae248eb6c28ebd1e39f3b1fd6 7.34MB / 12.11MB 1.1s
+#20 sha256:afa7f7d582de8ee3433df193ede10fc2c50d3398de31c14d329b643e7a69b852 26.21MB / 41.12MB 1.2s
+#20 sha256:af1c280fe5fb98a7c2966fe55cf93fc37617281ae248eb6c28ebd1e39f3b1fd6 10.49MB / 12.11MB 1.2s
+#20 sha256:2ae025f5cf29bb8aa8ed72fbff480c7eed1286d19afe1f555d32c1d9a955a1f4 8.39MB / 61.93MB 1.2s
+#20 sha256:afa7f7d582de8ee3433df193ede10fc2c50d3398de31c14d329b643e7a69b852 34.60MB / 41.12MB 1.4s
+#20 sha256:af1c280fe5fb98a7c2966fe55cf93fc37617281ae248eb6c28ebd1e39f3b1fd6 12.11MB / 12.11MB 1.3s done
+#20 sha256:2ae025f5cf29bb8aa8ed72fbff480c7eed1286d19afe1f555d32c1d9a955a1f4 12.58MB / 61.93MB 1.4s
+#20 sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 0B / 32B 1.4s
+#20 sha256:afa7f7d582de8ee3433df193ede10fc2c50d3398de31c14d329b643e7a69b852 37.75MB / 41.12MB 1.5s
+#20 sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 32B / 32B 1.5s done
+#20 sha256:d72d8405b3fce2d9ea155e7e6e786e04b8d036e61a3d9be9cb54696066b70b83 0B / 2.46kB 1.5s
+#20 sha256:afa7f7d582de8ee3433df193ede10fc2c50d3398de31c14d329b643e7a69b852 41.12MB / 41.12MB 1.6s done
+#20 sha256:2ae025f5cf29bb8aa8ed72fbff480c7eed1286d19afe1f555d32c1d9a955a1f4 16.78MB / 61.93MB 1.6s
+#20 sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 32B / 32B 1.5s done
+#20 sha256:d72d8405b3fce2d9ea155e7e6e786e04b8d036e61a3d9be9cb54696066b70b83 2.46kB / 2.46kB 1.6s
+#20 sha256:afa7f7d582de8ee3433df193ede10fc2c50d3398de31c14d329b643e7a69b852 41.12MB / 41.12MB 1.6s done
+#20 sha256:2ae025f5cf29bb8aa8ed72fbff480c7eed1286d19afe1f555d32c1d9a955a1f4 20.97MB / 61.93MB 1.8s
+#20 sha256:d72d8405b3fce2d9ea155e7e6e786e04b8d036e61a3d9be9cb54696066b70b83 2.46kB / 2.46kB 1.7s done
+#20 sha256:2ae025f5cf29bb8aa8ed72fbff480c7eed1286d19afe1f555d32c1d9a955a1f4 26.21MB / 61.93MB 2.0s
+#20 sha256:d72d8405b3fce2d9ea155e7e6e786e04b8d036e61a3d9be9cb54696066b70b83 2.46kB / 2.46kB 1.7s done
+#20 sha256:2ae025f5cf29bb8aa8ed72fbff480c7eed1286d19afe1f555d32c1d9a955a1f4 29.36MB / 61.93MB 2.1s
+#20 extracting sha256:afa7f7d582de8ee3433df193ede10fc2c50d3398de31c14d329b643e7a69b852 0.2s
+#20 sha256:2ae025f5cf29bb8aa8ed72fbff480c7eed1286d19afe1f555d32c1d9a955a1f4 33.55MB / 61.93MB 2.6s
+#20 sha256:2ae025f5cf29bb8aa8ed72fbff480c7eed1286d19afe1f555d32c1d9a955a1f4 39.85MB / 61.93MB 2.8s
+#20 sha256:2ae025f5cf29bb8aa8ed72fbff480c7eed1286d19afe1f555d32c1d9a955a1f4 44.04MB / 61.93MB 3.0s
+#20 sha256:2ae025f5cf29bb8aa8ed72fbff480c7eed1286d19afe1f555d32c1d9a955a1f4 51.38MB / 61.93MB 3.2s
+#20 sha256:2ae025f5cf29bb8aa8ed72fbff480c7eed1286d19afe1f555d32c1d9a955a1f4 59.77MB / 61.93MB 3.3s
+#20 sha256:2ae025f5cf29bb8aa8ed72fbff480c7eed1286d19afe1f555d32c1d9a955a1f4 61.93MB / 61.93MB 3.3s done
+#20 extracting sha256:afa7f7d582de8ee3433df193ede10fc2c50d3398de31c14d329b643e7a69b852 5.3s
+#20 extracting sha256:afa7f7d582de8ee3433df193ede10fc2c50d3398de31c14d329b643e7a69b852 8.4s done
+#20 extracting sha256:afa7f7d582de8ee3433df193ede10fc2c50d3398de31c14d329b643e7a69b852 8.4s done
+#20 extracting sha256:6f01cc7d6fb3d703f324d1ccddfddeaa2e8c97cf4b5d6936a66396eaf4089d99
+#20 extracting sha256:6f01cc7d6fb3d703f324d1ccddfddeaa2e8c97cf4b5d6936a66396eaf4089d99 done
+#20 extracting sha256:af1c280fe5fb98a7c2966fe55cf93fc37617281ae248eb6c28ebd1e39f3b1fd6 0.1s
+#20 extracting sha256:af1c280fe5fb98a7c2966fe55cf93fc37617281ae248eb6c28ebd1e39f3b1fd6 1.1s done
+#20 extracting sha256:af1c280fe5fb98a7c2966fe55cf93fc37617281ae248eb6c28ebd1e39f3b1fd6 1.1s done
+#20 extracting sha256:2ae025f5cf29bb8aa8ed72fbff480c7eed1286d19afe1f555d32c1d9a955a1f4
+#20 extracting sha256:2ae025f5cf29bb8aa8ed72fbff480c7eed1286d19afe1f555d32c1d9a955a1f4 1.2s done
+#20 extracting sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 done
+#20 extracting sha256:d72d8405b3fce2d9ea155e7e6e786e04b8d036e61a3d9be9cb54696066b70b83 done
+#20 DONE 13.2s
+
+#21 [payment-service payment-service 2/2] COPY --from=build /src/payment-service/target/payment-service-*-exec.jar /app.jar
+#21 ...
+
+#22 [ledger-service ledger-service 2/2] COPY --from=build /src/ledger-service/target/ledger-service-*-exec.jar /app.jar
+#22 DONE 0.4s
+
+#21 [payment-service payment-service 2/2] COPY --from=build /src/payment-service/target/payment-service-*-exec.jar /app.jar
+#21 DONE 0.4s
+
+#23 [ledger-service] exporting to image
+#23 exporting layers 0.1s done
+#23 writing image sha256:909e616344096e28135d92cbeeb62d900567dc02ef983de4a98fe5d017c2ec43 done
+#23 naming to docker.io/library/ledgerflow-ledger-service done
+#23 DONE 0.2s
+
+#24 [payment-service] exporting to image
+#24 exporting layers 0.2s done
+#24 writing image sha256:1a049aa3b71262ec67beef40d1fd89b441c5b813f9502ce4cf4930363ed70292 done
+#24 naming to docker.io/library/ledgerflow-payment-service done
+#24 DONE 0.2s
+
+#25 [ledger-service] resolving provenance for metadata file
+#25 DONE 0.0s
+
+#26 [payment-service] resolving provenance for metadata file
+#26 DONE 0.0s
+ Image ledgerflow-ledger-service Built 
+ Image ledgerflow-payment-service Built 
+ Volume ledgerflow_mongodata Creating 
+ Volume ledgerflow_mongodata Creating 
+ Network ledgerflow_default Creating 
+ Network ledgerflow_default Creating 
+ Volume ledgerflow_mongodata Created 
+ Volume ledgerflow_mongodata Created 
+ Network ledgerflow_default Created 
+ Network ledgerflow_default Created 
+ Container ledgerflow-kafka-1 Creating 
+ Container ledgerflow-mongo-1 Creating 
+ Container ledgerflow-mongo-1 Created 
+ Container ledgerflow-kafka-1 Created 
+ Container ledgerflow-ledger-service-1 Creating 
+ Container ledgerflow-payment-service-1 Creating 
+ Container ledgerflow-payment-service-1 Created 
+ Container ledgerflow-ledger-service-1 Created 
+ Container ledgerflow-mongo-1 Starting 
+ Container ledgerflow-kafka-1 Starting 
+ Container ledgerflow-mongo-1 Started 
+ Container ledgerflow-kafka-1 Started 
+ Container ledgerflow-kafka-1 Waiting 
+ Container ledgerflow-kafka-1 Waiting 
+ Container ledgerflow-mongo-1 Waiting 
+ Container ledgerflow-mongo-1 Waiting 
+ Container ledgerflow-kafka-1 Healthy 
+ Container ledgerflow-kafka-1 Healthy 
+ Container ledgerflow-mongo-1 Healthy 
+ Container ledgerflow-payment-service-1 Starting 
+ Container ledgerflow-mongo-1 Healthy 
+ Container ledgerflow-ledger-service-1 Starting 
+ Container ledgerflow-payment-service-1 Started 
+ Container ledgerflow-ledger-service-1 Started 

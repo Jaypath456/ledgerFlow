@@ -1,0 +1,25 @@
+{
+  version: '8.0.34',
+  replicaSet: 'rs0',
+  defaultRWConcern: {
+    defaultReadConcern: {
+      level: 'local'
+    },
+    defaultWriteConcern: {
+      w: 'majority',
+      wtimeout: 0
+    },
+    defaultWriteConcernSource: 'implicit',
+    defaultReadConcernSource: 'implicit',
+    localUpdateWallClockTime: ISODate('2026-10-28T18:55:43.933Z'),
+    ok: 1,
+    '$clusterTime': {
+      clusterTime: Timestamp({ t: 1793213737, i: 1 }),
+      signature: {
+        hash: Binary.createFromBase64('316NtG/sDTJaAeeESWRxo7rfXes=', 0),
+        keyId: Long('7701792263503872006')
+      }
+    },
+    operationTime: Timestamp({ t: 1793213737, i: 1 })
+  }
+}

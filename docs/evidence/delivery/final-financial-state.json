@@ -1,0 +1,60 @@
+{
+  "payments": 46,
+  "completed": 17,
+  "failed": 1,
+  "declined": 28,
+  "pending": 0,
+  "unpublished": 0,
+  "ledgerTransactions": 28,
+  "ledgerEntries": 56,
+  "globalEntrySum": 0,
+  "negativeNonSystem": 0,
+  "duplicatePostingGroups": 0,
+  "balances": [
+    {
+      "accountId": 100001,
+      "type": "CUSTOMER",
+      "balanceMinor": 3500
+    },
+    {
+      "accountId": 100002,
+      "type": "CUSTOMER",
+      "balanceMinor": 100
+    },
+    {
+      "accountId": 100003,
+      "type": "CUSTOMER",
+      "balanceMinor": 9500
+    },
+    {
+      "accountId": 100004,
+      "type": "CUSTOMER",
+      "balanceMinor": 9899
+    },
+    {
+      "accountId": 100005,
+      "type": "CUSTOMER",
+      "balanceMinor": 9900
+    },
+    {
+      "accountId": 100006,
+      "type": "CUSTOMER",
+      "balanceMinor": 7403
+    },
+    {
+      "accountId": 100007,
+      "type": "CUSTOMER",
+      "balanceMinor": 9900
+    },
+    {
+      "accountId": 100008,
+      "type": "CUSTOMER",
+      "balanceMinor": 9900
+    },
+    {
+      "accountId": 200001,
+      "type": "MERCHANT",
+      "balanceMinor": 4998
+    }
+  ]
+}

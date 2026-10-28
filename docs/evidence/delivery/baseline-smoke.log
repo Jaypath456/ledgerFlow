@@ -1,0 +1,5 @@
+PASS funded 202 {'id': '209e3e55-8091-4495-96b3-0f86d58a6205', 'payerAccountId': 2, 'payeeAccountId': 5, 'amountMinor': 2500, 'currency': 'USD', 'status': 'COMPLETED', 'declineReason': None, 'createdAt': '2026-10-28T18:38:10.740Z', 'updatedAt': '2026-10-28T18:38:11.910Z'}
+PASS insufficient funds {'id': '44b38cb3-a7fd-492d-8782-7a4f960a3019', 'payerAccountId': 4, 'payeeAccountId': 5, 'amountMinor': 25001, 'currency': 'USD', 'status': 'FAILED', 'declineReason': 'INSUFFICIENT_FUNDS', 'createdAt': '2026-10-28T18:38:12.145Z', 'updatedAt': '2026-10-28T18:38:12.247Z'}
+PASS byte-identical replay
+AUTH FAILURE EVIDENCE: funded payment above accepted without credentials
+VELOCITY BASELINE: accepted 27 declined 5 configured max 5

@@ -47,3 +47,7 @@ Out of scope: cloud or managed Kubernetes, Helm, Terraform, GitOps, service mesh
 ## Status update, October 2026
 
 The PostgreSQL version of Phases 0 to 6 is tagged `v1.2.0-postgres`. LedgerFlow now runs on MongoDB (single-node replica set) in Docker Compose and on a local k3d cluster. Phase 7 (demo dashboard) remains removed. See the README and the end of `docs/RESULTS.md`.
+
+## Authorized local delivery milestones, 2026-10-28
+
+After the completed core phases: establish the unmodified baseline; add a local identity-to-account API boundary; make rolling velocity admission strict using MongoDB transactions; investigate three-partition ordering without speculative key changes; verify recovery and financial invariants; deliver a reproducible CLI demonstration and evidence. This explicitly adds authentication to the local scope. No dashboard, OAuth, external identity service, gateway, additional database, or cloud infrastructure is included. Commands, results and limits are recorded in `docs/LEDGERFLOW_DELIVERY.md`.

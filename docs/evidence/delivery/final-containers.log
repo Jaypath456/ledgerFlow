@@ -1,0 +1,18 @@
+ledgerflow-delivery-cd37ed388b-ledger-service-1	Up 6 minutes (healthy)	ledgerflow-delivery-cd37ed388b-ledger-service
+ledgerflow-delivery-cd37ed388b-payment-service-1	Up 6 minutes (healthy)	ledgerflow-delivery-cd37ed388b-payment-service
+ledgerflow-delivery-cd37ed388b-mongo-1	Up 9 minutes (healthy)	mongo:8.0
+ledgerflow-delivery-cd37ed388b-kafka-1	Up 4 minutes (healthy)	apache/kafka:4.0.0
+ledgerflow-payment-service-1	Exited (143) 12 minutes ago	ledgerflow-payment-service
+ledgerflow-ledger-service-1	Exited (143) 12 minutes ago	ledgerflow-ledger-service
+ledgerflow-mongo-1	Exited (0) 12 minutes ago	mongo:8.0
+ledgerflow-kafka-1	Exited (143) 12 minutes ago	apache/kafka:4.0.0
+launchops-repo-frontend-1	Up 59 minutes	launchops-repo-frontend
+launchops-repo-worker-1	Up 59 minutes	launchops-repo-worker
+launchops-repo-beat-1	Up 59 minutes	launchops-repo-beat
+launchops-repo-backend-1	Up 59 minutes (healthy)	launchops-repo-backend
+launchops-repo-postgres-1	Up About an hour (healthy)	postgres:16-alpine
+launchops-repo-redis-1	Up About an hour (healthy)	redis:7-alpine
+ledgerflow-chaos-ledger-service-1	Exited (137) 2 days ago	ledgerflow-chaos-ledger-service
+ledgerflow-chaos-payment-service-1	Exited (137) 2 days ago	ledgerflow-chaos-payment-service
+ledgerflow-chaos-mongo-1	Exited (0) 2 days ago	mongo:8.0
+ledgerflow-chaos-kafka-1	Exited (143) 2 days ago	apache/kafka:4.0.0

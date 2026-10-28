@@ -3,6 +3,9 @@ PROJECT=${PROJECT:-ledgerflow-chaos}
 C="docker compose -p $PROJECT -f infra/docker-compose.yml"
 PAYMENT_URL=${PAYMENT_URL:-http://localhost:8081}
 LEDGER_URL=${LEDGER_URL:-http://localhost:8082}
+PAYMENT_AUTH=${PAYMENT_AUTH:-alice:${ALICE_PASSWORD:-alice-local}}
+# The load identity owns only this explicit fixture inventory, never all ledger accounts.
+export ALICE_ACCOUNTS=${ALICE_ACCOUNTS:-$(python3 -c 'print(",".join(map(str,[*range(10001,10201),30000,*range(40001,50000)])))')}
 
 mongo() { $C exec -T mongo mongosh admin --quiet --username local_admin --password local_admin --eval "$1"; }
 now_ts() { mongo 'print(new Date().toISOString())'; }
@@ -57,7 +60,7 @@ e2e_latency_ms() { # p50/p95/p99 request-to-terminal for accepted payments creat
 }
 
 metric() { # current value of a Micrometer counter on a service (resets when the service restarts)
-  curl -fsS "$1/actuator/metrics/$2" 2>/dev/null | jq -r '.measurements[0].value // 0' || echo 0
+  curl -fsS -u "$PAYMENT_AUTH" "$1/actuator/metrics/$2" 2>/dev/null | jq -r '.measurements[0].value // 0' || echo 0
 }
 
 dlt_total() {
@@ -77,11 +80,11 @@ probe_recovery() { # seconds from $1 (epoch) until a new probe payment completes
   local start=$1 key id s i
   while [ "$(elapsed_since "$start" | cut -d. -f1)" -lt 300 ]; do
     key="probe-$(date +%s%N)"
-    id=$(curl -fsS -m 5 -X POST "$PAYMENT_URL/api/payments" -H 'Content-Type: application/json' -H "Idempotency-Key: $key" \
+    id=$(curl -fsS -u "$PAYMENT_AUTH" -m 5 -X POST "$PAYMENT_URL/api/payments" -H 'Content-Type: application/json' -H "Idempotency-Key: $key" \
          -d "{\"payerAccountId\":${PROBE_PAYER:-30000},\"payeeAccountId\":${PROBE_PAYEE:-20001},\"amountMinor\":1,\"currency\":\"USD\"}" 2>/dev/null | jq -r '.id // empty' 2>/dev/null)
     if [ -n "$id" ]; then
       for i in $(seq 1 50); do
-        s=$(curl -fsS -m 2 "$PAYMENT_URL/api/payments/$id" 2>/dev/null | jq -r '.status // empty' 2>/dev/null)
+        s=$(curl -fsS -u "$PAYMENT_AUTH" -m 2 "$PAYMENT_URL/api/payments/$id" 2>/dev/null | jq -r '.status // empty' 2>/dev/null)
         [ "$s" = COMPLETED ] && { elapsed_since "$start"; return 0; }
         sleep 0.1
       done
@@ -95,5 +98,5 @@ k6_run() { # k6_run OUT_DIR RATE DURATION [extra -e args...]
   local out=$1 rate=$2 duration=$3; shift 3
   mkdir -p "$out" && chmod 777 "$out"
   docker run --rm --network host -v "$PWD/chaos:/scripts:ro" -v "$(realpath "$out"):/out" grafana/k6:latest \
-    run -q --no-color -e RATE="$rate" -e DURATION="$duration" -e OUT=/out/summary.json "$@" /scripts/load.js 2>&1 | grep -E '^accepted=' || true
+    run -q --no-color -e RATE="$rate" -e DURATION="$duration" -e PAYMENT_AUTH="$PAYMENT_AUTH" -e OUT=/out/summary.json "$@" /scripts/load.js 2>&1 | grep -E '^accepted=' || true
 }

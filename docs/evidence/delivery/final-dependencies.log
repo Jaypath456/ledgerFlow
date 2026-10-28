@@ -1,0 +1,231 @@
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::staticFieldBase has been called by com.google.inject.internal.aop.HiddenClassDefiner (file:/Users/jayz/.m2/wrapper/dists/apache-maven-3.9.11/a2d47e15/lib/guice-5.1.0-classes.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.inject.internal.aop.HiddenClassDefiner
+WARNING: sun.misc.Unsafe::staticFieldBase will be removed in a future release
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] ledgerflow                                                         [pom]
+[INFO] common                                                             [jar]
+[INFO] payment-service                                                    [jar]
+[INFO] ledger-service                                                     [jar]
+[INFO] e2e-tests                                                          [jar]
+[INFO] 
+[INFO] ---------------------< com.ledgerflow:ledgerflow >----------------------
+[INFO] Building ledgerflow 1.1.0                                          [1/5]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- dependency:3.10.0:tree (default-cli) @ ledgerflow ---
+[INFO] 
+[INFO] -----------------------< com.ledgerflow:common >------------------------
+[INFO] Building common 1.1.0                                              [2/5]
+[INFO]   from common/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- dependency:3.10.0:tree (default-cli) @ common ---
+[INFO] com.ledgerflow:common:jar:1.1.0
+[INFO] +- org.springframework.boot:spring-boot-starter-data-mongodb:jar:4.1.1:compile
+[INFO] |  +- org.springframework.boot:spring-boot-starter-mongodb:jar:4.1.1:compile
+[INFO] |  |  +- org.springframework.boot:spring-boot-starter:jar:4.1.1:compile
+[INFO] |  |  |  +- org.springframework.boot:spring-boot-starter-logging:jar:4.1.1:compile
+[INFO] |  |  |  \- org.springframework.boot:spring-boot-autoconfigure:jar:4.1.1:compile
+[INFO] |  |  +- org.springframework.boot:spring-boot-mongodb:jar:4.1.1:compile
+[INFO] |  |  |  \- org.springframework.boot:spring-boot:jar:4.1.1:compile
+[INFO] |  |  \- org.mongodb:mongodb-driver-sync:jar:5.8.1:compile
+[INFO] |  |     +- org.mongodb:bson:jar:5.8.1:compile
+[INFO] |  |     \- org.mongodb:mongodb-driver-core:jar:5.8.1:compile
+[INFO] |  |        \- org.mongodb:bson-record-codec:jar:5.8.1:runtime
+[INFO] |  \- org.springframework.boot:spring-boot-data-mongodb:jar:4.1.1:compile
+[INFO] |     +- org.springframework.boot:spring-boot-data-commons:jar:4.1.1:compile
+[INFO] |     |  \- org.springframework.boot:spring-boot-persistence:jar:4.1.1:compile
+[INFO] |     \- org.springframework.boot:spring-boot-transaction:jar:4.1.1:compile
+[INFO] +- org.springframework.kafka:spring-kafka:jar:4.1.1:compile
+[INFO] |  \- org.apache.kafka:kafka-clients:jar:4.2.1:compile
+[INFO] \- org.testcontainers:testcontainers-mongodb:jar:2.0.5:test
+[INFO]    \- org.testcontainers:testcontainers:jar:2.0.5:test
+[INFO] 
+[INFO] -------------------< com.ledgerflow:payment-service >-------------------
+[INFO] Building payment-service 1.1.0                                     [3/5]
+[INFO]   from payment-service/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- dependency:3.10.0:tree (default-cli) @ payment-service ---
+[INFO] com.ledgerflow:payment-service:jar:1.1.0
+[INFO] +- com.ledgerflow:common:jar:1.1.0:compile
+[INFO] |  +- org.springframework.boot:spring-boot-starter-data-mongodb:jar:4.1.1:compile
+[INFO] |  |  +- org.springframework.boot:spring-boot-starter-mongodb:jar:4.1.1:compile
+[INFO] |  |  |  +- org.springframework.boot:spring-boot-mongodb:jar:4.1.1:compile
+[INFO] |  |  |  \- org.mongodb:mongodb-driver-sync:jar:5.8.1:compile
+[INFO] |  |  |     +- org.mongodb:bson:jar:5.8.1:compile
+[INFO] |  |  |     \- org.mongodb:mongodb-driver-core:jar:5.8.1:compile
+[INFO] |  |  |        \- org.mongodb:bson-record-codec:jar:5.8.1:runtime
+[INFO] |  |  \- org.springframework.boot:spring-boot-data-mongodb:jar:4.1.1:compile
+[INFO] |  |     \- org.springframework.boot:spring-boot-data-commons:jar:4.1.1:compile
+[INFO] |  \- org.springframework.kafka:spring-kafka:jar:4.1.1:compile
+[INFO] |     \- org.apache.kafka:kafka-clients:jar:4.2.1:compile
+[INFO] +- org.springframework.boot:spring-boot-starter-webmvc:jar:4.1.1:compile
+[INFO] |  +- org.springframework.boot:spring-boot-starter:jar:4.1.1:compile
+[INFO] |  |  \- org.springframework.boot:spring-boot-starter-logging:jar:4.1.1:compile
+[INFO] |  +- org.springframework.boot:spring-boot-starter-jackson:jar:4.1.1:compile
+[INFO] |  |  \- org.springframework.boot:spring-boot-jackson:jar:4.1.1:compile
+[INFO] |  +- org.springframework.boot:spring-boot-starter-tomcat:jar:4.1.1:compile
+[INFO] |  |  +- org.springframework.boot:spring-boot-starter-tomcat-runtime:jar:4.1.1:compile
+[INFO] |  |  |  \- org.springframework.boot:spring-boot-web-server:jar:4.1.1:compile
+[INFO] |  |  \- org.springframework.boot:spring-boot-tomcat:jar:4.1.1:compile
+[INFO] |  +- org.springframework.boot:spring-boot-http-converter:jar:4.1.1:compile
+[INFO] |  |  \- org.springframework.boot:spring-boot:jar:4.1.1:compile
+[INFO] |  \- org.springframework.boot:spring-boot-webmvc:jar:4.1.1:compile
+[INFO] |     \- org.springframework.boot:spring-boot-servlet:jar:4.1.1:compile
+[INFO] +- org.springframework.boot:spring-boot-starter-security:jar:4.1.1:compile
+[INFO] |  \- org.springframework.boot:spring-boot-security:jar:4.1.1:compile
+[INFO] |     +- org.springframework.security:spring-security-config:jar:7.1.1:compile
+[INFO] |     |  \- org.springframework.security:spring-security-core:jar:7.1.1:compile
+[INFO] |     |     \- org.springframework.security:spring-security-crypto:jar:7.1.1:compile
+[INFO] |     \- org.springframework.security:spring-security-web:jar:7.1.1:compile
+[INFO] +- org.springframework.boot:spring-boot-starter-actuator:jar:4.1.1:compile
+[INFO] |  +- org.springframework.boot:spring-boot-starter-micrometer-metrics:jar:4.1.1:compile
+[INFO] |  |  \- org.springframework.boot:spring-boot-micrometer-metrics:jar:4.1.1:compile
+[INFO] |  |     \- org.springframework.boot:spring-boot-micrometer-observation:jar:4.1.1:compile
+[INFO] |  +- org.springframework.boot:spring-boot-actuator-autoconfigure:jar:4.1.1:compile
+[INFO] |  |  \- org.springframework.boot:spring-boot-actuator:jar:4.1.1:compile
+[INFO] |  \- org.springframework.boot:spring-boot-health:jar:4.1.1:compile
+[INFO] +- org.springframework.boot:spring-boot-starter-kafka:jar:4.1.1:compile
+[INFO] |  \- org.springframework.boot:spring-boot-kafka:jar:4.1.1:compile
+[INFO] |     \- org.springframework.boot:spring-boot-transaction:jar:4.1.1:compile
+[INFO] |        \- org.springframework.boot:spring-boot-persistence:jar:4.1.1:compile
+[INFO] +- org.springframework.boot:spring-boot-starter-test:jar:4.1.1:test
+[INFO] |  +- org.springframework.boot:spring-boot-test:jar:4.1.1:test
+[INFO] |  \- org.springframework.boot:spring-boot-test-autoconfigure:jar:4.1.1:test
+[INFO] +- org.springframework.boot:spring-boot-testcontainers:jar:4.1.1:test
+[INFO] |  +- org.springframework.boot:spring-boot-autoconfigure:jar:4.1.1:compile
+[INFO] |  \- org.testcontainers:testcontainers:jar:2.0.5:test
+[INFO] +- org.testcontainers:testcontainers-mongodb:jar:2.0.5:test
+[INFO] +- org.testcontainers:testcontainers-junit-jupiter:jar:2.0.5:test
+[INFO] \- org.testcontainers:testcontainers-kafka:jar:2.0.5:test
+[INFO] 
+[INFO] -------------------< com.ledgerflow:ledger-service >--------------------
+[INFO] Building ledger-service 1.1.0                                      [4/5]
+[INFO]   from ledger-service/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- dependency:3.10.0:tree (default-cli) @ ledger-service ---
+[INFO] com.ledgerflow:ledger-service:jar:1.1.0
+[INFO] +- com.ledgerflow:common:jar:1.1.0:compile
+[INFO] |  +- org.springframework.boot:spring-boot-starter-data-mongodb:jar:4.1.1:compile
+[INFO] |  |  +- org.springframework.boot:spring-boot-starter-mongodb:jar:4.1.1:compile
+[INFO] |  |  |  +- org.springframework.boot:spring-boot-mongodb:jar:4.1.1:compile
+[INFO] |  |  |  \- org.mongodb:mongodb-driver-sync:jar:5.8.1:compile
+[INFO] |  |  |     +- org.mongodb:bson:jar:5.8.1:compile
+[INFO] |  |  |     \- org.mongodb:mongodb-driver-core:jar:5.8.1:compile
+[INFO] |  |  |        \- org.mongodb:bson-record-codec:jar:5.8.1:runtime
+[INFO] |  |  \- org.springframework.boot:spring-boot-data-mongodb:jar:4.1.1:compile
+[INFO] |  |     \- org.springframework.boot:spring-boot-data-commons:jar:4.1.1:compile
+[INFO] |  \- org.springframework.kafka:spring-kafka:jar:4.1.1:compile
+[INFO] |     \- org.apache.kafka:kafka-clients:jar:4.2.1:compile
+[INFO] +- org.springframework.boot:spring-boot-starter-webmvc:jar:4.1.1:compile
+[INFO] |  +- org.springframework.boot:spring-boot-starter:jar:4.1.1:compile
+[INFO] |  |  \- org.springframework.boot:spring-boot-starter-logging:jar:4.1.1:compile
+[INFO] |  +- org.springframework.boot:spring-boot-starter-jackson:jar:4.1.1:compile
+[INFO] |  |  \- org.springframework.boot:spring-boot-jackson:jar:4.1.1:compile
+[INFO] |  +- org.springframework.boot:spring-boot-starter-tomcat:jar:4.1.1:compile
+[INFO] |  |  +- org.springframework.boot:spring-boot-starter-tomcat-runtime:jar:4.1.1:compile
+[INFO] |  |  |  \- org.springframework.boot:spring-boot-web-server:jar:4.1.1:compile
+[INFO] |  |  \- org.springframework.boot:spring-boot-tomcat:jar:4.1.1:compile
+[INFO] |  +- org.springframework.boot:spring-boot-http-converter:jar:4.1.1:compile
+[INFO] |  |  \- org.springframework.boot:spring-boot:jar:4.1.1:compile
+[INFO] |  \- org.springframework.boot:spring-boot-webmvc:jar:4.1.1:compile
+[INFO] |     \- org.springframework.boot:spring-boot-servlet:jar:4.1.1:compile
+[INFO] +- org.springframework.boot:spring-boot-starter-actuator:jar:4.1.1:compile
+[INFO] |  +- org.springframework.boot:spring-boot-starter-micrometer-metrics:jar:4.1.1:compile
+[INFO] |  |  \- org.springframework.boot:spring-boot-micrometer-metrics:jar:4.1.1:compile
+[INFO] |  |     \- org.springframework.boot:spring-boot-micrometer-observation:jar:4.1.1:compile
+[INFO] |  +- org.springframework.boot:spring-boot-actuator-autoconfigure:jar:4.1.1:compile
+[INFO] |  |  \- org.springframework.boot:spring-boot-actuator:jar:4.1.1:compile
+[INFO] |  \- org.springframework.boot:spring-boot-health:jar:4.1.1:compile
+[INFO] +- org.springframework.boot:spring-boot-starter-kafka:jar:4.1.1:compile
+[INFO] |  \- org.springframework.boot:spring-boot-kafka:jar:4.1.1:compile
+[INFO] |     \- org.springframework.boot:spring-boot-transaction:jar:4.1.1:compile
+[INFO] |        \- org.springframework.boot:spring-boot-persistence:jar:4.1.1:compile
+[INFO] +- org.springframework.boot:spring-boot-starter-test:jar:4.1.1:test
+[INFO] |  +- org.springframework.boot:spring-boot-test:jar:4.1.1:test
+[INFO] |  \- org.springframework.boot:spring-boot-test-autoconfigure:jar:4.1.1:test
+[INFO] +- org.springframework.boot:spring-boot-testcontainers:jar:4.1.1:test
+[INFO] |  +- org.springframework.boot:spring-boot-autoconfigure:jar:4.1.1:compile
+[INFO] |  \- org.testcontainers:testcontainers:jar:2.0.5:test
+[INFO] +- org.testcontainers:testcontainers-mongodb:jar:2.0.5:test
+[INFO] +- org.testcontainers:testcontainers-junit-jupiter:jar:2.0.5:test
+[INFO] \- org.testcontainers:testcontainers-kafka:jar:2.0.5:test
+[INFO] 
+[INFO] ----------------------< com.ledgerflow:e2e-tests >----------------------
+[INFO] Building e2e-tests 1.1.0                                           [5/5]
+[INFO]   from e2e-tests/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- dependency:3.10.0:tree (default-cli) @ e2e-tests ---
+[INFO] com.ledgerflow:e2e-tests:jar:1.1.0
+[INFO] +- com.ledgerflow:payment-service:jar:1.1.0:test
+[INFO] |  +- org.springframework.boot:spring-boot-starter-webmvc:jar:4.1.1:test
+[INFO] |  |  +- org.springframework.boot:spring-boot-starter-jackson:jar:4.1.1:test
+[INFO] |  |  |  \- org.springframework.boot:spring-boot-jackson:jar:4.1.1:test
+[INFO] |  |  +- org.springframework.boot:spring-boot-starter-tomcat:jar:4.1.1:test
+[INFO] |  |  |  +- org.springframework.boot:spring-boot-starter-tomcat-runtime:jar:4.1.1:test
+[INFO] |  |  |  |  \- org.springframework.boot:spring-boot-web-server:jar:4.1.1:test
+[INFO] |  |  |  \- org.springframework.boot:spring-boot-tomcat:jar:4.1.1:test
+[INFO] |  |  +- org.springframework.boot:spring-boot-http-converter:jar:4.1.1:test
+[INFO] |  |  \- org.springframework.boot:spring-boot-webmvc:jar:4.1.1:test
+[INFO] |  |     \- org.springframework.boot:spring-boot-servlet:jar:4.1.1:test
+[INFO] |  +- org.springframework.boot:spring-boot-starter-security:jar:4.1.1:test
+[INFO] |  |  \- org.springframework.boot:spring-boot-security:jar:4.1.1:test
+[INFO] |  |     +- org.springframework.security:spring-security-config:jar:7.1.1:test
+[INFO] |  |     |  \- org.springframework.security:spring-security-core:jar:7.1.1:test
+[INFO] |  |     |     \- org.springframework.security:spring-security-crypto:jar:7.1.1:test
+[INFO] |  |     \- org.springframework.security:spring-security-web:jar:7.1.1:test
+[INFO] |  +- org.springframework.boot:spring-boot-starter-actuator:jar:4.1.1:test
+[INFO] |  |  +- org.springframework.boot:spring-boot-starter-micrometer-metrics:jar:4.1.1:test
+[INFO] |  |  |  \- org.springframework.boot:spring-boot-micrometer-metrics:jar:4.1.1:test
+[INFO] |  |  |     \- org.springframework.boot:spring-boot-micrometer-observation:jar:4.1.1:test
+[INFO] |  |  +- org.springframework.boot:spring-boot-actuator-autoconfigure:jar:4.1.1:test
+[INFO] |  |  |  \- org.springframework.boot:spring-boot-actuator:jar:4.1.1:test
+[INFO] |  |  \- org.springframework.boot:spring-boot-health:jar:4.1.1:test
+[INFO] |  \- org.springframework.boot:spring-boot-starter-kafka:jar:4.1.1:test
+[INFO] |     \- org.springframework.boot:spring-boot-kafka:jar:4.1.1:test
+[INFO] |        \- org.springframework.boot:spring-boot-transaction:jar:4.1.1:test
+[INFO] |           \- org.springframework.boot:spring-boot-persistence:jar:4.1.1:test
+[INFO] +- org.springframework.boot:spring-boot-starter-test:jar:4.1.1:test
+[INFO] |  +- org.springframework.boot:spring-boot-starter:jar:4.1.1:test
+[INFO] |  |  +- org.springframework.boot:spring-boot-starter-logging:jar:4.1.1:test
+[INFO] |  |  \- org.springframework.boot:spring-boot-autoconfigure:jar:4.1.1:test
+[INFO] |  +- org.springframework.boot:spring-boot-test:jar:4.1.1:test
+[INFO] |  |  \- org.springframework.boot:spring-boot:jar:4.1.1:test
+[INFO] |  \- org.springframework.boot:spring-boot-test-autoconfigure:jar:4.1.1:test
+[INFO] +- org.testcontainers:testcontainers-mongodb:jar:2.0.5:test
+[INFO] |  \- org.testcontainers:testcontainers:jar:2.0.5:test
+[INFO] +- org.testcontainers:testcontainers-kafka:jar:2.0.5:test
+[INFO] \- com.ledgerflow:common:test-jar:tests:1.1.0:test
+[INFO]    +- org.springframework.boot:spring-boot-starter-data-mongodb:jar:4.1.1:test
+[INFO]    |  +- org.springframework.boot:spring-boot-starter-mongodb:jar:4.1.1:test
+[INFO]    |  |  +- org.springframework.boot:spring-boot-mongodb:jar:4.1.1:test
+[INFO]    |  |  \- org.mongodb:mongodb-driver-sync:jar:5.8.1:test
+[INFO]    |  |     +- org.mongodb:bson:jar:5.8.1:test
+[INFO]    |  |     \- org.mongodb:mongodb-driver-core:jar:5.8.1:test
+[INFO]    |  |        \- org.mongodb:bson-record-codec:jar:5.8.1:test
+[INFO]    |  \- org.springframework.boot:spring-boot-data-mongodb:jar:4.1.1:test
+[INFO]    |     \- org.springframework.boot:spring-boot-data-commons:jar:4.1.1:test
+[INFO]    \- org.springframework.kafka:spring-kafka:jar:4.1.1:test
+[INFO]       \- org.apache.kafka:kafka-clients:jar:4.2.1:test
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for ledgerflow 1.1.0:
+[INFO] 
+[INFO] ledgerflow ......................................... SUCCESS [  1.362 s]
+[INFO] common ............................................. SUCCESS [  0.366 s]
+[INFO] payment-service .................................... SUCCESS [  0.737 s]
+[INFO] ledger-service ..................................... SUCCESS [  0.077 s]
+[INFO] e2e-tests .......................................... SUCCESS [  0.255 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  3.778 s
+[INFO] Finished at: 2026-10-28T14:51:49-04:00
+[INFO] ------------------------------------------------------------------------

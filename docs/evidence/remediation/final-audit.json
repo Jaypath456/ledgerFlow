@@ -1,0 +1,47 @@
+{
+  "maven": {
+    "payment-service": {
+      "tests": 28,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "ledger-service": {
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "e2e-tests": {
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "pythonNormalTests": 19,
+  "pythonOptimizedTests": 19,
+  "optimizedLiveScenarios": 11,
+  "financialState": {
+    "payments": 40,
+    "completed": 11,
+    "failed": 1,
+    "declined": 28,
+    "pending": 0,
+    "unpublished": 0,
+    "ledgerTransactions": 22,
+    "ledgerEntries": 44,
+    "globalEntrySum": 0,
+    "negativeNonSystem": 0,
+    "duplicatePostingGroups": 0
+  },
+  "invariantViolations": 0,
+  "credentialFindings": [],
+  "privateOriginalCount": 3,
+  "privateOriginalFileMode": "0600",
+  "privateDirectoryMode": "0700",
+  "newMavenGeneratedPasswordRedacted": true,
+  "newArchivedCommandLogs": 112,
+  "existingBrokerUnchanged": true,
+  "gitDiffCheck": "PASS"
+}

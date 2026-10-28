@@ -25,6 +25,14 @@ management:
       exposure:
         include: health,metrics
 ledgerflow:
+  auth:
+    users:
+      - username: alice
+        password: ${ALICE_PASSWORD:alice-local}
+        accounts: ${ALICE_ACCOUNTS:2}
+      - username: bob
+        password: ${BOB_PASSWORD:bob-local}
+        accounts: ${BOB_ACCOUNTS:4}
   risk:
     velocity-max: ${RISK_VELOCITY_MAX:5}
     blocked-accounts: ${RISK_BLOCKED_ACCOUNTS:}
