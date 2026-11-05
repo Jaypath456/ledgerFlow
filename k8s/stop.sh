@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deletes the LedgerFlow k3d cluster, including its MongoDB/Kafka volumes. Nothing else is touched.
+# Deletes the LedgerFlow k3d cluster, including its PostgreSQL/Kafka volumes. Nothing else is touched.
 set -euo pipefail
 if k3d cluster get ledgerflow >/dev/null 2>&1; then
   k3d cluster delete ledgerflow

@@ -32,8 +32,8 @@ spec:
           envFrom:
             - configMapRef: { name: ledgerflow-config }
           env:
-            - name: MONGODB_URI
-              valueFrom: { configMapKeyRef: { name: ledgerflow-config, key: PAYMENT_MONGODB_URI } }
+            - name: DB_PASSWORD
+              valueFrom: { secretKeyRef: { name: ledgerflow-secrets, key: PAYMENT_DB_PASSWORD } }
           ports: [{ containerPort: 8081 }]
           startupProbe:
             httpGet: { path: /actuator/health/liveness, port: 8081 }
@@ -48,4 +48,4 @@ spec:
             failureThreshold: 3
           resources:
             requests: { memory: 256Mi }
-            limits: { memory: 512Mi }
+            limits: { memory: 1Gi } # as in infra/docker-compose.yml

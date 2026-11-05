@@ -22,7 +22,7 @@ finish() {
   set +e
   "${k[@]}" get pods -o wide > "$run_dir/pods.log" 2>&1
   "${k[@]}" get events --sort-by=.metadata.creationTimestamp > "$run_dir/events.log" 2>&1
-  for app in payment-service ledger-service mongodb kafka; do
+  for app in payment-service ledger-service postgres kafka; do
     "${k[@]}" logs -l "app=$app" --all-containers --tail=200 > "$run_dir/$app.log" 2>&1
   done
   if (( status == 0 )); then
