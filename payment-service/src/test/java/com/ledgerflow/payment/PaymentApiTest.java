@@ -10,7 +10,9 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -21,6 +23,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -44,6 +48,9 @@ class PaymentApiTest extends PaymentTestSupport {
 
     @Autowired
     FaultInjector faults;
+
+    @Autowired
+    InMemoryUserDetailsManager users;
 
     private final HttpClient http = HttpClient.newHttpClient();
 
@@ -287,7 +294,11 @@ class PaymentApiTest extends PaymentTestSupport {
     }
 
     private Response post(String key, String body) throws Exception {
+        long payer = 2;
+        try { payer = json.readTree(body).path("payerAccountId").asLong(2); }
+        catch (RuntimeException ignored) { }
         var b = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/api/payments"))
+                .header("Authorization", authorization(payer))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(body));
         if (key != null) {
@@ -297,7 +308,63 @@ class PaymentApiTest extends PaymentTestSupport {
     }
 
     private Response get(String path) throws Exception {
-        return send(HttpRequest.newBuilder(URI.create("http://localhost:" + port + path)).GET().build());
+        long owner = jdbc.sql("SELECT payer_account_id FROM payments WHERE id = ?")
+                .param(UUID.fromString(path.substring(path.lastIndexOf('/') + 1))).query(Long.class).optional().orElse(2L);
+        return send(HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
+                .header("Authorization", authorization(owner)).GET().build());
+    }
+
+    private synchronized String authorization(long account) {
+        String name = "test-" + account;
+        if (!users.userExists(name)) users.createUser(User.withUsername(name).password("{noop}test-only")
+                .authorities(PaymentSecurity.accountAuthority(account)).build());
+        return "Basic " + Base64.getEncoder().encodeToString((name + ":test-only").getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Test
+    void authenticationAndAccountOwnershipAreEnforcedBeforeIdempotency() throws Exception {
+        long payer = ACCOUNTS.incrementAndGet();
+        long other = ACCOUNTS.incrementAndGet();
+        String key = UUID.randomUUID().toString();
+        String payload = body(payer, other, 100, "USD");
+        long before = count("payments") + count("idempotency_keys") + count("outbox");
+        var uri = URI.create("http://localhost:" + port + "/api/payments");
+        for (String credentials : List.of("", "Basic YWxpY2U6d3Jvbmc=", authorization(other))) {
+            var request = HttpRequest.newBuilder(uri).header("Content-Type", "application/json")
+                    .header("Idempotency-Key", key).POST(HttpRequest.BodyPublishers.ofString(payload));
+            if (!credentials.isEmpty()) request.header("Authorization", credentials);
+            assertThat(http.send(request.build(), HttpResponse.BodyHandlers.ofString()).statusCode())
+                    .isEqualTo(credentials.equals(authorization(other)) ? 403 : 401);
+        }
+        assertThat(count("payments") + count("idempotency_keys") + count("outbox")).isEqualTo(before);
+        var created = post(key, payload);
+        assertThat(created.status()).isEqualTo(202);
+        var idUri = URI.create(uri + "/" + created.body().get("id").asString());
+        assertThat(http.send(HttpRequest.newBuilder(idUri).GET().build(), HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(401);
+        assertThat(http.send(HttpRequest.newBuilder(idUri).header("Authorization", authorization(ACCOUNTS.incrementAndGet()))
+                .GET().build(), HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(404);
+        // The payee can read the payment, but cannot replay a debit from someone else's account.
+        assertThat(http.send(HttpRequest.newBuilder(idUri).header("Authorization", authorization(other))
+                .GET().build(), HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(200);
+        assertThat(http.send(HttpRequest.newBuilder(uri).header("Content-Type", "application/json")
+                .header("Authorization", authorization(other)).header("Idempotency-Key", key)
+                .POST(HttpRequest.BodyPublishers.ofString(payload)).build(), HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(403);
+    }
+
+    @Test
+    void browserOriginAndNonJsonWritesAreRejectedAndHealthStaysPublic() throws Exception {
+        String payload = body(ACCOUNTS.incrementAndGet(), ACCOUNTS.incrementAndGet(), 100, "USD");
+        long payer = json.readTree(payload).get("payerAccountId").asLong();
+        var uri = URI.create("http://localhost:" + port + "/api/payments");
+        assertThat(http.send(HttpRequest.newBuilder(uri).header("Authorization", authorization(payer))
+                .header("Origin", "https://example.invalid").header("Content-Type", "application/json")
+                .header("Idempotency-Key", UUID.randomUUID().toString()).POST(HttpRequest.BodyPublishers.ofString(payload))
+                .build(), HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(403);
+        assertThat(http.send(HttpRequest.newBuilder(uri).header("Authorization", authorization(payer))
+                .header("Content-Type", "text/plain").header("Idempotency-Key", UUID.randomUUID().toString())
+                .POST(HttpRequest.BodyPublishers.ofString(payload)).build(), HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(415);
+        assertThat(http.send(HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/actuator/health"))
+                .GET().build(), HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(200);
     }
 
     private Response send(HttpRequest request) throws Exception {
