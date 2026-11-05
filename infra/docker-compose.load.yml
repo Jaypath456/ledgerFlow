@@ -1,0 +1,6 @@
+# Load and chaos runs only (chaos/lib.sh adds this file). payment-service gets one generated identity per seeded
+# payer account (payer-<id> owns only account <id>), replacing the alice/bob list. No identity owns other payers.
+services:
+  payment-service:
+    environment:
+      SPRING_APPLICATION_JSON: ${PAYMENT_AUTH_JSON:?source chaos/lib.sh to generate the load identities}
