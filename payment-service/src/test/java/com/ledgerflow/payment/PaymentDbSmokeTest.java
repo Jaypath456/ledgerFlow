@@ -2,28 +2,26 @@ package com.ledgerflow.payment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import org.junit.jupiter.api.Test;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 class PaymentDbSmokeTest extends PaymentTestSupport {
+
     @Autowired
-    MongoTemplate mongo;
+    JdbcTemplate jdbc;
 
     @Test
-    void collectionsAndUniqueIndexesCreatedInOwnDatabase() {
-        assertThat(mongo.getDb().getName()).isEqualTo("payments");
-        assertThat(mongo.getCollectionNames()).contains("payments", "idempotency_keys", "outbox", "processed_events");
-        assertThat(mongo.indexOps("idempotency_keys").getIndexInfo()).anySatisfy(index -> {
-            assertThat(index.isUnique()).isTrue();
-            assertThat(index.getIndexFields()).anySatisfy(field -> assertThat(field.getKey()).isEqualTo("key"));
-        });
+    void flywayRanInOwnSchema() {
+        Integer applied = jdbc.queryForObject(
+                "select count(*) from payments.flyway_schema_history where success", Integer.class);
+        assertThat(applied).isEqualTo(2);
     }
 
     @Test
-    void cannotTouchOtherServiceDatabase() {
-        assertThatThrownBy(() -> mongo.getMongoDatabaseFactory().getMongoDatabase("ledger")
-                .getCollection("anything").find().first())
-                .hasMessageContaining("not authorized");
+    void cannotTouchOtherServiceSchema() {
+        assertThatThrownBy(() -> jdbc.queryForList("select * from ledger.anything"))
+                .rootCause().hasMessageContaining("permission denied for schema");
     }
 }

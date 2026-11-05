@@ -7,33 +7,31 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Path;
 import java.util.UUID;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import com.ledgerflow.common.MongoStore;
-import com.ledgerflow.common.MongoFixture;
-import org.bson.Document;
-import static com.ledgerflow.common.MongoStore.eq;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.testcontainers.kafka.KafkaContainer;
-import org.testcontainers.mongodb.MongoDBContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
+import org.testcontainers.utility.MountableFile;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import com.ledgerflow.payment.PaymentSecurity;
-import java.util.Base64;
-import java.nio.charset.StandardCharsets;
 
 /**
- * Both real services (each with its own database and user) against one MongoDB 8.0 and one Kafka,
+ * Both real services (each with its own DB user/schema) against one Postgres 17 and one Kafka,
  * started once per JVM.
  */
 final class Stack {
 
     static final long SYSTEM_ACCOUNT = 1;
 
-    static final MongoDBContainer MONGO = MongoFixture.start();
+    @SuppressWarnings("resource")
+    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17")
+            .withDatabaseName("ledgerflow")
+            .withCopyFileToContainer(
+                    MountableFile.forHostPath(Path.of("../infra/postgres/init/01-roles-schemas.sql")),
+                    "/docker-entrypoint-initdb.d/01-roles-schemas.sql");
     static final KafkaContainer KAFKA = new KafkaContainer("apache/kafka:4.0.0");
 
     static final ConfigurableApplicationContext LEDGER;
@@ -42,33 +40,36 @@ final class Stack {
     private static final HttpClient HTTP = HttpClient.newHttpClient();
 
     static {
+        POSTGRES.start();
         KAFKA.start();
-        LEDGER = start(LedgerServiceApplication.class, LedgerServiceApplication.CONFIG_NAME, "ledger");
-        PAYMENT = start(PaymentServiceApplication.class, PaymentServiceApplication.CONFIG_NAME, "payments");
+        LEDGER = start(LedgerServiceApplication.class, LedgerServiceApplication.CONFIG_NAME, "ledger_user");
+        PAYMENT = start(PaymentServiceApplication.class, PaymentServiceApplication.CONFIG_NAME, "payment_user");
     }
 
     private Stack() {}
 
-    private static ConfigurableApplicationContext start(Class<?> app, String configName, String database) {
+    private static ConfigurableApplicationContext start(Class<?> app, String configName, String dbUser) {
         return new SpringApplicationBuilder(app).properties(configName).run(
                 "--server.port=0",
-                "--spring.mongodb.uri=" + MongoFixture.uri(MONGO, database),
+                "--spring.datasource.url=" + POSTGRES.getJdbcUrl(),
+                "--spring.datasource.username=" + dbUser,
+                "--spring.datasource.password=" + dbUser,
                 "--spring.kafka.bootstrap-servers=" + KAFKA.getBootstrapServers(),
                 "--ledgerflow.reconcile.interval-ms=1000"); // stale threshold stays 30 s
     }
 
-    static MongoTemplate ledgerDb() {
-        return LEDGER.getBean(MongoTemplate.class);
+    static JdbcClient ledgerDb() {
+        return LEDGER.getBean(JdbcClient.class);
     }
 
-    static MongoTemplate paymentDb() {
-        return PAYMENT.getBean(MongoTemplate.class);
+    static JdbcClient paymentDb() {
+        return PAYMENT.getBean(JdbcClient.class);
     }
 
     /** Creates an account in the ledger; customers are funded from SYSTEM through a normal posting. */
     static long account(String type, long fundedMinor) {
-        long id = MongoStore.nextId();
-        ledgerDb().insert(MongoStore.account(id, type), "accounts");
+        long id = ledgerDb().sql("INSERT INTO accounts (type) VALUES (?) RETURNING id").param(type)
+                .query(Long.class).single();
         if (fundedMinor > 0) {
             LEDGER.getBean(LedgerService.class).post(UUID.randomUUID(), SYSTEM_ACCOUNT, id, fundedMinor);
         }
@@ -76,7 +77,8 @@ final class Stack {
     }
 
     static long balance(long accountId) {
-        return ledgerDb().findOne(eq("_id", accountId), Document.class, "accounts").getLong("balance_minor");
+        return ledgerDb().sql("SELECT balance_minor FROM accounts WHERE id = ?").param(accountId)
+                .query(Long.class).single();
     }
 
     static void post(long fromAccount, long toAccount, long amountMinor) {
@@ -84,16 +86,8 @@ final class Stack {
     }
 
     static long ledgerTransactions(UUID paymentId) {
-        return ledgerDb().count(eq("payment_id", paymentId), "ledger_transactions");
-    }
-
-    static String requestHash(long payer, long payee, long amount) {
-        try {
-            return java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256")
-                    .digest((payer + "|" + payee + "|" + amount + "|USD").getBytes(java.nio.charset.StandardCharsets.UTF_8)));
-        } catch (java.security.NoSuchAlgorithmException e) {
-            throw new IllegalStateException(e);
-        }
+        return ledgerDb().sql("SELECT count(*) FROM ledger_transactions WHERE payment_id = ?").param(paymentId)
+                .query(Long.class).single();
     }
 
     record Response(int status, JsonNode body) {}
@@ -103,7 +97,6 @@ final class Stack {
                 {"payerAccountId":%d,"payeeAccountId":%d,"amountMinor":%d,"currency":"USD"}"""
                 .formatted(payer, payee, amountMinor);
         return send(HttpRequest.newBuilder(uri("/api/payments"))
-                .header("Authorization", authorization(payer))
                 .header("Content-Type", "application/json")
                 .header("Idempotency-Key", idempotencyKey)
                 .POST(HttpRequest.BodyPublishers.ofString(body)).build());
@@ -115,17 +108,7 @@ final class Stack {
     }
 
     static JsonNode payment(UUID id) throws Exception {
-        long payer = paymentDb().findOne(eq("_id", id), Document.class, "payments").getLong("payer_account_id");
-        return send(HttpRequest.newBuilder(uri("/api/payments/" + id))
-                .header("Authorization", authorization(payer)).GET().build()).body();
-    }
-
-    static synchronized String authorization(long account) {
-        var users = PAYMENT.getBean(InMemoryUserDetailsManager.class);
-        String name = "test-" + account;
-        if (!users.userExists(name)) users.createUser(User.withUsername(name).password("{noop}test-only")
-                .authorities(PaymentSecurity.accountAuthority(account)).build());
-        return "Basic " + Base64.getEncoder().encodeToString((name + ":test-only").getBytes(StandardCharsets.UTF_8));
+        return send(HttpRequest.newBuilder(uri("/api/payments/" + id)).GET().build()).body();
     }
 
     private static URI uri(String path) {
