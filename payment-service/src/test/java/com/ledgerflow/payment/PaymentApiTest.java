@@ -11,6 +11,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -18,7 +20,9 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import javax.sql.DataSource;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -39,6 +43,9 @@ class PaymentApiTest extends PaymentTestSupport {
 
     @Autowired
     JdbcClient jdbc;
+
+    @Autowired
+    DataSource dataSource;
 
     @Autowired
     JsonMapper json;
@@ -109,6 +116,99 @@ class PaymentApiTest extends PaymentTestSupport {
             assertThat(r.body().get("status").asString()).isEqualTo("PENDING_LEDGER");
         }
         assertDeclined(body(payer, ACCOUNTS.incrementAndGet(), 100, "USD"), "VELOCITY_LIMIT");
+    }
+
+    @Test
+    void concurrentHotPayerNeverExceedsFiveAdmissionsAndDeclinesReplayExactly() throws Exception {
+        long payer = ACCOUNTS.incrementAndGet();
+        String payload = body(payer, ACCOUNTS.incrementAndGet(), 100, "USD");
+        var ready = new CountDownLatch(64);
+        var start = new CountDownLatch(1);
+        List<Future<Response>> futures = new ArrayList<>();
+        List<String> keys = new ArrayList<>();
+        try (var pool = Executors.newVirtualThreadPerTaskExecutor()) {
+            for (int i = 0; i < 64; i++) {
+                String key = UUID.randomUUID().toString();
+                keys.add(key);
+                futures.add(pool.submit(() -> {
+                    ready.countDown();
+                    start.await();
+                    return post(key, payload);
+                }));
+            }
+            assertThat(ready.await(10, TimeUnit.SECONDS)).isTrue();
+            start.countDown();
+        }
+        List<Response> responses = new ArrayList<>();
+        for (var f : futures) responses.add(f.get(30, TimeUnit.SECONDS));
+        assertThat(responses.stream().filter(r -> r.status() == 202)).hasSize(5);
+        assertThat(responses.stream().filter(r -> r.status() == 201)).hasSize(59);
+        for (int i = 0; i < responses.size(); i++) {
+            var r = responses.get(i);
+            UUID id = UUID.fromString(r.body().get("id").asString());
+            assertThat(outboxRows(id)).isEqualTo(r.status() == 202 ? 1 : 0);
+            if (r.status() == 201) {
+                assertThat(r.body().get("declineReason").asString()).isEqualTo("VELOCITY_LIMIT");
+                assertThat(post(keys.get(i), payload).raw().body()).isEqualTo(r.raw().body());
+            }
+        }
+        assertThat(jdbc.sql("SELECT count(*) FROM payments WHERE payer_account_id = ? AND status <> 'DECLINED'")
+                .param(payer).query(Long.class).single()).isEqualTo(5);
+    }
+
+    @Test
+    void rollingWindowHonorsExistingHistoryAndReplayDoesNotConsumeAdmission() throws Exception {
+        long payer = ACCOUNTS.incrementAndGet();
+        String payload = body(payer, ACCOUNTS.incrementAndGet(), 100, "USD");
+        List<UUID> ids = new ArrayList<>();
+        String key = UUID.randomUUID().toString();
+        var first = post(key, payload);
+        ids.add(UUID.fromString(first.body().get("id").asString()));
+        for (int i = 0; i < 4; i++) ids.add(UUID.fromString(post(UUID.randomUUID().toString(), payload).body().get("id").asString()));
+        // While another transaction holds the payer's guard, a replay still returns at once: it never touches the guard.
+        try (Connection holder = dataSource.getConnection()) {
+            holder.setAutoCommit(false);
+            try (var lock = holder.prepareStatement("SELECT 1 FROM velocity_guards WHERE payer_account_id = ? FOR UPDATE")) {
+                lock.setLong(1, payer);
+                assertThat(lock.executeQuery().next()).isTrue();
+            }
+            try {
+                var replay = send(HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/api/payments"))
+                        .timeout(Duration.ofSeconds(5)).header("Authorization", authorization(payer))
+                        .header("Content-Type", "application/json").header("Idempotency-Key", key)
+                        .POST(HttpRequest.BodyPublishers.ofString(payload)).build());
+                assertThat(replay.raw().body()).isEqualTo(first.raw().body());
+                assertThat(replay.raw().headers().firstValue("Idempotent-Replayed")).hasValue("true");
+            } finally {
+                holder.rollback();
+            }
+        }
+        assertDeclined(payload, "VELOCITY_LIMIT");
+        // The guard is only a lock, not the count: history from before guard creation still counts.
+        jdbc.sql("DELETE FROM velocity_guards WHERE payer_account_id = ?").param(payer).update();
+        assertDeclined(payload, "VELOCITY_LIMIT");
+        for (var id : ids.subList(0, 2)) {
+            jdbc.sql("UPDATE payments SET created_at = now() - interval '61 seconds' WHERE id = ?").param(id).update();
+        }
+        assertThat(post(UUID.randomUUID().toString(), payload).status()).isEqualTo(202);
+        assertThat(post(UUID.randomUUID().toString(), payload).status()).isEqualTo(202);
+        assertDeclined(payload, "VELOCITY_LIMIT");
+    }
+
+    @Test
+    void rolledBackPaymentDoesNotConsumeVelocitySlot() throws Exception {
+        long payer = ACCOUNTS.incrementAndGet();
+        String payload = body(payer, ACCOUNTS.incrementAndGet(), 100, "USD");
+        faults.armOnce(FaultInjector.Point.BEFORE_PAYMENT_OUTBOX_COMMIT);
+        String key = UUID.randomUUID().toString();
+        assertThat(post(key, payload).status()).isEqualTo(500);
+        assertThat(jdbc.sql("SELECT count(*) FROM velocity_guards WHERE payer_account_id = ?").param(payer)
+                .query(Long.class).single()).isZero();
+        assertThat(jdbc.sql("SELECT count(*) FROM payments WHERE payer_account_id = ?").param(payer)
+                .query(Long.class).single()).isZero();
+        assertThat(post(key, payload).status()).isEqualTo(202);
+        for (int i = 0; i < 4; i++) assertThat(post(UUID.randomUUID().toString(), payload).status()).isEqualTo(202);
+        assertDeclined(payload, "VELOCITY_LIMIT");
     }
 
     @Test
