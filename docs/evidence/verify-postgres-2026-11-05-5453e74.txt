@@ -1,0 +1,19 @@
+Date: 2026-11-05
+Commit: 5453e74
+Command: ./mvnw -B clean verify
+Host: MacBook Air (Apple M4), 10 CPUs, 16 GiB RAM, macOS 27.0.1, Docker Desktop (Engine 29.8.2, Compose 5.6.0)
+openjdk version "25.0.4.1" 2026-08-18 LTS
+OpenJDK Runtime Environment Temurin-25.0.4.1+1 (build 25.0.4.1+1-LTS)
+OpenJDK 64-Bit Server VM Temurin-25.0.4.1+1 (build 25.0.4.1+1-LTS, mixed mode, sharing)
+
+[INFO] Tests run: 23, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 21, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Reactor Summary for ledgerflow 1.1.0:
+[INFO] ledgerflow ......................................... SUCCESS [  0.128 s]
+[INFO] common ............................................. SUCCESS [  1.594 s]
+[INFO] payment-service .................................... SUCCESS [ 22.299 s]
+[INFO] ledger-service ..................................... SUCCESS [ 33.577 s]
+[INFO] e2e-tests .......................................... SUCCESS [ 22.827 s]
+[INFO] BUILD SUCCESS
+[INFO] Total time:  01:20 min

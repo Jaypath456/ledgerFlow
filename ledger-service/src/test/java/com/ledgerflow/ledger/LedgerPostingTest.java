@@ -1,14 +1,11 @@
 package com.ledgerflow.ledger;
 
-import static com.ledgerflow.ledger.MongoTestSupport.*;
+import static com.ledgerflow.ledger.PostgresTestSupport.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
 import java.util.UUID;
-import org.bson.Document;
-import org.springframework.data.domain.Sort;
-import static com.ledgerflow.common.MongoStore.eq;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -38,11 +35,13 @@ class LedgerPostingTest {
 
         assertThat(balance(payer)).isEqualTo(700);
         assertThat(balance(payee)).isEqualTo(300);
-        List<long[]> entries = mongo().find(eq("transaction_id", result.transactionId()).with(Sort.by("amount_minor")),
-                Document.class, "ledger_entries").stream()
-                .map(d -> new long[] {d.getLong("account_id"), d.getLong("amount_minor")}).toList();
+        List<long[]> entries = jdbc().sql(
+                        "SELECT account_id, amount_minor FROM ledger_entries WHERE transaction_id = ? ORDER BY amount_minor")
+                .param(result.transactionId())
+                .query((rs, n) -> new long[] {rs.getLong(1), rs.getLong(2)}).list();
         assertThat(entries).containsExactly(new long[] {payer, -300}, new long[] {payee, 300});
-        assertThat(UUID.fromString(mongo().findOne(eq("_id", result.transactionId()), Document.class, "ledger_transactions").getString("payment_id"))).isEqualTo(paymentId);
+        assertThat(jdbc().sql("SELECT payment_id FROM ledger_transactions WHERE id = ?")
+                .param(result.transactionId()).query(UUID.class).single()).isEqualTo(paymentId);
     }
 
     @Test
@@ -71,7 +70,8 @@ class LedgerPostingTest {
         assertThatThrownBy(() -> ledger().post(paymentId, payer, payee, 100))
                 .isInstanceOf(LedgerException.DuplicatePayment.class);
 
-        assertThat(mongo().count(eq("payment_id", paymentId), "ledger_transactions")).isEqualTo(1);
+        assertThat(jdbc().sql("SELECT count(*) FROM ledger_transactions WHERE payment_id = ?")
+                .param(paymentId).query(Long.class).single()).isEqualTo(1);
         assertThat(balance(payer)).isEqualTo(900);
         assertThat(balance(payee)).isEqualTo(100);
     }

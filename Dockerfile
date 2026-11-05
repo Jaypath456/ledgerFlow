@@ -11,12 +11,12 @@ COPY payment-service/src payment-service/src
 COPY ledger-service/src ledger-service/src
 RUN --mount=type=cache,target=/root/.m2 mvn -B -q -pl payment-service,ledger-service -am package -DskipTests
 
-FROM eclipse-temurin:25-jre AS payment-service
+FROM eclipse-temurin:25.0.5_8-jre AS payment-service
 COPY --from=build /src/payment-service/target/payment-service-*-exec.jar /app.jar
 EXPOSE 8081
 ENTRYPOINT ["java", "-jar", "/app.jar"]
 
-FROM eclipse-temurin:25-jre AS ledger-service
+FROM eclipse-temurin:25.0.5_8-jre AS ledger-service
 COPY --from=build /src/ledger-service/target/ledger-service-*-exec.jar /app.jar
 EXPOSE 8082
 ENTRYPOINT ["java", "-jar", "/app.jar"]

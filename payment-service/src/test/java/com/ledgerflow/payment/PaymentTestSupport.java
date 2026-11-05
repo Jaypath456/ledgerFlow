@@ -1,5 +1,6 @@
 package com.ledgerflow.payment;
 
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,11 +15,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.kafka.KafkaContainer;
-import org.testcontainers.mongodb.MongoDBContainer;
-import com.ledgerflow.common.MongoFixture;
+import org.testcontainers.postgresql.PostgreSQLContainer;
+import org.testcontainers.utility.MountableFile;
 
 /**
- * One real MongoDB 8.0, one real Kafka and one application context shared by all payment tests in the JVM
+ * One real Postgres 17.11, one real Kafka and one application context shared by all payment tests in the JVM
  * (identical annotations keep Spring's context cache hit). Tests use their own account ids.
  */
 @SpringBootTest(
@@ -29,17 +30,26 @@ abstract class PaymentTestSupport {
 
     static final long BLOCKED_ACCOUNT = 666;
 
-    static final MongoDBContainer MONGO = MongoFixture.start();
+    // Same init script as docker-compose: roles/schemas have a single source of truth.
+    @SuppressWarnings("resource")
+    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17.11")
+            .withDatabaseName("ledgerflow")
+            .withCopyFileToContainer(
+                    MountableFile.forHostPath(Path.of("../infra/postgres/init/01-roles-schemas.sql")),
+                    "/docker-entrypoint-initdb.d/01-roles-schemas.sql");
 
     static final KafkaContainer KAFKA = new KafkaContainer("apache/kafka:4.0.0");
 
     static {
+        POSTGRES.start();
         KAFKA.start();
     }
 
     @DynamicPropertySource
-    static void database(DynamicPropertyRegistry r) {
-        r.add("spring.mongodb.uri", () -> MongoFixture.uri(MONGO, "payments"));
+    static void datasource(DynamicPropertyRegistry r) {
+        r.add("spring.datasource.url", POSTGRES::getJdbcUrl);
+        r.add("spring.datasource.username", () -> "payment_user");
+        r.add("spring.datasource.password", () -> "payment_user");
         r.add("spring.kafka.bootstrap-servers", KAFKA::getBootstrapServers);
     }
 

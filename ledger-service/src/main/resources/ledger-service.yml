@@ -3,8 +3,14 @@ server:
 spring:
   application:
     name: ledger-service
-  mongodb:
-    uri: ${MONGODB_URI:mongodb://ledger_user:ledger_user@localhost:27017/ledger?replicaSet=rs0&authSource=ledger&directConnection=true}
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ledgerflow}
+    username: ${DB_USER:ledger_user}
+    password: ${DB_PASSWORD:ledger_user}
+  flyway:
+    schemas: ledger
+    default-schema: ledger
+    locations: classpath:db/migration/ledger
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
     producer:

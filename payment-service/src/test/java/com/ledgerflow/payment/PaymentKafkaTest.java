@@ -13,20 +13,13 @@ import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.bson.Document;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.data.domain.Sort;
-import java.util.Date;
-import static com.ledgerflow.common.MongoStore.eq;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.kafka.core.KafkaTemplate;
 import tools.jackson.databind.json.JsonMapper;
 
-/** Outbox relay and ledger-result consumer against real Kafka + MongoDB. */
+/** Outbox relay and ledger-result consumer against real Kafka + Postgres. */
 class PaymentKafkaTest extends PaymentTestSupport {
 
     private static final Duration WAIT = Duration.ofSeconds(30);
@@ -36,7 +29,7 @@ class PaymentKafkaTest extends PaymentTestSupport {
     PaymentService payments;
 
     @Autowired
-    MongoTemplate mongo;
+    JdbcClient jdbc;
 
     @Autowired
     JsonMapper json;
@@ -58,7 +51,8 @@ class PaymentKafkaTest extends PaymentTestSupport {
         long payer = ACCOUNTS.incrementAndGet();
         UUID id = accept(payer);
 
-        await().atMost(WAIT).until(() -> mongo.exists(Query.query(Criteria.where("aggregate_id").is(id.toString()).and("published_at").ne(null)), "outbox"));
+        await().atMost(WAIT).until(() -> jdbc.sql(
+                "SELECT published_at IS NOT NULL FROM outbox WHERE aggregate_id = ?").param(id).query(Boolean.class).single());
         var records = await().atMost(WAIT).until(
                 () -> readAll(Topics.PAYMENTS_REQUESTED).stream()
                         .filter(r -> r.value().contains(id.toString())).toList(),
@@ -67,38 +61,43 @@ class PaymentKafkaTest extends PaymentTestSupport {
         ConsumerRecord<String, String> record = records.getFirst();
         assertThat(record.key()).isEqualTo(String.valueOf(payer));
         assertThat(json.readTree(record.value()).get("paymentId").asString()).isEqualTo(id.toString());
-        assertThat(mongo.count(eq("aggregate_id", id), "outbox")).isEqualTo(1);
+        assertThat(jdbc.sql("SELECT count(*) FROM outbox WHERE aggregate_id = ?").param(id)
+                .query(Long.class).single()).isEqualTo(1);
     }
 
     
     @Test
     void crashAfterPublishBeforeMarkRepublishesAndStillMarksOnce() {
-        await().atMost(WAIT).until(() -> mongo.count(eq("published_at", null), "outbox") == 0);
+        await().atMost(WAIT).until(() -> jdbc.sql("SELECT count(*) FROM outbox WHERE published_at IS NULL")
+                .query(Long.class).single() == 0);
         faults.armOnce(FaultInjector.Point.AFTER_OUTBOX_PUBLISH_BEFORE_MARK);
         UUID id = accept(ACCOUNTS.incrementAndGet());
         
-        await().atMost(WAIT).until(() -> mongo.exists(Query.query(Criteria.where("aggregate_id").is(id.toString()).and("published_at").ne(null)), "outbox"));
+        await().atMost(WAIT).until(() -> jdbc.sql(
+                "SELECT published_at IS NOT NULL FROM outbox WHERE aggregate_id = ?").param(id).query(Boolean.class).single());
         var copies = await().atMost(WAIT).until(
                 () -> readAll(Topics.PAYMENTS_REQUESTED).stream().filter(r -> r.value().contains(id.toString()))
                         .map(r -> json.readTree(r.value()).get("eventId").asString()).toList(),
                 list -> list.size() >= 2);
         assertThat(copies).containsOnly(copies.getFirst()); // same event published twice: consumers dedupe
-        assertThat(mongo.count(eq("aggregate_id", id), "outbox")).isEqualTo(1);
+        assertThat(jdbc.sql("SELECT count(*) FROM outbox WHERE aggregate_id = ?").param(id)
+                .query(Long.class).single()).isEqualTo(1);
     }
 
     @Test
     void reconcilerReRequestsOnlyStalePendingPayments() {
         UUID stale = accept(ACCOUNTS.incrementAndGet());
         UUID fresh = accept(ACCOUNTS.incrementAndGet());
-        await().atMost(WAIT).until(() -> mongo.count(eq("published_at", null), "outbox") == 0);
-        mongo.updateFirst(eq("_id", stale), Update.update("updated_at", Date.from(Instant.now().minusSeconds(31))), "payments");
+        await().atMost(WAIT).until(() -> jdbc.sql("SELECT count(*) FROM outbox WHERE published_at IS NULL")
+                .query(Long.class).single() == 0);
+        jdbc.sql("UPDATE payments SET updated_at = now() - interval '31 seconds' WHERE id = ?").param(stale).update();
 
         // Other tests' payments may be stale too (and the scheduled run may get there first): assert ours only.
         reconciler.reconcile();
         assertThat(outboxRows(stale)).isEqualTo(2);
         assertThat(outboxRows(fresh)).isEqualTo(1);
-        var requests = mongo.find(eq("aggregate_id", stale), Document.class, "outbox").stream()
-                .map(d -> json.readTree(d.getString("payload")).get("eventId").asString()).toList();
+        var requests = jdbc.sql("SELECT payload->>'eventId' FROM outbox WHERE aggregate_id = ?").param(stale)
+                .query(String.class).list();
         assertThat(requests).doesNotHaveDuplicates(); // fresh eventId, so the ledger does not drop it as a duplicate
 
         // Touched: not re-requested again until another stale period passes.
@@ -173,11 +172,12 @@ class PaymentKafkaTest extends PaymentTestSupport {
     }
 
     private long outboxRows(UUID paymentId) {
-        return mongo.count(eq("aggregate_id", paymentId), "outbox");
+        return jdbc.sql("SELECT count(*) FROM outbox WHERE aggregate_id = ?").param(paymentId).query(Long.class).single();
     }
 
     private boolean processed(UUID eventId) {
-        return mongo.count(eq("event_id", eventId), "processed_events") == 1;
+        return jdbc.sql("SELECT count(*) FROM processed_events WHERE event_id = ?").param(eventId)
+                .query(Long.class).single() == 1;
     }
 
     private double duplicates() {

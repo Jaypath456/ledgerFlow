@@ -1,21 +1,27 @@
 name: ledgerflow
 services:
-  mongo:
-    image: mongo:8.0
-    entrypoint: ["bash", "/scripts/start-mongo.sh"]
-    ports: ["127.0.0.1:${MONGO_PORT:-27017}:27017"]
+  postgres:
+    image: postgres:17.11
+    mem_limit: 1g
+    shm_size: 256mb # parallel queries (invariant checker) need more than Docker's 64 MB default
+    environment:
+      POSTGRES_DB: ledgerflow
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports: ["127.0.0.1:${POSTGRES_PORT:-5432}:5432"]
     volumes:
-      - mongodata:/data/db
-      - ./mongo:/scripts:ro
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD", "bash", "/scripts/healthcheck.sh"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ledgerflow"]
       interval: 5s
-      timeout: 10s
-      retries: 20
+      timeout: 3s
+      retries: 10
 
   kafka:
     image: apache/kafka:4.0.0
-    ports: ["29092:29092"]
+    mem_limit: 1g
+    ports: ["127.0.0.1:29092:29092"]
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -29,7 +35,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_HEAP_OPTS: -Xms256m -Xmx512m
+      KAFKA_HEAP_OPTS: -XX:InitialRAMPercentage=25 -XX:MaxRAMPercentage=50
     healthcheck:
       test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
       interval: 10s
@@ -38,23 +44,20 @@ services:
 
   payment-service:
     build: { context: .., target: payment-service }
+    mem_limit: 1g
     ports: ["127.0.0.1:${PAYMENT_PORT:-8081}:8081"]
     environment: &app-env
-      MONGODB_URI: mongodb://payment_user:payment_user@mongo:27017/payments?replicaSet=rs0&authSource=payments&directConnection=true
+      DB_URL: jdbc:postgresql://postgres:5432/ledgerflow
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      JAVA_TOOL_OPTIONS: -Xmx384m
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=50
       RISK_VELOCITY_MAX: ${RISK_VELOCITY_MAX:-5}
-      ALICE_PASSWORD: ${ALICE_PASSWORD:-alice-local}
-      ALICE_ACCOUNTS: ${ALICE_ACCOUNTS:-2}
-      BOB_PASSWORD: ${BOB_PASSWORD:-bob-local}
-      BOB_ACCOUNTS: ${BOB_ACCOUNTS:-4}
       LEDGERFLOW_OUTBOX_POLL_MS: ${OUTBOX_POLL_MS:-10}
       # Fault injection: only with SPRING_PROFILES_ACTIVE=chaos (see docs/DECISIONS.md).
       SPRING_PROFILES_ACTIVE: ${PAYMENT_PROFILES:-default}
       LEDGERFLOW_CHAOS_FAULTS: ${PAYMENT_CHAOS_FAULTS:-}
       LEDGERFLOW_CHAOS_PROBABILITY: ${PAYMENT_CHAOS_PROBABILITY:-0}
     depends_on: &app-deps
-      mongo: { condition: service_healthy }
+      postgres: { condition: service_healthy }
       kafka: { condition: service_healthy }
     restart: unless-stopped
     healthcheck:
@@ -67,10 +70,10 @@ services:
 
   ledger-service:
     build: { context: .., target: ledger-service }
+    mem_limit: 1g
     ports: ["127.0.0.1:${LEDGER_PORT:-8082}:8082"]
     environment:
       <<: *app-env
-      MONGODB_URI: mongodb://ledger_user:ledger_user@mongo:27017/ledger?replicaSet=rs0&authSource=ledger&directConnection=true
       SPRING_PROFILES_ACTIVE: ${LEDGER_PROFILES:-default}
       LEDGERFLOW_CHAOS_FAULTS: ${LEDGER_CHAOS_FAULTS:-}
       LEDGERFLOW_CHAOS_PROBABILITY: ${LEDGER_CHAOS_PROBABILITY:-0}
@@ -84,4 +87,4 @@ services:
       start_period: 120s
 
 volumes:
-  mongodata:
+  pgdata:
