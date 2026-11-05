@@ -19,7 +19,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Both real services (each with its own DB user/schema) against one Postgres 17 and one Kafka,
+ * Both real services (each with its own DB user/schema) against one Postgres 17.11 and one Kafka,
  * started once per JVM.
  */
 final class Stack {
@@ -27,7 +27,7 @@ final class Stack {
     static final long SYSTEM_ACCOUNT = 1;
 
     @SuppressWarnings("resource")
-    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17")
+    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17.11")
             .withDatabaseName("ledgerflow")
             .withCopyFileToContainer(
                     MountableFile.forHostPath(Path.of("../infra/postgres/init/01-roles-schemas.sql")),

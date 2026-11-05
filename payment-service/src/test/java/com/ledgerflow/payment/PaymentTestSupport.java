@@ -19,7 +19,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.MountableFile;
 
 /**
- * One real Postgres 17, one real Kafka and one application context shared by all payment tests in the JVM
+ * One real Postgres 17.11, one real Kafka and one application context shared by all payment tests in the JVM
  * (identical annotations keep Spring's context cache hit). Tests use their own account ids.
  */
 @SpringBootTest(
@@ -32,7 +32,7 @@ abstract class PaymentTestSupport {
 
     // Same init script as docker-compose: roles/schemas have a single source of truth.
     @SuppressWarnings("resource")
-    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17")
+    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17.11")
             .withDatabaseName("ledgerflow")
             .withCopyFileToContainer(
                     MountableFile.forHostPath(Path.of("../infra/postgres/init/01-roles-schemas.sql")),

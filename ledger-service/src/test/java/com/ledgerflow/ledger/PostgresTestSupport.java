@@ -22,7 +22,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.MountableFile;
 
 /**
- * One real Postgres 17, one real Kafka and one real application context shared by all ledger
+ * One real Postgres 17.11, one real Kafka and one real application context shared by all ledger
  * tests in the JVM. Tests create their own accounts and payment ids, so they don't interfere.
  */
 final class PostgresTestSupport {
@@ -35,7 +35,7 @@ final class PostgresTestSupport {
 
     // Same init script as docker-compose: roles/schemas have a single source of truth.
     @SuppressWarnings("resource")
-    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17")
+    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17.11")
             .withDatabaseName("ledgerflow")
             .withCopyFileToContainer(
                     MountableFile.forHostPath(Path.of("../infra/postgres/init/01-roles-schemas.sql")),
