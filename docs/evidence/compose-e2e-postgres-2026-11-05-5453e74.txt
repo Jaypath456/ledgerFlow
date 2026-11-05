@@ -1,0 +1,36 @@
+date: 2026-11-05T06:35:43Z
+commit: 5453e74 (tracked files clean; the only untracked file was verify-postgres-2026-11-05-5453e74.txt)
+host: MacBook Air (Apple M4), 10 CPUs, 16 GiB RAM, macOS 27.0.1, Docker Engine 29.8.2, Compose 5.6.0
+command: docker compose -p ledgerflow-p1a -f infra/docker-compose.yml up -d --build --wait
+volume ledgerflow-p1a_pgdata before start: 0 (0 = empty database)
+up exit: 0
+
+service     health    mem_limit  published ports
+postgres    healthy   1024MiB    5432/tcp on 127.0.0.1:5432 
+kafka       healthy   1024MiB    29092/tcp on 127.0.0.1:29092 
+payment-service healthy   1024MiB    8081/tcp on 127.0.0.1:8081 
+ledger-service healthy   1024MiB    8082/tcp on 127.0.0.1:8082 
+images: postgres:17.11 apache/kafka:4.0.0
+payment-service JVM: openjdk version "25.0.5" 2026-10-20 LTS; MaxHeapSize 512MiB; JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=50
+ledger-service JVM: openjdk version "25.0.5" 2026-10-20 LTS; MaxHeapSize 512MiB; JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=50
+kafka KAFKA_HEAP_OPTS=-XX:InitialRAMPercentage=25 -XX:MaxRAMPercentage=50
+flyway migrations applied: payments=2 ledger=4
+
+payment: account 2 -> account 5, 1000 minor units USD
+POST /api/payments -> HTTP 202, status PENDING_LEDGER
+terminal status: COMPLETED
+replay with same key -> HTTP 202, body identical to the first response
+ledger postings for the payment: 1
+balances (id|type|balance_minor):
+  1|SYSTEM|-175000
+  2|CUSTOMER|99000
+  3|CUSTOMER|50000
+  4|CUSTOMER|25000
+  5|MERCHANT|1000
+  6|MERCHANT|0
+pending/unpublished: payments PENDING_LEDGER=0 payments.outbox=0 ledger.outbox=0
+
+invariant checker: chaos/verify_invariants.sql via psql (lib.sh violations())
+checker exit: 0, violation rows: 0
+
+docker compose down (no -v) exit: 0; volume ledgerflow-p1a_pgdata kept: 1

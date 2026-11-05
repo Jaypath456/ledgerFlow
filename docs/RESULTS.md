@@ -379,3 +379,36 @@ Limited to the three review findings; no Java service, transaction, risk, ledger
 - `git diff --check` passed. Existing environments/data preserved; changes remain uncommitted.
 
 Exact commands, sanitized evidence, file list and remaining Kafka/exposure limits: [REVIEW_REMEDIATION.md](REVIEW_REMEDIATION.md).
+
+## Roadmap Phase 1a: PostgreSQL core, 2026-11-05
+
+Branch `feat/postgres-core`, commit `5453e74`. This is the first step of the v2.0 roadmap (`docs/ROADMAP.md`): the PostgreSQL persistence layer from `v1.2.0-postgres` is back and the MongoDB code, scripts and infra are removed. The sections above for MongoDB (2026-10-26 onward) stay as history of that version.
+
+Environment: MacBook Air (Apple M4), 10 CPUs, 16 GiB RAM, macOS 27.0.1, Docker Desktop (Engine 29.8.2, Compose 5.6.0), JDK Temurin 25.0.4.1. Raw output is in `docs/evidence/`.
+
+**Build.** `./mvnw -B clean verify` on the committed `5453e74`: BUILD SUCCESS, total time 01:20 min, 0 failures, 0 errors, 0 skipped (`docs/evidence/verify-postgres-2026-11-05-5453e74.txt`). The tests run on PostgreSQL 17.11 and Kafka through Testcontainers.
+
+| Module | Tests | At `v1.2.0-postgres` |
+|---|---|---|
+| payment-service | 23 | 23 |
+| ledger-service | 21 | 21 |
+| e2e-tests | 14 | 14 |
+| **Total** | **58** | **58** |
+
+The 2026-10-25 column comes from `docs/evidence/verify-2026-10-25.txt`. The same 58 tests pass unchanged; only the Testcontainers image tag changed (`postgres:17` to `postgres:17.11`). Tests that exist only on the MongoDB `main` (strict velocity, authentication and ownership, ordering) are not part of this phase and return in Phase 1b.
+
+**Compose end to end.** From an empty database (`docs/evidence/compose-e2e-postgres-2026-11-05-5453e74.txt`):
+
+| Check | Result |
+|---|---|
+| Stack | postgres, kafka, payment-service and ledger-service all healthy; Flyway applied 2 migrations (payments) and 4 (ledger) |
+| One payment, account 2 to account 5, 1,000 minor units | HTTP 202, then COMPLETED |
+| Replay with the same idempotency key | HTTP 202, body identical to the first response |
+| Ledger postings for the payment | 1 |
+| Balances afterwards | account 2: 99,000; account 5: 1,000; SYSTEM account: -175,000 |
+| Pending payments / unpublished outbox rows | 0 / 0 (both services) |
+| Invariant checker (`chaos/verify_invariants.sql` through `psql`) | exit 0, 0 violation rows |
+
+**Container settings** (read from the running containers): memory limit 1,024 MiB on postgres, kafka, payment-service and ledger-service; both services report a 512 MiB maximum heap with `-XX:MaxRAMPercentage=50`; Kafka uses `-XX:InitialRAMPercentage=25 -XX:MaxRAMPercentage=50`. All four published ports are bound to 127.0.0.1. Images: `postgres:17.11`, `apache/kafka:4.0.0`; the services ran on JVM 25.0.5 (`eclipse-temurin:25.0.5_8-jre`).
+
+**Not covered in this phase.** No chaos campaign was run on the PostgreSQL build after the restore (the last PostgreSQL campaign is the 2026-10-25 one above, on the earlier code and unpinned images). `scripts/smoke.sh`, `k8s/` and `infra/k8s/` are not ported yet and still describe MongoDB until Phase 1b. Local single-node laptop run: no high-availability or production claim.
