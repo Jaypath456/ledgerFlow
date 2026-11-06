@@ -412,3 +412,94 @@ The 2026-10-25 column comes from `docs/evidence/verify-2026-10-25.txt`. The same
 **Container settings** (read from the running containers): memory limit 1,024 MiB on postgres, kafka, payment-service and ledger-service; both services report a 512 MiB maximum heap with `-XX:MaxRAMPercentage=50`; Kafka uses `-XX:InitialRAMPercentage=25 -XX:MaxRAMPercentage=50`. All four published ports are bound to 127.0.0.1. Images: `postgres:17.11`, `apache/kafka:4.0.0`; the services ran on JVM 25.0.5 (`eclipse-temurin:25.0.5_8-jre`).
 
 **Not covered in this phase.** No chaos campaign was run on the PostgreSQL build after the restore (the last PostgreSQL campaign is the 2026-10-25 one above, on the earlier code and unpinned images). `scripts/smoke.sh`, `k8s/` and `infra/k8s/` are not ported yet and still describe MongoDB until Phase 1b. Local single-node laptop run: no high-availability or production claim.
+
+## Roadmap Phase 1b: newer features on PostgreSQL, 2026-11-05
+
+Branch `feat/postgres-port`, based on `e36c943` plus the Phase 1b fix below (commit `2b58c27`). Phase 1b ported authentication and
+account ownership, strict velocity (ADR 0002), OrderingTest, the delivery demo and smoke runner, and the k8s scripts to PostgreSQL.
+
+Environment: MacBook Air (Apple M4), 10 CPUs, 16 GiB RAM, macOS 27.0.1, Docker Desktop (Engine 29.8.2, Compose 5.6.0, VM 10 CPUs and
+9.701 GiB), JDK Temurin 25.0.4.1. Containers: `postgres:17.11`, `apache/kafka:4.0.0`, services on `eclipse-temurin:25.0.5_8-jre`, 1 GiB
+memory limit each, `-XX:MaxRAMPercentage=50`. Other, unrelated containers were running on the same Docker VM during the chaos runs.
+
+**Build.** `./mvnw -B clean verify`: BUILD SUCCESS, 02:17 min, 0 failures, 0 errors, 0 skipped
+(`docs/evidence/verify-postgres-phase1b-2026-11-05-2b58c27.txt`).
+
+| Module | Tests | MongoDB `main` (2026-10-28) |
+|---|---|---|
+| payment-service | 31 | 28 |
+| ledger-service | 21 | 21 |
+| e2e-tests | 17 | 17 |
+| **Total** | **69** | **66** |
+
+The MongoDB column is from "Local delivery hardening, 2026-10-28" above. Without the 3 new `PaymentSecurityTest` tests (bcrypt cost of
+the stored hash, see below), the module counts match it.
+
+**Smoke.** `bash scripts/smoke.sh`: 7 of 7 scenarios passed, 0 I1–I6 violations after each; the concurrent velocity scenario admitted
+5 of 32 requests and declined 27 (`docs/evidence/smoke-postgres-phase1b-2026-11-05-2b58c27.txt`).
+
+**Kubernetes smoke.** k8s smoke: 4 of 4 passed on 2026-11-05 on a from-scratch k3d cluster (ready in 106 s); evidence: docs/evidence/k8s-smoke-postgres-phase1b-2026-11-05-2b58c27.txt
+
+**Why recovery took 40.8–48.7 s, and the fix.** The first 9-run chaos check on this branch passed 9/9 with 0 violations, but 7 of 9
+runs took 40.8–48.7 s to recover. The cause is the cost of password hashing under load
+(`docs/evidence/recovery-investigation-2026-11-05-2b58c27.txt`, ADR 0003). The API is stateless HTTP Basic, so every request runs a
+bcrypt check, at cost 10 by default. At 100 requests/s this saturated payment-service CPU, with a docker stats median of 864–1018 %
+(100 % = one core). Requests queued for seconds, and the recovery probe (5 s timeout) could not get through until the 60 s load
+ended, whatever the fault. The October PostgreSQL campaign ran before authentication existed. An A/B test changed one variable, the
+bcrypt cost of the load identities (10 to 4), with single runs:
+
+| Scenario | Recovery s, cost 10 | Recovery s, cost 4 |
+|---|---|---|
+| replay (first run, fresh topics) | 47.3 (FAIL: too few duplicates to replay) | 14.2 |
+| hot-account | 50.1 | 2.1 |
+| pause-postgres | 46.8 | 2.0 |
+| restart-kafka | 48.2 | 19.5 |
+
+Fault-free, 100 payments/s for 60 s (single runs): at the shipped cost 10 the stack reached 54.0 payments/s, with first-attempt POST
+p50/p95/p99 of 6775.2/10075.7/11121.4 ms. At cost 4 it reached 100.0/s, with 3.6/9.7/139.7 ms.
+
+The fix keeps authentication on and the shipped cost unchanged. The new optional setting `ledgerflow.auth.bcrypt-strength` is set only
+by the load overlay (`infra/docker-compose.load.yml`, default 4, `LOAD_BCRYPT_STRENGTH=10` for the shipped cost). **All chaos and load
+numbers below use cost-4 load credentials**; they measure fault recovery and pipeline throughput, not password hashing.
+
+**Chaos.** `PROJECT=ledgerflow-final bash chaos/run_chaos.sh 9`, twice back to back on the same stack, 100 payments/s for 60 s per run,
+one run per scenario per campaign (`docs/evidence/chaos-postgres-phase1b-2026-11-05-2b58c27.csv` and `.txt`).
+
+| Result | Campaign 1 | Campaign 2 |
+|---|---|---|
+| Runs passed | 9 of 9 | 9 of 9 |
+| Ledger invariant violations | 0 | 0 |
+| New dead-letter messages | 0 | 0 |
+| Payments accepted by the API | 45,464 | 48,355 |
+| Abandoned after 5 attempts | 3,347 (in 4 runs) | 1,950 (in 2 runs) |
+| JVM halts recorded | 4 | 3 |
+
+| Scenario | Recovery s, campaign 1 | Recovery s, campaign 2 | PostgreSQL 2026-10-25, median of 3 |
+|---|---|---|---|
+| kill-ledger | 47.1 | 46.7 | 42.0 |
+| kill-payment | 41.3 | 51.4 | 40.5 |
+| pause-postgres (10 s) | 1.3 | 4.8 | 0.6 |
+| restart-kafka | 18.7 | 28.4 | 16.3 |
+| replay | 21.9 | 24.4 | 6.5 |
+| hot-account | 1.2 | 3.2 | 0.7 |
+| crash-before-payment-outbox-commit | 39.2 (2 halts) | 12.0 (**no halt**) | 47.7 |
+| crash-after-publish-before-mark | 28.1 (1 halt) | 59.6 (1 halt) | 47.8 |
+| crash-after-ledger-commit-before-ack | 32.8 (1 halt) | 48.9 (2 halts) | 37.6 |
+
+- In campaign 2, `crash-before-payment-outbox-commit` did not fire its fault: no JVM halt while 5,650 payments were accepted. The fault
+  fires with probability 0.0005 per admitted payment, so this run says nothing about that fault. A separate single run of that scenario on
+  the same stack afterwards fired it 3 times (log lines `CHAOS: halting JVM at BEFORE_PAYMENT_OUTBOX_COMMIT`) and passed, with 0 violations.
+- The halts in campaign 2's other two crash scenarios were confirmed in the service logs, and both were followed by duplicates absorbed
+  through deduplication. The `dup_*` columns in crash runs are read after the runner recreates the services, so they miss the duplicates
+  absorbed by the crashed instance.
+- Compared with 2026-10-25: hot-account and pause-postgres are back within a few seconds, and restart-kafka is close in one campaign of
+  the two. Replay is still slower (21.9 and 24.4 against 6.5). In campaign 2's replay, payment-service took 11.25 s to start
+  under load, against 4.967 s and 7.018 s without load in the same campaign. Most of the replay recovery is service restart time. Both
+  services run SerialGC, which the JVM picks for a 1 GiB container. In a single-run test, switching both services to G1 did not change
+  replay (21.1 s with SerialGC, 23.0 s with G1; payment-service start 10.049 s and 10.173 s), so the cause of the slower start is still
+  open (`recovery-investigation-2026-11-05-2b58c27.txt`).
+- An aborted attempt during the A/B test hit a broker group-coordinator error in `apache/kafka:4.0.0` ("Histogram recorded value cannot be
+  negative"). After that, consumer offsets could not be committed and the runner's replay wait hung. `chaos/run_chaos.sh` now fails a
+  replay run whose consumer lag has not drained after 300 s. The error did not occur in the two campaigns.
+
+Local laptop only, one broker and one database, one run per scenario per campaign: no high-availability or production claim.

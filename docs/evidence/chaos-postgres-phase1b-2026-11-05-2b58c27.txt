@@ -1,0 +1,70 @@
+Chaos, Roadmap Phase 1b on PostgreSQL, 2026-11-05
+Code: e36c943 (feat/postgres-port) plus the uncommitted Phase 1b fix (PaymentSecurity bcrypt strength, load overlay, run_chaos.sh
+replay lag timeout). Raw rows: chaos-postgres-phase1b-2026-11-05-2b58c27.csv (columns campaign and results_dir added in front of the
+runner's own columns).
+
+Environment
+  MacBook Air (Apple M4), 10 CPUs, 16 GiB RAM, Darwin 27.0.0, Docker Desktop (VM: 10 CPUs, 9.701 GiB). One Compose project,
+  ledgerflow-final, fresh volume before campaign 1; campaign 2 ran right after on the same stack and data (the runner accumulates state).
+  Images postgres:17.11, apache/kafka:4.0.0, grafana/k6:2.3.0 (--memory 1g), services on eclipse-temurin:25.0.5_8-jre.
+  mem_limit 1 GiB on postgres, kafka, payment-service, ledger-service; apps -XX:MaxRAMPercentage=50 (512 MiB heap; the JVM chose
+  SerialGC, checked with -XX:+PrintFlagsFinal inside the running containers). No CPU limits. Unrelated containers
+  (launchops-repo-night-*) were running on the same Docker VM.
+
+Settings
+  Command: PROJECT=ledgerflow-final bash chaos/run_chaos.sh 9 (twice). k6 constant arrival 100 payments/s for 60 s per run, 200 payers,
+  20 payees; fault at t = 15 s. RISK_VELOCITY_MAX=1000000 (set by run_chaos.sh), so declines are 0. Crash faults: probability 0.0005
+  per injection point hit, JVM halt.
+  Authentication on: every request authenticates as its payer's own identity payer-<id> (HTTP Basic). The load identities are hashed at
+  bcrypt cost 4 (infra/docker-compose.load.yml, ADR 0003); the shipped default stays cost 10. These runs measure failure recovery and
+  pipeline throughput, not password hashing. See recovery-investigation-2026-11-05-2b58c27.txt for why and for the shipped-cost run.
+
+Totals
+  Campaign 1 (chaos-20261105-153933): 9/9 PASS, invariant violations 0, new DLT messages 0, k6 accepted 45464, abandoned after 5 attempts
+    3347 (in 4 runs), retries 20505, JVM halts recorded 4, achieved rate 73.7-100.0/s.
+  Campaign 2 (chaos-20261105-155352): 9/9 PASS, invariant violations 0, new DLT messages 0, k6 accepted 48355, abandoned 1950 (in 2 runs),
+    retries 11391, JVM halts recorded 3, achieved rate 82.3-100.0/s.
+  Broker group-coordinator errors ("Histogram recorded value cannot be negative") during both campaigns: 0.
+
+Per scenario: recovery s (one run per scenario per campaign)
+| scenario                             | campaign 1 | campaign 2 | crashes c1 / c2 | dup_ledger/dup_payment c1 ; c2 |
+|--------------------------------------|------------|------------|-----------------|--------------------------------|
+| kill-ledger                          | 47.1       | 46.7       | 0 / 0           | 241/0 ; 0/0                    |
+| kill-payment                         | 41.3       | 51.4       | 0 / 0           | 243/0 ; 0/0                    |
+| pause-postgres (10 s)                | 1.3        | 4.8        | 0 / 0           | 243/0 ; 0/0                    |
+| restart-kafka                        | 18.7       | 28.4       | 0 / 0           | 243/0 ; 0/0                    |
+| replay (1000 per partition)          | 21.9       | 24.4       | 0 / 0           | 3000/3000 ; 3000/3000          |
+| hot-account                          | 1.2        | 3.2        | 0 / 0           | 3000/3000 ; 3000/3000          |
+| crash-before-payment-outbox-commit   | 39.2       | 12.0       | 2 / 0           | 3004/0 ; 3000/0                |
+| crash-after-publish-before-mark      | 28.1       | 59.6       | 1 / 1           | 0/0 ; 493/0                    |
+| crash-after-ledger-commit-before-ack | 32.8       | 48.9       | 1 / 2           | 1/0 ; 256/0                    |
+hot-account in both: completed/failed/total 50/150/200, balance 0.
+dup columns are Micrometer counters read at the end of each run. They reset when a service restarts. In crash runs the runner recreates
+both services without the chaos profile before reading them, so they do not show the duplicates absorbed by the crashed instance.
+
+Did each crash fault fire?
+  Campaign 1: yes for all three (halts 2, 1, 1 by Docker RestartCount).
+  Campaign 2: crash-before-payment-outbox-commit did NOT fire (RestartCount 0, no halt line in the chaos container's log while it ran,
+    5650 payments accepted). With 0.0005 per admitted payment, P(no halt in 5650) = 0.9995^5650 = 0.0593. The container was removed by the
+    runner's recreate, so its profile activation could not be checked afterwards. This run is not evidence for that fault.
+    crash-after-publish-before-mark: ledger log "CHAOS: halting JVM at AFTER_OUTBOX_PUBLISH_BEFORE_MARK" (21:04:37Z); the payment-service
+    duplicate counter reached 2 on its instance before recreation, and the recreated ledger-service absorbed 493.
+    crash-after-ledger-commit-before-ack: two ledger halts "AFTER_LEDGER_COMMIT_BEFORE_ACK" (21:06:51Z, 21:07:45Z); the restarted
+    ledger-service counted 1 duplicate and the recreated one 256 (redelivery hitting processed_events).
+    (Observed by a throw-away watcher polling container state, duplicate counters and halt log lines every 2 s.)
+  Supplementary single run after campaign 2 (chaos-20261105-160917, same stack, not part of either campaign):
+    crash-before-payment-outbox-commit PASS, recovery 53.6 s, crashes 3, violations 0, dlt_new 0; three log lines
+    "CHAOS: halting JVM at BEFORE_PAYMENT_OUTBOX_COMMIT", each after "chaos profile active: points=[BEFORE_PAYMENT_OUTBOX_COMMIT]
+    probability=5.0E-4 halt=true". No duplicates are expected at this point (the halt is before commit; the client retries the same key):
+    k6 accepted=3841 failed=1363 retries=8140.
+
+Against the earlier campaigns (medians of 3 runs, docs/evidence/chaos-campaign-2026-10-25-75c618e.csv, PostgreSQL without auth; and
+chaos-campaign-mongodb-2026-10-26-6a63c33.csv): pause-postgres 0.6, restart-kafka 16.3, replay 6.5, hot-account 0.7 on PostgreSQL.
+  hot-account and pause-postgres are back within 5 s. restart-kafka is within 20 s in campaign 1 (18.7) but not in campaign 2 (28.4).
+  replay (21.9, 24.4) is still well above 6.5.
+  Replay timing in campaign 2 (service logs, UTC): payment-service finished shutting down at 21:00:06.486, its JVM started at 21:00:14.062 (offset reset
+  tool and container start in between), "Started PaymentServiceApplication in 11.25 seconds" at 21:00:24.087, partitions assigned at
+  21:00:24.344-24.385, recovery 24.4 s. In the same campaign, payment-service started without load in 4.967 s and 7.018 s; ledger-service started in
+  7.622 s during replay. Most of replay's recovery is service restart time; the cause of the slower start was not measured.
+
+Limits: one run per scenario per campaign, one laptop, one broker, one database, other containers on the same VM.
