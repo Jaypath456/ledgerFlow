@@ -6,7 +6,8 @@ Status: accepted (Roadmap Phase 1a/1b), 2026-11-05.
 
 LedgerFlow ran on PostgreSQL 17 up to tag `v1.2.0-postgres`, then moved to a MongoDB 8.0 single-node replica set (tag
 `v1.3.0-mongodb`). The v2.0 roadmap needs one database for relational correctness, observability and scaling work. Both versions have
-a committed 27-run chaos campaign with the same runner and scenarios (9 scenarios × 3 runs, k6 at `rate=100.0/s`), on the same laptop
+a committed 27-run chaos campaign with the same runner and scenarios (9 scenarios × 3 runs, k6 load targeted at 100 payments/s for 60 s
+per run; the achieved `rate=` in the k6 column is 88.3–100.0/s on PostgreSQL and 79.0–100.0/s on MongoDB), on the same laptop
 with Docker Desktop. The host line in `docs/evidence/verify-2026-10-25.txt` reads MacBook Air, 10 CPUs, 16 GiB RAM. Full environment
 notes are in `docs/RESULTS.md`.
 
@@ -63,7 +64,8 @@ Reasons:
 
 - Phase 1b ports authentication, strict velocity, OrderingTest, the delivery demo and k8s to PostgreSQL, with every test from
   `v1.3.0-mongodb` adapted. Its test counts go into `docs/RESULTS.md` with the Phase 1b evidence.
-- The numbers above are from campaigns on earlier code: PostgreSQL at `75c618e`, MongoDB at `6a63c33`. A chaos run on the Phase 1b code
-  (with auth on) is still to be done and may differ, for example because every request now pays for a bcrypt check.
+- The numbers above are from campaigns on earlier code: PostgreSQL at `75c618e`, MongoDB at `6a63c33`. The Phase 1b chaos runs
+  (with auth on) are reported separately in `docs/RESULTS.md` (Roadmap Phase 1b): the per-request bcrypt check did change the results,
+  and those runs use cheap-hash load credentials (ADR 0003).
 - Limits of the comparison: each scenario has 3 runs on one laptop with one broker and one database node. Crash-scenario JVM halts differ
   between campaigns (30 against 12), so crash-scenario timings are not compared. The cause of the slower MongoDB restarts was not measured.
