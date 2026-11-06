@@ -105,8 +105,12 @@ for run in $(seq 1 "$RUNS"); do
   settle_s=$(settle 300) || { ok=0; note+="settle timeout;"; }
 
   if [ "$scenario" = replay ]; then
+    lag_start=$SECONDS # bounded like settle: a stuck consumer group fails the run instead of hanging the campaign
     until [ "$($C exec -T kafka /opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --all-groups 2>/dev/null \
-               | awk 'NR > 1 && $6 ~ /^[0-9]+$/ {s += $6} END {print s + 0}')" = 0 ]; do sleep 1; done
+               | awk 'NR > 1 && $6 ~ /^[0-9]+$/ {s += $6} END {print s + 0}')" = 0 ]; do
+      (( SECONDS - lag_start > 300 )) && { ok=0; note+="consumer lag not drained in 300 s;"; break; }
+      sleep 1
+    done
     # Both services were restarted for the replay, so their counters only hold replay-time duplicates.
     dup_l=$(metric "$LEDGER_URL" ledgerflow.events.duplicate | cut -d. -f1)
     dup_p=$(metric "$PAYMENT_URL" ledgerflow.events.duplicate | cut -d. -f1)
