@@ -1,0 +1,9 @@
+# Load and chaos runs only (chaos/lib.sh adds this file). payment-service gets one generated identity per seeded
+# payer account (payer-<id> owns only account <id>), replacing the alice/bob list. No identity owns other payers.
+services:
+  payment-service:
+    environment:
+      SPRING_APPLICATION_JSON: ${PAYMENT_AUTH_JSON:?source chaos/lib.sh to generate the load identities}
+      # The load identities are hashed at bcrypt cost 4, not the shipped 10 (ADR 0003): these runs measure fault recovery and
+      # throughput of the payment/ledger pipeline, not password hashing. LOAD_BCRYPT_STRENGTH=10 measures the shipped cost.
+      LEDGERFLOW_AUTH_BCRYPTSTRENGTH: ${LOAD_BCRYPT_STRENGTH:-4}

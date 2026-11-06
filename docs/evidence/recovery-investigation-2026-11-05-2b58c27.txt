@@ -1,0 +1,112 @@
+Recovery investigation, Roadmap Phase 1b, 2026-11-05
+Base commit: e36c943 (feat/postgres-port) plus the uncommitted Phase 1b fix (PaymentSecurity bcrypt strength, load overlay).
+Host: MacBook Air (Apple M4), 10 CPUs, 16 GiB RAM, macOS (Darwin 27.0.0), Docker Desktop, VM total memory 9.701 GiB, 10 CPUs.
+Images: postgres:17.11, apache/kafka:4.0.0, grafana/k6:2.3.0 (docker run --memory 1g). Container limits 1 GiB on postgres, kafka,
+payment-service, ledger-service; apps -XX:MaxRAMPercentage=50; no CPU limits. Unrelated containers (launchops-repo-night-*) were running
+on the same Docker VM during the experiments; they were not touched.
+
+Problem
+  chaos/results/chaos-20261105-144321/runs.csv (9 runs, e36c943, shipped bcrypt cost 10; raw rows at the end of this file): 9/9 PASS,
+  violations 0, but recovery_s 40.8-48.7 s in 7 of 9 runs, including pause-postgres (40.8), restart-kafka (47.0), replay (47.4),
+  hot-account (48.7); k6 achieved rate 25.3-67.4/s against 100/s; first-attempt POST p50
+  3626.0-6983.6 ms. Committed v1.2.0-postgres campaign (docs/evidence/chaos-campaign-2026-10-25-75c618e.csv) medians: pause-postgres 0.6,
+  restart-kafka 16.3, replay 6.5, hot-account 0.7; POST p50 0.9-1.5 ms; rate 88.3-100.0/s. That campaign ran without authentication
+  (v1.2.0-postgres has no PaymentSecurity).
+
+How recovery_s is measured (chaos/lib.sh probe_recovery)
+  From the end of the fault, POST a probe payment with curl -m 5 and poll it to COMPLETED; retry every 0.5 s. k6 runs 60 s and the fault
+  fires at t = 15 s. When payment-service queues requests for longer than 5 s, every probe POST times out until the load stops, so
+  recovery_s cannot be shorter than the load time left after the fault (the load runs 60 s; the fault starts at 15 s), whatever the fault is.
+
+Cause
+  PaymentSecurity encodes every configured identity with PasswordEncoderFactories.createDelegatingPasswordEncoder(): stored
+  {bcrypt}$2a$10$..., cost 10 (BCryptPasswordEncoder default strength, spring-security-crypto 7.1.1). The API is stateless HTTP Basic, so
+  each request runs one bcrypt verification at cost 10. Verification cost follows the stored hash (BCrypt.checkpw). Supplying pre-hashed
+  {bcrypt} values through config is not possible: the configured value is always encoded again as a plain password.
+  DaoAuthenticationProvider (spring-security-core 7.1.1) also re-hashes a stored password after login when the verifying encoder's
+  upgradeEncoding() is true (stored cost < encoder strength), so the strength has to be set on the PasswordEncoder bean, not only on the
+  encoding side.
+
+Experiment design (one variable)
+  Both: `ONLY=replay,hot-account,pause-postgres,restart-kafka KEEP_GOING=1 bash chaos/run_chaos.sh 4` on a fresh Compose project,
+  then `bash chaos/bench.sh 100 60s` (fault-free) on the same stack; docker stats sampled about every 2 s (100 % = one core).
+  A: project ledgerflow-ab1, shipped settings (load identities at bcrypt cost 10).
+  B: project ledgerflow-ab2, load identities at bcrypt cost 4 (LEDGERFLOW_AUTH_BCRYPTSTRENGTH=4 from infra/docker-compose.load.yml).
+  Single run per scenario. Replay is run 1 on fresh Kafka topics in both, so fewer than 1000 events per partition exist before the reset.
+  B's first attempt was aborted (see below); the B numbers are from the second attempt on the same project (its PostgreSQL volume kept the
+  first attempt's rows; Kafka has no volume, so topics were fresh as in A).
+
+Results (A: chaos/results/chaos-20261105-151541, bench-20261105-152151-r100; B: chaos/results/chaos-20261105-153235, bench-20261105-153747-r100)
+
+| scenario       | A result | A recovery s | B result | B recovery s | old Postgres median (75c618e) |
+|----------------|----------|--------------|----------|--------------|-------------------------------|
+| replay         | FAIL (1) | 47.3         | PASS     | 14.2         | 6.5                           |
+| hot-account    | PASS     | 50.1         | PASS     | 2.1          | 0.7                           |
+| pause-postgres | PASS     | 46.8         | PASS     | 2.0          | 0.6                           |
+| restart-kafka  | PASS     | 48.2         | PASS     | 19.5         | 16.3                          |
+(1) "replay absorbed too few duplicates": dup 670/661 < 1000, because replay ran first on fresh topics (see design). Violations 0.
+
+| scenario       | k6 accepted/declined/failed A | B            | k6 rate A | B       | POST p50/p95/p99 ms A    | B                | payment-service CPU % median A | B  |
+|----------------|-------------------------------|--------------|-----------|---------|--------------------------|------------------|--------------------------------|----|
+| replay         | 1360/0/2800                   | 5281/0/413   | 63.6/s    | 94.9/s  | 5385.0/8626.0/9324.6     | 5.4/69.9/810.2   | 107                            | 82 |
+| hot-account    | 1371/0/0                      | 6001/0/0     | 20.8/s    | 100.0/s | 7976.1/14292.7/14881.3   | 3.7/7.1/22.0     | 1018                           | 42 |
+| pause-postgres | 1596/0/0                      | 5341/0/0     | 22.4/s    | 89.0/s  | 7180.1/14397.4/14898.5   | 6.2/6285.7/10358.7 | 864                          | 54 |
+| restart-kafka  | 3018/0/0                      | 5911/0/0     | 45.8/s    | 98.5/s  | 7428.3/12291.8/14355.6   | 4.6/35.3/1664.2  | 885                            | 45 |
+
+e2e request-to-terminal p50/p95/p99 ms: A replay 2107/49331/50676, hot-account 1450/6118/7710, pause-postgres 548/5450/8133,
+restart-kafka 11935/26780/29896; B replay 41/13369/15258, hot-account 34/78/357, pause-postgres 42/1159/3322, restart-kafka 43/16621/19235.
+All 8 runs: invariant violations 0, new DLT messages 0, declined 0 (RISK_VELOCITY_MAX=1000000). hot-account 50/150/200, balance 0 in both.
+In A, ledger-service CPU median was 12-31 % and postgres 7-26 % (runs 2-4) while payment-service used 864-1018 %.
+
+Fault-free bench, 100 payments/s for 60 s (single run each):
+  A, shipped bcrypt cost 10: accepted=3515 declined=0 failed=0 retries=0 rate=54.0/s post_p50=6775.2ms p95=10075.7ms p99=11121.4ms;
+     drain_s=1; e2e p50/p95/p99 149/543/877 ms; violations 0; payment-service CPU median 824 %.
+  B, load cost 4:            accepted=6001 declined=0 failed=0 retries=0 rate=100.0/s post_p50=3.6ms p95=9.7ms p99=139.7ms;
+     drain_s=0; e2e p50/p95/p99 34/54/140 ms; violations 0; payment-service CPU median 37 %.
+
+Conclusion
+  Confirmed: per-request bcrypt verification at cost 10 saturates payment-service CPU at 100 requests/s on this host. Requests queue for
+  seconds, the probe's 5 s POST cannot get through until the load stops, and recovery_s reads 40.8-48.7 s in 7 of 9 runs whatever the fault. Lowering only
+  the load identities' cost to 4 brings hot-account, pause-postgres and restart-kafka within the targets (<= 5, <= 5, <= 20 s). Replay
+  (14.2 s, single run, run 1 on fresh topics) stayed above the <= 10 s target in this experiment; see the Phase 1b final campaigns.
+  Not tested separately (not needed to explain the plateau): k6 --memory 1g, postgres 1 GiB limit, velocity guard row, JVM heap.
+  Locally grafana/k6:latest and grafana/k6:2.3.0 are the same image ID (0c6e79b98aff), and postgres:17 and postgres:17.11 are the same
+  image ID (bbdfc26f27f4); which image digests the 2026-10-25 campaign used is not recorded.
+
+Aborted run (B, first attempt, chaos/results/chaos-20261105-152401, not counted)
+  Run 1 (replay) k6: accepted=4293 failed=1101 retries=6329 rate=89.9/s post_p50=23.1ms. The broker's group coordinator then failed:
+  "ERROR [group-coordinator-event-processor-0]: Failed to run event InternalEvent(name=FlushBatch)": java.lang.ArrayIndexOutOfBoundsException
+  "Histogram recorded value cannot be negative" in CoordinatorRuntimeMetricsImpl.recordEventQueueTime (apache/kafka:4.0.0). After that,
+  offset commits failed with "The coordinator is not available", the payment-service group kept a lag of 1064-1096 per partition, and the
+  runner's replay wait (until consumer lag = 0, no timeout) hung. The stack was taken down. Probable trigger: a negative queue time from a
+  clock step in the Docker VM; not verified against Kafka's issue tracker. chaos/run_chaos.sh now fails a replay run whose lag does not
+  drain in 300 s instead of waiting forever.
+
+Follow-up after the Phase 1b final campaigns: replay residual, GC test (single runs)
+  The final campaigns (chaos-postgres-phase1b-2026-11-05-2b58c27.txt) had replay at 21.9 and 24.4 s. Both services run SerialGC (the
+  JVM's choice for a 1 GiB container; checked with -XX:+PrintFlagsFinal). One variable: -XX:+UseG1GC on both services, added through a
+  temporary edit of infra/docker-compose.load.yml that was reverted afterwards (diff against a backup: identical).
+  `ONLY=pause-postgres,restart-kafka,replay KEEP_GOING=1 bash chaos/run_chaos.sh 3`, control on ledgerflow-ab2 (chaos-20261105-161643),
+  G1 on ledgerflow-ab1 (chaos-20261105-162044); both projects reused their earlier PostgreSQL volumes; Kafka topics fresh.
+
+| run            | control (SerialGC) recovery s | G1 recovery s |
+|----------------|-------------------------------|---------------|
+| pause-postgres | 1.6                           | 1.4           |
+| restart-kafka  | 16.0                          | 18.0          |
+| replay         | 21.1                          | 23.0          |
+  "Started PaymentServiceApplication in" during replay: control 10.049 s, G1 10.173 s; ledger-service 6.57 s and 6.76 s.
+  All 6 runs PASS, violations 0, new DLT 0, replay duplicates 3000/3000.
+  Result: the GC choice does not explain the replay residual. Not tested: initial heap size or the memory limit itself, CPU contention
+  during the restart, and startup cost added since v1.2.0-postgres.
+
+Raw rows, chaos/results/chaos-20261105-144321/runs.csv (the first Phase 1b 9-run check, before the fix):
+run,scenario,result,k6,recovery_s,settle_s,crashes,dup_ledger,dup_payment,dlt_new,e2e_ms_p50_p95_p99,violations,note
+1,kill-ledger,PASS,"accepted=1720 declined=0 failed=0 retries=624 rate=25.3/s post_p50=6983.6ms p95=13693.6ms p99=14734.7ms",47.2,0,0,0,0,0,10748/45269/46596,0,""
+2,kill-payment,PASS,"accepted=1272 declined=0 failed=2693 retries=14168 rate=60.1/s post_p50=5227.6ms p95=8146.1ms p99=9887.9ms",46.4,0,0,0,1,0,704/7554/8339,0,""
+3,pause-postgres,PASS,"accepted=2749 declined=0 failed=0 retries=282 rate=41.6/s post_p50=6648.9ms p95=10804.0ms p99=14723.3ms",40.8,0,0,0,1,0,232/1735/10613,0,""
+4,restart-kafka,PASS,"accepted=4105 declined=0 failed=0 retries=0 rate=63.5/s post_p50=5479.2ms p95=8997.1ms p99=9860.2ms",47.0,1,0,0,1,0,324/20844/23422,0,""
+5,replay,PASS,"accepted=1842 declined=0 failed=2500 retries=13399 rate=67.4/s post_p50=3626.0ms p95=6700.0ms p99=7751.5ms",47.4,0,0,3000,3000,0,626/48992/50074,0,""
+6,hot-account,PASS,"accepted=4215 declined=0 failed=0 retries=0 rate=65.8/s post_p50=5264.6ms p95=8756.1ms p99=10425.8ms",48.7,0,0,3000,3000,0,118/500/937,0,"hot completed/failed/total=50/150/200 balance=0;"
+7,crash-before-payment-outbox-commit,PASS,"accepted=2079 declined=0 failed=2150 retries=11597 rate=65.8/s post_p50=4127.7ms p95=6847.6ms p99=8178.6ms",32.2,0,1,3000,0,0,1115/12631/46776,0,""
+8,crash-after-publish-before-mark,PASS,"accepted=4274 declined=0 failed=0 retries=0 rate=67.0/s post_p50=5358.6ms p95=8163.5ms p99=9265.5ms",46.0,0,1,6,0,0,513/66754/70006,0,""
+9,crash-after-ledger-commit-before-ack,PASS,"accepted=4147 declined=0 failed=0 retries=0 rate=64.5/s post_p50=5547.7ms p95=8710.1ms p99=10064.3ms",6.9,0,0,0,0,0,156/610/1551,0,""

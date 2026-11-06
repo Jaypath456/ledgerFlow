@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.json.JsonMapper;
@@ -32,8 +33,11 @@ public class PaymentService {
         this.faults = faults;
     }
 
-    /** Commit the key, payment and outbox together so a crash can't split them. */
-    @Transactional
+    /**
+     * Commit the key, payment and outbox together so a crash can't split them. Read committed (the Postgres default,
+     * stated here because strict velocity relies on it): each statement after a lock wait sees the earlier holder's commit.
+     */
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Result create(String idempotencyKey, PaymentRequest request) {
         String hash = request.canonicalHash();
         UUID id = UUID.randomUUID();

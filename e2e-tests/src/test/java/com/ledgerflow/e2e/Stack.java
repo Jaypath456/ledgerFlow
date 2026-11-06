@@ -2,16 +2,21 @@ package com.ledgerflow.e2e;
 
 import com.ledgerflow.ledger.LedgerService;
 import com.ledgerflow.ledger.LedgerServiceApplication;
+import com.ledgerflow.payment.PaymentSecurity;
 import com.ledgerflow.payment.PaymentServiceApplication;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Base64;
 import java.util.UUID;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.MountableFile;
@@ -97,6 +102,7 @@ final class Stack {
                 {"payerAccountId":%d,"payeeAccountId":%d,"amountMinor":%d,"currency":"USD"}"""
                 .formatted(payer, payee, amountMinor);
         return send(HttpRequest.newBuilder(uri("/api/payments"))
+                .header("Authorization", authorization(payer))
                 .header("Content-Type", "application/json")
                 .header("Idempotency-Key", idempotencyKey)
                 .POST(HttpRequest.BodyPublishers.ofString(body)).build());
@@ -108,7 +114,19 @@ final class Stack {
     }
 
     static JsonNode payment(UUID id) throws Exception {
-        return send(HttpRequest.newBuilder(uri("/api/payments/" + id)).GET().build()).body();
+        long payer = paymentDb().sql("SELECT payer_account_id FROM payments WHERE id = ?").param(id)
+                .query(Long.class).single();
+        return send(HttpRequest.newBuilder(uri("/api/payments/" + id))
+                .header("Authorization", authorization(payer)).GET().build()).body();
+    }
+
+    /** A test identity owning just this account, created on first use. */
+    static synchronized String authorization(long account) {
+        var users = PAYMENT.getBean(InMemoryUserDetailsManager.class);
+        String name = "test-" + account;
+        if (!users.userExists(name)) users.createUser(User.withUsername(name).password("{noop}test-only")
+                .authorities(PaymentSecurity.accountAuthority(account)).build());
+        return "Basic " + Base64.getEncoder().encodeToString((name + ":test-only").getBytes(StandardCharsets.UTF_8));
     }
 
     private static URI uri(String path) {

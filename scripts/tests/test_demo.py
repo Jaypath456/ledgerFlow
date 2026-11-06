@@ -39,14 +39,14 @@ class DemoSafetyTest(unittest.TestCase):
         self.assertFalse(self.instance.started)
 
     def test_existing_volume_prevents_startup_even_without_containers(self):
-        self.instance.command.return_value = "other-volume\nledgerflow-delivery-fixture_mongodata"
+        self.instance.command.return_value = "other-volume\nledgerflow-delivery-fixture_pgdata"
         with self.assertRaises(demo.EnvironmentCollisionError):
             self.instance.start()
         self.instance.c.assert_called_once_with("ps", "-a", "-q")
         self.assertFalse(self.instance.started)
 
     def test_full_history_violation_fails_before_pass_record(self):
-        self.instance.mongo = Mock(return_value='{"invariant":"I4","detail":"negative balance"}')
+        self.instance.psql = Mock(return_value="I4|account 100001 (CUSTOMER) balance -1")
         with self.assertRaises(demo.FinancialInvariantError):
             self.instance.check("corruption", {})
         self.assertEqual([], self.instance.results)

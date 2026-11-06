@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Chaos runs against the Compose stack (project "ledgerflow-chaos", its own volume).
 #   chaos/run_chaos.sh [RUNS]          default 27 = each of the 9 scenarios 3 times
-# Env: LOAD_RATE (payments/s, default 100), LOAD_SECONDS (60), RESET=1 (fresh volume first),
+# Env: LOAD_RATE (payments/s, default 100), LOAD_SECONDS (60), PROJECT (use a new name for fresh data),
 #      KEEP_GOING=1 (do not stop at the first failed run), ONLY=a,b (subset of scenarios).
 # Each run: background k6 load -> one fault -> recovery probe -> settle -> invariants (+ scenario checks).
 # A run fails on any invariant violation, a checker error, a settle timeout or a failed scenario check.
@@ -37,7 +37,10 @@ reset_group() { # reset_group GROUP TOPIC SHIFT  (group must have no running mem
 }
 
 # --- stack ---
-[ "${RESET:-0}" = 1 ] && $C down -v >/dev/null 2>&1
+if [ "${RESET:-0}" = 1 ]; then
+  echo 'RESET is disabled to preserve data. Choose a new PROJECT for an isolated campaign.' >&2
+  exit 1
+fi
 log "starting stack ($PROJECT)"
 $C up -d --build --wait >/dev/null 2>&1 || { log "stack failed to start"; exit 1; }
 if [ "$(sql "SELECT count(*) FROM ledger.accounts WHERE id = 10001")" = 0 ]; then log "seeding accounts"; seed; fi
@@ -86,8 +89,9 @@ for run in $(seq 1 "$RUNS"); do
       hot=$(sql "SELECT COALESCE(max(id), 40000) + 1 FROM ledger.accounts WHERE id BETWEEN 40001 AND 49999")
       $C exec -T postgres psql -U postgres -d ledgerflow -q -v ON_ERROR_STOP=1 -v first=$hot -v count=1 -v type=CUSTOMER \
         -v amount=5000 -f - < chaos/create_accounts.sql >/dev/null || { ok=0; note+="hot account setup failed;"; }
+      hot_auth=$(auth "$hot") || { ok=0; note+="no load credential for hot account $hot;"; }
       t=$(date +%s.%N)
-      seq 1 200 | xargs -P 200 -I{} curl -sS -m 30 -o /dev/null -X POST "$PAYMENT_URL/api/payments" \
+      seq 1 200 | xargs -P 200 -I{} curl -sS -u "$hot_auth" -m 30 -o /dev/null -X POST "$PAYMENT_URL/api/payments" \
         -H 'Content-Type: application/json' -H "Idempotency-Key: hot-$hot-{}" \
         -d "{\"payerAccountId\":$hot,\"payeeAccountId\":20001,\"amountMinor\":100,\"currency\":\"USD\"}" ;;
     crash-*) wait $k6_pid; t=$(date +%s.%N)
@@ -101,8 +105,12 @@ for run in $(seq 1 "$RUNS"); do
   settle_s=$(settle 300) || { ok=0; note+="settle timeout;"; }
 
   if [ "$scenario" = replay ]; then
+    lag_start=$SECONDS # bounded like settle: a stuck consumer group fails the run instead of hanging the campaign
     until [ "$($C exec -T kafka /opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --all-groups 2>/dev/null \
-               | awk 'NR > 1 && $6 ~ /^[0-9]+$/ {s += $6} END {print s + 0}')" = 0 ]; do sleep 1; done
+               | awk 'NR > 1 && $6 ~ /^[0-9]+$/ {s += $6} END {print s + 0}')" = 0 ]; do
+      (( SECONDS - lag_start > 300 )) && { ok=0; note+="consumer lag not drained in 300 s;"; break; }
+      sleep 1
+    done
     # Both services were restarted for the replay, so their counters only hold replay-time duplicates.
     dup_l=$(metric "$LEDGER_URL" ledgerflow.events.duplicate | cut -d. -f1)
     dup_p=$(metric "$PAYMENT_URL" ledgerflow.events.duplicate | cut -d. -f1)

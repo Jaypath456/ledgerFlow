@@ -1,0 +1,10 @@
+date: 2026-11-06T17:46Z
+code: HEAD 87c8017 (payment-service code identical to 2b58c27 plus docs)
+command: bash k8s/start.sh && bash k8s/smoke.sh
+cluster ready in 106 s (k3d 'ledgerflow')
+PASS: Funded payment reached COMPLETED
+PASS: Insufficient-funds payment reached FAILED
+PASS: Idempotency replay returned identical HTTP status and response body
+PASS: Replacement ledger-service pod Ready; new payment reached COMPLETED
+PASS: Tests run: 4, Failures: 0
+cluster deleted afterwards with k8s/stop.sh

@@ -16,7 +16,7 @@ class PaymentDbSmokeTest extends PaymentTestSupport {
     void flywayRanInOwnSchema() {
         Integer applied = jdbc.queryForObject(
                 "select count(*) from payments.flyway_schema_history where success", Integer.class);
-        assertThat(applied).isEqualTo(2);
+        assertThat(applied).isEqualTo(3);
     }
 
     @Test

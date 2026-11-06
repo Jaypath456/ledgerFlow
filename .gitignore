@@ -5,3 +5,4 @@ target/
 .DS_Store
 .claude/settings.local.json
 chaos/results/
+.overnight/

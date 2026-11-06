@@ -1,0 +1,35 @@
+Date: 2026-11-05
+Commit: 2b58c27 (e36c943 plus the Phase 1b fix: PaymentSecurity bcrypt strength and PaymentSecurityTest)
+Command: ./mvnw -B clean verify
+Host: MacBook Air (Apple M4), 10 CPUs, 16 GiB RAM, macOS 27.0.1, Docker Desktop (Engine 29.8.2, Compose 5.6.0)
+openjdk version "25.0.4.1" 2026-08-18 LTS
+OpenJDK Runtime Environment Temurin-25.0.4.1+1 (build 25.0.4.1+1-LTS)
+OpenJDK 64-Bit Server VM Temurin-25.0.4.1+1 (build 25.0.4.1+1-LTS, mixed mode, sharing)
+
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 22.51 s -- in com.ledgerflow.payment.PaymentDbSmokeTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.497 s -- in com.ledgerflow.payment.PaymentSecurityTest
+Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 18.02 s -- in com.ledgerflow.payment.PaymentApiTest
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.293 s -- in com.ledgerflow.payment.PaymentKafkaTest
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.18 s -- in com.ledgerflow.ledger.LedgerPostingTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.543 s -- in com.ledgerflow.ledger.LedgerKafkaTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.141 s -- in com.ledgerflow.ledger.SeedIsolationTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.020 s -- in com.ledgerflow.ledger.LedgerDbSmokeTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.212 s -- in com.ledgerflow.ledger.LedgerPropertyTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.454 s -- in com.ledgerflow.ledger.LedgerConcurrencyTest
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 18.42 s -- in com.ledgerflow.e2e.InvariantCheckerTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.605 s -- in com.ledgerflow.e2e.PaymentFlowTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 17.52 s -- in com.ledgerflow.e2e.OrderingTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.049 s -- in com.ledgerflow.e2e.RecoveryTest
+
+[INFO] Tests run: 31, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 21, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 17, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Reactor Summary for ledgerflow 1.1.0:
+[INFO] ledgerflow ......................................... SUCCESS [  0.101 s]
+[INFO] common ............................................. SUCCESS [  2.150 s]
+[INFO] payment-service .................................... SUCCESS [ 51.796 s]
+[INFO] ledger-service ..................................... SUCCESS [ 39.687 s]
+[INFO] e2e-tests .......................................... SUCCESS [ 43.717 s]
+[INFO] BUILD SUCCESS
+[INFO] Total time:  02:17 min
+Exit: 0

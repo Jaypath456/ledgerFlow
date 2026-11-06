@@ -44,7 +44,7 @@ class Demo:
         self.output.mkdir(parents=True, exist_ok=False)
         self.env = dict(os.environ, PAYMENT_PORT=os.environ.get("PAYMENT_PORT", "18081"),
                         LEDGER_PORT=os.environ.get("LEDGER_PORT", "18082"),
-                        MONGO_PORT=os.environ.get("MONGO_PORT", "37017"),
+                        POSTGRES_PORT=os.environ.get("POSTGRES_PORT", "35432"),
                         KAFKA_PORT=os.environ.get("KAFKA_PORT", "39092"),
                         ALICE_ACCOUNTS="100001,100003,100004,100005,100006,100007,100008",
                         BOB_ACCOUNTS="100002", RISK_VELOCITY_MAX="5", PAYMENT_PROFILES="default",
@@ -72,12 +72,15 @@ class Demo:
     def c(self, *args, **kwargs):
         return self.command(self.compose + list(args), **kwargs)
 
-    def mongo(self, script):
-        return self.c("exec", "-T", "mongo", "mongosh", "admin", "--quiet", "-u", "local_admin", "-p", "local_admin",
-                      "--file", "/dev/stdin", data=script)
+    def psql(self, sql, **variables):
+        # Values travel as psql variables (:'name' in the SQL), never formatted into the statement.
+        args = ["exec", "-T", "postgres", "psql", "-U", "postgres", "-d", "ledgerflow", "-q", "-At", "-v", "ON_ERROR_STOP=1"]
+        for name, value in variables.items():
+            args += ["-v", f"{name}={value}"]
+        return self.c(*args, "-f", "-", data=sql)
 
-    def query(self, expression):
-        return json.loads(self.mongo("print(JSON.stringify(" + expression + "));"))
+    def query(self, sql, **variables):
+        return json.loads(self.psql(sql, **variables))
 
     def http(self, method, path, body=None, key=None, identity="alice", timeout=45):
         headers = {"Content-Type": "application/json"}
@@ -125,12 +128,12 @@ class Demo:
 
     def check(self, name, details):
         deadline = time.monotonic() + 60
-        while self.query("db.getSiblingDB('payments').outbox.countDocuments({published_at:null})"
-                         "+db.getSiblingDB('ledger').outbox.countDocuments({published_at:null})"):
+        while self.query("SELECT (SELECT count(*) FROM payments.outbox WHERE published_at IS NULL)"
+                         " + (SELECT count(*) FROM ledger.outbox WHERE published_at IS NULL)"):
             if time.monotonic() >= deadline:
                 raise TimeoutError("Outboxes did not drain")
             time.sleep(.2)
-        violations = self.mongo((ROOT / "chaos/verify_invariants.js").read_text())
+        violations = self.psql((ROOT / "chaos/verify_invariants.sql").read_text())
         if violations:
             raise FinancialInvariantError(violations)
         self.results.append(dict(scenario=name, result="PASS", violations=0, details=details))
@@ -138,9 +141,10 @@ class Demo:
         print("PASS:", name, json.dumps(details), "I1-I6 violations=0", flush=True)
 
     def effects(self, payment, payer, expected_balance):
-        result = self.query("({postings:db.getSiblingDB('ledger').ledger_transactions.countDocuments({payment_id:"
-                            + json.dumps(payment["id"]) + "}),balance:Number(db.getSiblingDB('ledger').accounts.findOne({_id:Long('"
-                            + str(payer) + "')}).balance_minor)})")
+        result = self.query("SELECT json_build_object("
+                            "'postings', (SELECT count(*) FROM ledger.ledger_transactions WHERE payment_id = :'payment'::uuid),"
+                            "'balance', (SELECT balance_minor FROM ledger.accounts WHERE id = :'payer'::bigint))",
+                            payment=payment["id"], payer=payer)
         expected = dict(postings=1 if payment["status"] == "COMPLETED" else 0, balance=expected_balance)
         if result != expected:
             raise FinancialInvariantError(f"Expected {expected}, got {result}")
@@ -151,20 +155,20 @@ class Demo:
         if containers:
             raise EnvironmentCollisionError("Refusing to reuse existing containers")
         existing = self.command(["docker", "volume", "ls", "--format", "{{.Name}}"])
-        if self.project + "_mongodata" in existing.splitlines():
+        if self.project + "_pgdata" in existing.splitlines():
             raise EnvironmentCollisionError("Refusing to reuse an existing volume")
-        for key in ("PAYMENT_PORT", "LEDGER_PORT", "MONGO_PORT", "KAFKA_PORT"):
+        for key in ("PAYMENT_PORT", "LEDGER_PORT", "POSTGRES_PORT", "KAFKA_PORT"):
             with socket.socket() as probe:
                 probe.bind(("127.0.0.1", int(self.env[key])))
         (self.output / "environment.json").write_text(json.dumps({k: self.env[k] for k in (
-            "PAYMENT_PORT", "LEDGER_PORT", "MONGO_PORT", "KAFKA_PORT", "ALICE_ACCOUNTS", "BOB_ACCOUNTS", "RISK_VELOCITY_MAX")}, indent=2))
+            "PAYMENT_PORT", "LEDGER_PORT", "POSTGRES_PORT", "KAFKA_PORT", "ALICE_ACCOUNTS", "BOB_ACCOUNTS", "RISK_VELOCITY_MAX")}, indent=2))
         print("Starting", self.project, "evidence:", self.output, flush=True)
         self.started = True
         self.c("up", "-d", "--build", "--wait", "--wait-timeout", "240")
-        create = (ROOT / "chaos/create_accounts.js").read_text()
+        create = (ROOT / "chaos/create_accounts.sql").read_text()
         for first, count, kind, amount in ((100001, 1, "CUSTOMER", 5000), (100002, 1, "CUSTOMER", 100),
                                           (100003, 6, "CUSTOMER", 10000), (200001, 1, "MERCHANT", 0)):
-            self.mongo(f"const FIRST={first},COUNT={count},TYPE='{kind}',AMOUNT={amount};\n" + create)
+            self.psql(create, first=first, count=count, type=kind, amount=amount)
 
     def basic(self):
         key = str(uuid.uuid4())
@@ -185,12 +189,12 @@ class Demo:
         conflict = self.pay(100001, 1501, key)
         require(conflict[0] == 422, f"Expected payload conflict, got HTTP {conflict[0]}")
         self.check("idempotent replay and payload conflict", self.effects(done, 100001, 3500))
-        before = self.query("db.getSiblingDB('payments').payments.countDocuments({})")
+        before = self.query("SELECT count(*) FROM payments.payments")
         unauthorized = self.pay(100001, identity=None)
         require(unauthorized[0] == 401, f"Unauthenticated request returned HTTP {unauthorized[0]}")
         unowned = self.pay(100001, identity="bob")
         require(unowned[0] == 403, f"Unowned debit returned HTTP {unowned[0]}")
-        after = self.query("db.getSiblingDB('payments').payments.countDocuments({})")
+        after = self.query("SELECT count(*) FROM payments.payments")
         require(after == before, "Rejected authorization probes changed payment state")
         self.check("unauthorized and unowned debit rejected", dict(unauthenticated=401, unowned=403))
         barrier = threading.Barrier(32)
@@ -235,20 +239,20 @@ class Demo:
         payment = self.terminal(accepted)
         require(payment["status"] == "COMPLETED", "Payment did not complete after process kill")
         self.check("payment process killed after acceptance", self.effects(payment, 100005, 9900))
-        self.c("pause", "mongo")
+        self.c("pause", "postgres")
         self.paused = True
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
             pending = pool.submit(self.pay, 100006)
             try:
                 time.sleep(3)
-                require(not pending.done(), "Expected submission to wait while MongoDB is paused")
+                require(not pending.done(), "Expected submission to wait while PostgreSQL is paused")
             finally:
-                self.c("unpause", "mongo")
+                self.c("unpause", "postgres")
                 self.paused = False
             response = pending.result(timeout=60)
         payment = self.terminal(response)
-        require(payment["status"] == "COMPLETED", "Payment did not complete after MongoDB resumed")
-        self.check("MongoDB paused during submission", self.effects(payment, 100006, 9900))
+        require(payment["status"] == "COMPLETED", "Payment did not complete after PostgreSQL resumed")
+        self.check("PostgreSQL paused during submission", self.effects(payment, 100006, 9900))
         self.c("stop", "kafka")
         try:
             accepted = self.pay(100007)
@@ -263,8 +267,8 @@ class Demo:
                     raise TimeoutError("Expected an actual outbox failure while Kafka is stopped")
                 time.sleep(3)
             payment_id = json.loads(accepted[1])["id"]
-            unpublished = self.query("db.getSiblingDB('payments').outbox.countDocuments({aggregate_id:"
-                                     + json.dumps(payment_id) + ",published_at:null})")
+            unpublished = self.query("SELECT count(*) FROM payments.outbox"
+                                     " WHERE aggregate_id = :'payment'::uuid AND published_at IS NULL", payment=payment_id)
             require(unpublished >= 1, "Outage payment had no unpublished outbox record")
         finally:
             self.c("start", "kafka")
@@ -292,7 +296,7 @@ class Demo:
     def finish(self):
         if self.started:
             if self.paused:
-                self.c("unpause", "mongo", check=False)
+                self.c("unpause", "postgres", check=False)
             self.c("logs", "--no-color", check=False)
             self.c("ps", "-a", check=False)
             print("Containers and data kept. Stop with:", " ".join(self.compose + ["stop"]), flush=True)
@@ -300,7 +304,7 @@ class Demo:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--extended", action="store_true", help="also test process kill, MongoDB/Kafka interruption and both DLTs")
+    parser.add_argument("--extended", action="store_true", help="also test process kill, PostgreSQL/Kafka interruption and both DLTs")
     parser.add_argument("--output", help="new directory for command logs and results")
     args = parser.parse_args()
     demo = Demo(args.output)

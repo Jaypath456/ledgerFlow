@@ -1,0 +1,16 @@
+Date: 2026-11-05, 16:15-16:16 America/New_York
+Commit: 2b58c27 (e36c943 plus the uncommitted Phase 1b fix)
+Command: bash scripts/smoke.sh   (fresh project ledgerflow-delivery-2746d16dec, stopped afterwards with the command it prints; data kept)
+Host: MacBook Air (Apple M4), 10 CPUs, 16 GiB RAM, macOS 27.0.1, Docker Desktop (Engine 29.8.2, Compose 5.6.0)
+
+Starting ledgerflow-delivery-2746d16dec evidence: chaos/results/ledgerflow-delivery-2746d16dec
+PASS: successful payment {"postings": 1, "balance": 3500} I1-I6 violations=0
+PASS: risk-declined payment {"postings": 0, "balance": 3500} I1-I6 violations=0
+PASS: insufficient funds {"postings": 0, "balance": 100} I1-I6 violations=0
+PASS: idempotent replay and payload conflict {"postings": 1, "balance": 3500} I1-I6 violations=0
+PASS: unauthorized and unowned debit rejected {"unauthenticated": 401, "unowned": 403} I1-I6 violations=0
+PASS: concurrent velocity limit {"requests": 32, "completed": 5, "declined": 27, "balance": 9500} I1-I6 violations=0
+PASS: ledger service interruption {"postings": 1, "balance": 9900} I1-I6 violations=0
+PASS: 7 scenarios; evidence: chaos/results/ledgerflow-delivery-2746d16dec
+Containers and data kept. Stop with: docker compose -p ledgerflow-delivery-2746d16dec -f infra/docker-compose.yml -f infra/docker-compose.delivery.yml stop
+Exit: 0
