@@ -1,6 +1,7 @@
 package com.ledgerflow.payment;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -14,7 +15,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -22,14 +26,23 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(PaymentSecurity.Identities.class)
 public class PaymentSecurity {
+    /** bcryptStrength: unset in the shipped config (Spring's default, bcrypt cost 10); load and chaos runs set 4 (ADR 0003). */
     @ConfigurationProperties("ledgerflow.auth")
-    public record Identities(List<Identity> users) {}
+    public record Identities(List<Identity> users, Integer bcryptStrength) {}
     public record Identity(String username, String password, Set<Long> accounts) {}
 
+    // One encoder hashes the identities and verifies logins, so a login never re-hashes ("upgrades") to another cost.
     @Bean
-    InMemoryUserDetailsManager users(Identities identities) {
+    PasswordEncoder passwordEncoder(Identities identities) {
+        if (identities.bcryptStrength() == null) {
+            return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        }
+        return new DelegatingPasswordEncoder("bcrypt", Map.of("bcrypt", new BCryptPasswordEncoder(identities.bcryptStrength())));
+    }
+
+    @Bean
+    InMemoryUserDetailsManager users(Identities identities, PasswordEncoder encoder) {
         var users = new InMemoryUserDetailsManager();
-        var encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
         for (var identity : identities.users()) {
             if (identity.username() == null || identity.username().isBlank()
                     || identity.password() == null || identity.password().isBlank()
