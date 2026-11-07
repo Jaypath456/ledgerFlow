@@ -1,6 +1,8 @@
 # Shared helpers for bench.sh and run_chaos.sh. Source from the repo root.
 PROJECT=${PROJECT:-ledgerflow-chaos}
 C="docker compose -p $PROJECT -f infra/docker-compose.yml -f infra/docker-compose.load.yml"
+# OBSERVABILITY=1 (chaos/bench.sh only): add the opt-in observability profile and its app overlay (ADR 0004).
+if [ "${OBSERVABILITY:-0}" = 1 ]; then C="$C -f infra/docker-compose.observability.yml --profile observability"; fi
 PAYMENT_URL=${PAYMENT_URL:-http://localhost:8081}
 LEDGER_URL=${LEDGER_URL:-http://localhost:8082}
 

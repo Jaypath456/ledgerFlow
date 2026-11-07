@@ -1,0 +1,62 @@
+Observability profile check, Roadmap Phase 2, 2026-11-07
+Code: 6e278b9 (feat/observability) plus the uncommitted Phase 2 changes (commit 6e278b9).
+Host: MacBook Air (Apple M4), 10 CPUs, 16 GiB RAM, macOS 27.0.1, Docker Desktop (Engine 29.8.2, Compose 5.6.0; VM 10 CPUs, 9.701 GiB).
+Stack: Compose project ledgerflow-obs1, started with
+  PROJECT=ledgerflow-obs1 OBSERVABILITY=1, i.e. docker compose -p ledgerflow-obs1 -f infra/docker-compose.yml -f infra/docker-compose.load.yml
+  -f infra/docker-compose.observability.yml --profile observability up -d --build --wait
+Images: postgres:17.11, apache/kafka:4.0.0, prom/prometheus:v3.15.1, grafana/grafana-oss:12.4.3, jaegertracing/jaeger:2.23.0.
+Without the profile, `docker compose -f infra/docker-compose.yml config --services` lists the same 4 services as before
+(kafka, ledger-service, payment-service, postgres); with it, also grafana, jaeger, prometheus.
+
+Live checks:
+2026-11-07 02:31:35 EST
+prometheus /api/v1/targets:
+   ledger-service http://ledger-service:9082/actuator/prometheus up
+   payment-service http://payment-service:9081/actuator/prometheus up
+jaeger /api/v3/services: {"services":["payment-service","ledger-service"]}
+grafana /api/health: {"database":"ok","version":"12.4.3","commit":"86c83248"}
+grafana anonymous search: [{"id":2277262951682048,"uid":"cg3k7uofjpzpcf","orgId":1,"title":"LedgerFlow","uri":"db/ledgerflow","url":"/dashboards/f/cg3k7uofjpzpcf/ledgerflow","slug":"","type":"dash-folder","tags":[],"isStarred":false,"sortMeta":0,"isDeleted":false}]
+grafana anonymous POST /api/dashboards/db (expect 401/403): 403
+management ports from host (expect connection refused): 9081=000 9082=000
+
+API port /actuator/prometheus without credentials: 401
+dashboard panel queries (Prometheus /api/v1/query):
+   success  series= 2  HTTP requests by status (POST/GET /api/payments) [A]
+   success  series= 1  HTTP errors (4xx/5xx) [A]
+   success  series= 1  POST /api/payments latency p50 / p95 / p99 [A]
+   success  series= 1  POST /api/payments latency p50 / p95 / p99 [B]
+   success  series= 1  POST /api/payments latency p50 / p95 / p99 [C]
+   success  series= 1  Payment request-to-terminal latency p50 / p95 / p99 [A]
+   success  series= 1  Payment request-to-terminal latency p50 / p95 / p99 [B]
+   success  series= 1  Payment request-to-terminal latency p50 / p95 / p99 [C]
+   success  series= 2  Outbox backlog (unpublished rows) [A]
+   success  series= 2  Oldest unpublished outbox row age [A]
+   success  series= 2  Kafka consumer lag (max per consumer) [A]
+   success  series= 1  Ledger outcomes per second (posting rate) [A]
+   success  series= 2  Duplicates absorbed per second [A]
+   success  series= 1  Reconciler re-requests and dead-lettered records [A]
+   success  series= 0  Reconciler re-requests and dead-lettered records [B]
+
+One payment (probe account 30000 -> merchant 20001, 1 minor unit, authenticated) reached COMPLETED. Its payment outbox row's traceparent
+and the trace returned by Jaeger (GET /api/v3/traces/<traceId>; the v1 path /api/services returns 404 in Jaeger v2):
+  outbox traceparent: 00-c2e0dc829b01515d74c631b144dbd610-9507d63b164d38ca-03
+  traceIds: ['c2e0dc829b01515d74c631b144dbd610'] spans: 13
+  ledger-service   PRODUCER   ledger.results send                        parent=in-trace
+  ledger-service   INTERNAL   ledgerflow.ledger.posting                  parent=in-trace
+  ledger-service   INTERNAL   outbox publish ledger.results              parent=in-trace
+  ledger-service   CONSUMER   payments.requested process                 parent=in-trace
+  payment-service  INTERNAL   authenticate usernamepassword              parent=in-trace
+  payment-service  INTERNAL   authorize request                          parent=in-trace
+  payment-service  SERVER     http post /api/payments                    parent=ROOT
+  payment-service  CONSUMER   ledger.results process                     parent=in-trace
+  payment-service  INTERNAL   outbox publish payments.requested          parent=in-trace
+  payment-service  PRODUCER   payments.requested send                    parent=in-trace
+  payment-service  INTERNAL   secured request                            parent=in-trace
+  payment-service  INTERNAL   security filterchain after                 parent=in-trace
+  payment-service  INTERNAL   security filterchain before                parent=in-trace
+  ("in-trace" = the parent span is in the same trace; exactly one ROOT, the HTTP server span.)
+  Spring Kafka 4.1.1 names the consumer spans "<topic> process".
+
+Jaeger: after its first start, the query extension tried to send its own spans to localhost:4317 (repeated warnings). With
+jaeger_query.enable_tracing: false in infra/observability/jaeger.yaml (accepted by `jaeger validate`) and the container recreated,
+0 lines mentioning 4317 were logged in the next 20 s.

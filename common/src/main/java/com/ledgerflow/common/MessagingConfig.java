@@ -1,5 +1,7 @@
 package com.ledgerflow.common;
 
+import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.propagation.Propagator;
 import java.util.Set;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.beans.factory.ObjectProvider;
@@ -47,8 +49,9 @@ public class MessagingConfig {
 
     @Bean
     OutboxRelay outboxRelay(JdbcClient jdbc, PlatformTransactionManager tm, KafkaTemplate<String, String> kafka,
-                            ObjectProvider<FaultInjector> faults) {
-        return new OutboxRelay(jdbc, tm, kafka, faults);
+                            ObjectProvider<FaultInjector> faults, ObjectProvider<Tracer> tracer,
+                            ObjectProvider<Propagator> propagator) {
+        return new OutboxRelay(jdbc, tm, kafka, faults, tracer, propagator);
     }
 
     @Bean

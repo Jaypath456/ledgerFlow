@@ -16,7 +16,7 @@ class LedgerDbSmokeTest {
     void flywayRanInOwnSchema() {
         long applied = jdbc().sql("select count(*) from ledger.flyway_schema_history where success")
                 .query(Long.class).single();
-        assertThat(applied).isEqualTo(4);
+        assertThat(applied).isEqualTo(5);
     }
 
     @Test

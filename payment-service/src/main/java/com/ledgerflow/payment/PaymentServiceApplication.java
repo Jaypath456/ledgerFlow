@@ -1,12 +1,13 @@
 package com.ledgerflow.payment;
 
 import com.ledgerflow.common.MessagingConfig;
+import com.ledgerflow.common.ObservabilityConfig;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Import;
 
 @SpringBootApplication
-@Import(MessagingConfig.class)
+@Import({MessagingConfig.class, ObservabilityConfig.class})
 public class PaymentServiceApplication {
 
     /** Separate config names let both services share a test classpath. */

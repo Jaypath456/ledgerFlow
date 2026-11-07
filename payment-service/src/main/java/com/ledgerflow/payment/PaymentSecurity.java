@@ -3,10 +3,13 @@ package com.ledgerflow.payment;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authorization.AuthorizationDecision;
@@ -54,6 +57,26 @@ public class PaymentSecurity {
                     .authorities(identity.accounts().stream().map(PaymentSecurity::accountAuthority).toArray(String[]::new)).build());
         }
         return users;
+    }
+
+    /**
+     * Only with a separate management port (infra/docker-compose.observability.yml), which is never published to the host:
+     * Prometheus scrapes it without credentials on the Compose network. Requests on the API port never match this chain.
+     */
+    @Bean
+    @Order(0)
+    @ConditionalOnProperty("management.server.port")
+    SecurityFilterChain managementPort(HttpSecurity http, Environment environment) throws Exception {
+        return http
+                .securityMatcher(request -> request.getLocalPort()
+                        == environment.getProperty("local.management.port", Integer.class, -1))
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .requestCache(cache -> cache.disable())
+                .authorizeHttpRequests(requests -> requests
+                        .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/prometheus").permitAll()
+                        .anyRequest().denyAll())
+                .build();
     }
 
     @Bean

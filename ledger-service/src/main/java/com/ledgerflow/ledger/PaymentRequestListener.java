@@ -8,6 +8,8 @@ import com.ledgerflow.common.PaymentRequested;
 import com.ledgerflow.common.Topics;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.beans.factory.ObjectProvider;
@@ -16,6 +18,8 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -33,9 +37,14 @@ class PaymentRequestListener {
     private final Counter duplicates;
     private final Counter reemitted;
     private final ObjectProvider<FaultInjector> faults;
+    private final ObservationRegistry observations;
+    private final MeterRegistry meters;
 
     PaymentRequestListener(JdbcClient jdbc, LedgerService ledger, JsonMapper json,
-                           PlatformTransactionManager tm, MeterRegistry meters, ObjectProvider<FaultInjector> faults) {
+                           PlatformTransactionManager tm, MeterRegistry meters, ObjectProvider<FaultInjector> faults,
+                           ObservationRegistry observations) {
+        this.observations = observations;
+        this.meters = meters;
         this.faults = faults;
         this.jdbc = jdbc;
         this.ledger = ledger;
@@ -79,8 +88,10 @@ class PaymentRequestListener {
 
         Outcome outcome;
         try {
-            long txId = savepoint.execute(s ->
-                    ledger.post(e.paymentId(), e.payerAccountId(), e.payeeAccountId(), e.amountMinor()).transactionId());
+            // The observation only times and traces the posting; it rethrows the same exception, so the catches below see it.
+            long txId = savepoint.execute(s -> Observation.createNotStarted("ledgerflow.ledger.posting", observations)
+                    .observe(() -> ledger.post(e.paymentId(), e.payerAccountId(), e.payeeAccountId(), e.amountMinor()))
+                    .transactionId());
             outcome = new Outcome("POSTED", txId, null);
         } catch (LedgerException.DuplicatePayment dup) {
             // Reuse postings made outside this consumer, such as seed funding.
@@ -91,7 +102,18 @@ class PaymentRequestListener {
         jdbc.sql("INSERT INTO payment_outcomes (payment_id, status, ledger_transaction_id, reason) VALUES (?, ?, ?, ?)")
                 .params(e.paymentId(), outcome.status(), outcome.ledgerTransactionId(), outcome.reason())
                 .update();
+        countAfterCommit(outcome.status());
         emit(e.paymentId(), outcome);
+    }
+
+    // New outcomes only (not re-emits or duplicates), and only once their transaction has committed.
+    private void countAfterCommit(String status) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                meters.counter("ledgerflow.ledger.outcomes", "status", status).increment();
+            }
+        });
     }
 
     private static String reason(LedgerException e) {

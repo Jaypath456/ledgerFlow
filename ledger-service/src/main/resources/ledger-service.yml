@@ -20,10 +20,28 @@ spring:
     consumer:
       group-id: ledger-service
       auto-offset-reset: earliest
+    template:
+      observation-enabled: true
     listener:
       concurrency: 3
+      observation-enabled: true
 management:
   endpoints:
     web:
       exposure:
-        include: health,metrics
+        include: health,metrics,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      minimum-expected-value:
+        http.server.requests: 1ms
+      maximum-expected-value:
+        http.server.requests: 30s
+  # Spans are created at this rate; they are exported only when
+  # MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT is set (infra/docker-compose.observability.yml).
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING_PROBABILITY:1.0}

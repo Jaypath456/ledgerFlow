@@ -1,0 +1,38 @@
+Chaos regression, Roadmap Phase 2 on PostgreSQL, 2026-11-07 (one campaign, one run per scenario)
+Code: 6e278b9 (feat/observability) plus the uncommitted Phase 2 changes (commit 6e278b9). Raw rows: chaos-postgres-phase2-2026-11-07-0c5dc1d.csv
+(copy of chaos/results/chaos-20261107-023935/runs.csv).
+
+Purpose: regression check of the Phase 2 relay and listener changes (trace context on outbox rows, per-row publish spans, Kafka
+observation, metrics), not a tracing benchmark.
+Environment: MacBook Air (Apple M4), 10 CPUs, 16 GiB RAM, Darwin 27.0.0, Docker Desktop (VM 10 CPUs, 9.701 GiB). Fresh Compose
+project ledgerflow-p2. Images postgres:17.11, apache/kafka:4.0.0, grafana/k6:2.3.0 (--memory 1g); 1 GiB limits on the four services.
+Settings: `PROJECT=ledgerflow-p2 bash chaos/run_chaos.sh 9`, no observability profile, default sampling 1.0 (spans created, not
+exported), load overlay with bcrypt cost 4 (ADR 0003), RISK_VELOCITY_MAX=1000000 (set by run_chaos.sh), 100 payments/s for 60 s per run,
+crash probability 0.0005 per injection-point hit.
+
+Compared with the two Phase 1b campaigns (chaos-postgres-phase1b-2026-11-05-2b58c27.csv), recovery_s:
+| scenario | Phase 1b c1 | Phase 1b c2 | Phase 2 | crashes 1b c1/c2 | crashes Phase 2 | dup Phase 2 | violations | dlt_new |
+|---|---|---|---|---|---|---|---|---|
+| kill-ledger | 47.1 | 46.7 | 50.3 | 0/0 | 0 | 0/0 | 0 | 0 |
+| kill-payment | 41.3 | 51.4 | 43.4 | 0/0 | 0 | 0/0 | 0 | 0 |
+| pause-postgres | 1.3 | 4.8 | 0.9 | 0/0 | 0 | 0/0 | 0 | 0 |
+| restart-kafka | 18.7 | 28.4 | 20.3 | 0/0 | 0 | 0/0 | 0 | 0 |
+| replay | 21.9 | 24.4 | 18.2 | 0/0 | 0 | 3000/3000 | 0 | 0 |
+| hot-account | 1.2 | 3.2 | 2.2 | 0/0 | 0 | 3000/3000 | 0 | 0 |
+| crash-before-payment-outbox-commit | 39.2 | 12.0 | 39.6 | 2/0 | 2 | 3000/0 | 0 | 0 |
+| crash-after-publish-before-mark | 28.1 | 59.6 | 44.8 | 1/1 | 1 | 0/2 | 0 | 0 |
+| crash-after-ledger-commit-before-ack | 32.8 | 48.9 | 6.9 | 1/2 | 1 | 0/2 | 0 | 0 |
+
+Phase 2: 9/9 PASS, violations 0, dlt_new 0, accepted 49772, failed 2008 in 3 runs, retries 12883, crashes 4, rate 89.6-100.0/s
+
+Every crash scenario fired its fault (crashes >= 1 by Docker RestartCount): crash-before-payment-outbox-commit 2,
+crash-after-publish-before-mark 1, crash-after-ledger-commit-before-ack 1.
+dup columns are Micrometer counters read at the end of each run; in crash runs the runner recreates the services first, so they miss
+the duplicates absorbed by the crashed instance (as noted for Phase 1b).
+Log-based checks: run_chaos.sh and chaos/lib.sh read no service log lines (they use SQL, Docker RestartCount, actuator metrics and
+Kafka offsets), so the [traceId-spanId] prefix now on log lines does not affect them. scripts/demo.py matches the substring
+"outbox publish failed, will retry" (only in its --extended scenarios), which the prefix does not change.
+Against the two Phase 1b values per scenario: 7 of 9 are within or below them (pause-postgres 0.9, replay 18.2 and
+crash-after-ledger-commit-before-ack 6.9 below both); kill-ledger 50.3 is 3.2 s above the higher one (47.1) and
+crash-before-payment-outbox-commit 39.6 is 0.4 s above the higher one (39.2).
+Decision: with one run per scenario this is not clearly worse than Phase 1b, so the TRACING_SAMPLING_PROBABILITY=0 A/B was not run.
