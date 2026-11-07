@@ -57,6 +57,8 @@ services:
       BOB_ACCOUNTS: ${BOB_ACCOUNTS:-4}
       LEDGERFLOW_OUTBOX_POLL_MS: ${OUTBOX_POLL_MS:-10}
       TRACING_SAMPLING_PROBABILITY: ${TRACING_SAMPLING_PROBABILITY:-1.0} # spans are exported only with the observability overlay
+      TOPIC_PARTITIONS: ${TOPIC_PARTITIONS:-3}         # partitions per topic (ADR 0005); defaults are the earlier topology
+      LISTENER_CONCURRENCY: ${LISTENER_CONCURRENCY:-3} # Kafka consumer threads per service instance (ADR 0005)
       # Fault injection: only with SPRING_PROFILES_ACTIVE=chaos (see docs/DECISIONS.md).
       SPRING_PROFILES_ACTIVE: ${PAYMENT_PROFILES:-default}
       LEDGERFLOW_CHAOS_FAULTS: ${PAYMENT_CHAOS_FAULTS:-}
