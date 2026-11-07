@@ -1,0 +1,14 @@
+[12:22:30] start steady steady project=ledgerflow-p3-diag2-off-r1400 run=r122230
+[12:22:50] load start
+[12:25:43] load done (exit 0, host k6)
+[12:25:52] drain_s=9
+[12:25:53] invariant violations: 0
+mode steady; load generator host k6 (exit 0); dropped iterations 188433; max VUs 3000; drain 9 s; invariant violations 0
+measured window 120 s after a 45 s warm-up (excluded)
+offered 1400/s, achieved 293.6/s, accepted 35234, declined 0, failed 0 (4xx 0, 5xx 0, no response 0)
+POST p50/p95/p99 ms: 9971.5/13498.1/15596.6   request-to-terminal p50/p95/p99 ms: 55781/107453/112178   pending after drain: 0
+  kafka-1: CPU median 123.8 % max 291.6 %, memory median 685 MiB max 767 MiB
+  ledger-service-1: CPU median 142.6 % max 339.3 %, memory median 418 MiB max 421 MiB
+  payment-service-1: CPU median 506.1 % max 715.5 %, memory median 760 MiB max 965 MiB
+  postgres-1: CPU median 276.0 % max 488.4 %, memory median 142 MiB max 200 MiB
+  backlog max 36413 end 36413

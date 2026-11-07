@@ -1,0 +1,27 @@
+Scaled topology functional check, 2026-11-07 14:07:05 EST (.overnight/scale-check.sh: SCALE=1, TRACING_SAMPLING_PROBABILITY=0.1, 30 s bench at 100/s through HAProxy).
+Code: 4a4e645. The host was under memory pressure (see ../drift-check-2026-11-07-4a4e645/host-state.txt): latencies below are NOT performance results.
+(compose output omitted; stack started with `.overnight/obs-up.sh`, i.e. up --build --wait, seeded, then checked)
+== topics
+payments.requested: 6 partitions
+ledger.results: 6 partitions
+payments.requested-dlt: 6 partitions
+ledger.results-dlt: 6 partitions
+== consumer groups
+ledger-service: 6 partitions assigned to 6 distinct consumers
+payment-service: 6 partitions assigned to 6 distinct consumers
+== health through the load balancer
+{"groups":["liveness","readiness"],"stat
+{"groups":["liveness","readiness"],"stat
+== bench 100/s 30 s through the LB
+k6: accepted=2998 declined=0 failed=0 retries=0 rate=99.6/s post_p50=247.1ms p95=852.0ms p99=1193.5ms
+drain_s=2 e2e_ms_p50/p95/p99=9508/14265/16008
+violations=0
+== CPU per payment replica / ledger replica after load (docker stats, one sample)
+lb-1 0.29%
+payment-service-1 16.37%
+payment-service-b-1 15.04%
+ledger-service-b-1 6.55%
+ledger-service-c-1 28.41%
+ledger-service-1 11.84%
+postgres-1 9.77%
+kafka-1 8.30%

@@ -1,0 +1,14 @@
+[03:52:08] tree=/Users/jayz/Documents/Projects/ledgerFLow project=ledgerflow-p3-new3 label=new3 sampling=0.1 obs=0 sha=?
+[03:52:26] stack up
+BENCH 1 START 1794041561
+B1 k6: accepted=6001 declined=0 failed=0 retries=0 rate=100.0/s post_p50=2.3ms p95=3.7ms p99=5.1ms
+B1 drain_s=0 e2e_ms_p50/p95/p99=34/44/49
+B1 violations=0
+BENCH 1 END 1794041622
+BENCH 2 START 1794041622
+B2 k6: accepted=6001 declined=0 failed=0 retries=0 rate=100.0/s post_p50=2.5ms p95=3.2ms p99=4.4ms
+B2 drain_s=1 e2e_ms_p50/p95/p99=34/43/45
+B2 violations=0
+BENCH 2 END 1794041683
+ Network ledgerflow-p3-new3_default Removed 
+[03:54:45] down done

@@ -23,7 +23,7 @@ spring:
     template:
       observation-enabled: true
     listener:
-      concurrency: 3
+      concurrency: ${LISTENER_CONCURRENCY:3} # consumer threads per instance; at most the partition count is useful (ADR 0005)
       observation-enabled: true
   mvc:
     problemdetails:
@@ -49,6 +49,8 @@ management:
     sampling:
       probability: ${TRACING_SAMPLING_PROBABILITY:1.0}
 ledgerflow:
+  topics:
+    partitions: ${TOPIC_PARTITIONS:3} # partitions of each topic and its dead-letter topic (ADR 0005)
   auth:
     users:
       - username: alice

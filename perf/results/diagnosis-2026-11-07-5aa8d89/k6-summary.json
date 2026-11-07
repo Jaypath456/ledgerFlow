@@ -1,0 +1,37 @@
+{
+ "mode": "steady",
+ "run_id": "r044153",
+ "scenario_start_ms": 1794044549163,
+ "dropped_iterations": 1462,
+ "vus_max": 1130,
+ "steps": [
+  {
+   "step": 0,
+   "offered": 1400,
+   "seconds": 45,
+   "accepted": 61681,
+   "declined": 0,
+   "http_4xx": 0,
+   "http_5xx": 0,
+   "no_response": 0,
+   "p50": 31.117,
+   "p95": 825.807,
+   "p99": 1040.9808,
+   "max": 1816.803
+  },
+  {
+   "step": 1,
+   "offered": 1400,
+   "seconds": 120,
+   "accepted": 167857,
+   "declined": 0,
+   "http_4xx": 0,
+   "http_5xx": 0,
+   "no_response": 0,
+   "p50": 13.052,
+   "p95": 371.13659999999936,
+   "p99": 732.3435999999998,
+   "max": 1533.514
+  }
+ ]
+}

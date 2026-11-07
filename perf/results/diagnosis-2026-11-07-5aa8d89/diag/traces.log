@@ -1,0 +1,17 @@
+500 traces fetched, 325 complete (HTTP root to payment result process)
+stage durations over complete traces, ms: median / p95 / max  (spans exist only for sampled requests)
+  request handled (http span)                                              6.7      47.0     101.7  (n=325)
+  payment outbox wait (http end -> relay publish start)                   10.6      28.8     110.1  (n=325)
+  payment relay publish (send + acks)                                      6.2       8.3      12.6  (n=325)
+  Kafka + ledger consumer queue (publish end -> process start)         14587.4   33839.2   34069.5  (n=325)
+  ledger process (whole listener)                                          1.0       2.3       5.8  (n=325)
+    of which posting                                                       0.3       0.7       5.1  (n=325)
+  ledger outbox wait (process end -> relay publish start)                 10.2      16.6      18.5  (n=325)
+  ledger relay publish (send + acks)                                       5.6       6.9       9.1  (n=325)
+  Kafka + payment consumer queue (publish end -> process start)            3.1       7.6     101.4  (n=325)
+  payment result process                                                   0.4       1.0      13.4  (n=325)
+  TOTAL http start -> result process end                               14687.7   33883.9   34118.3  (n=325)
+slowest 3 complete traces (stage breakdown, ms):
+  870df964aa3b1b68f651ca9331e12782: request handled 8; payment outbox wait 19; payment relay publish 6; Kafka + ledger consumer queue 34070; ledger process 1; ledger outbox wait 6; ledger relay publish 6; Kafka + payment consumer queue 3; payment result process 1; TOTAL http start -> result process end 34118
+  62d5637b204bf752ff3caa92da2dd547: request handled 9; payment outbox wait 13; payment relay publish 6; Kafka + ledger consumer queue 34027; ledger process 1; ledger outbox wait 13; ledger relay publish 6; Kafka + payment consumer queue 2; payment result process 1; TOTAL http start -> result process end 34076
+  3a6fe5340bcaf005fb2355e9f24d2484: request handled 6; payment outbox wait 6; payment relay publish 6; Kafka + ledger consumer queue 34029; ledger process 1; ledger outbox wait 10; ledger relay publish 6; Kafka + payment consumer queue 3; payment result process 1; TOTAL http start -> result process end 34067

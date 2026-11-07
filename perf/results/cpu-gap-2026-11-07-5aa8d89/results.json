@@ -1,0 +1,794 @@
+[
+ {
+  "label": "old1",
+  "bench": 1,
+  "phase": "cold",
+  "accepted": 6001,
+  "failed": 0,
+  "rate": 100.0,
+  "post_p50": 2.5,
+  "post_p95": 6.1,
+  "post_p99": 15.8,
+  "e2e": "34/45/108",
+  "drain_s": "0",
+  "violations": "0",
+  "payment-service": {
+   "cpu_median": 37.4,
+   "cpu_max": 153.9,
+   "mem_median_mib": 450,
+   "mem_max_mib": 456,
+   "n": 21
+  },
+  "ledger-service": {
+   "cpu_median": 20.2,
+   "cpu_max": 72.7,
+   "mem_median_mib": 380,
+   "mem_max_mib": 383,
+   "n": 21
+  },
+  "postgres": {
+   "cpu_median": 13.7,
+   "cpu_max": 24.4,
+   "mem_median_mib": 158,
+   "mem_max_mib": 167,
+   "n": 21
+  },
+  "kafka": {
+   "cpu_median": 19.4,
+   "cpu_max": 146.6,
+   "mem_median_mib": 647,
+   "mem_max_mib": 728,
+   "n": 21
+  },
+  "tree": "old",
+  "sampling": "n/a"
+ },
+ {
+  "label": "old1",
+  "bench": 2,
+  "phase": "warm",
+  "accepted": 6001,
+  "failed": 0,
+  "rate": 100.0,
+  "post_p50": 2.4,
+  "post_p95": 3.4,
+  "post_p99": 4.7,
+  "e2e": "32/40/43",
+  "drain_s": "0",
+  "violations": "0",
+  "payment-service": {
+   "cpu_median": 26.1,
+   "cpu_max": 53.5,
+   "mem_median_mib": 476,
+   "mem_max_mib": 482,
+   "n": 19
+  },
+  "ledger-service": {
+   "cpu_median": 8.3,
+   "cpu_max": 26.1,
+   "mem_median_mib": 392,
+   "mem_max_mib": 396,
+   "n": 19
+  },
+  "postgres": {
+   "cpu_median": 14.8,
+   "cpu_max": 18.5,
+   "mem_median_mib": 175,
+   "mem_max_mib": 182,
+   "n": 19
+  },
+  "kafka": {
+   "cpu_median": 9.1,
+   "cpu_max": 111.3,
+   "mem_median_mib": 653,
+   "mem_max_mib": 737,
+   "n": 20
+  },
+  "tree": "old",
+  "sampling": "n/a"
+ },
+ {
+  "label": "new1",
+  "bench": 1,
+  "phase": "cold",
+  "accepted": 6001,
+  "failed": 0,
+  "rate": 100.0,
+  "post_p50": 2.3,
+  "post_p95": 3.9,
+  "post_p99": 5.7,
+  "e2e": "32/42/47",
+  "drain_s": "0",
+  "violations": "0",
+  "payment-service": {
+   "cpu_median": 36.3,
+   "cpu_max": 93.7,
+   "mem_median_mib": 428,
+   "mem_max_mib": 446,
+   "n": 20
+  },
+  "ledger-service": {
+   "cpu_median": 24.0,
+   "cpu_max": 89.9,
+   "mem_median_mib": 346,
+   "mem_max_mib": 371,
+   "n": 20
+  },
+  "postgres": {
+   "cpu_median": 15.2,
+   "cpu_max": 21.2,
+   "mem_median_mib": 76,
+   "mem_max_mib": 84,
+   "n": 20
+  },
+  "kafka": {
+   "cpu_median": 12.7,
+   "cpu_max": 94.9,
+   "mem_median_mib": 538,
+   "mem_max_mib": 612,
+   "n": 20
+  },
+  "tree": "new",
+  "sampling": "0.1"
+ },
+ {
+  "label": "new1",
+  "bench": 2,
+  "phase": "warm",
+  "accepted": 6001,
+  "failed": 0,
+  "rate": 100.0,
+  "post_p50": 2.3,
+  "post_p95": 3.2,
+  "post_p99": 4.3,
+  "e2e": "32/40/43",
+  "drain_s": "1",
+  "violations": "0",
+  "payment-service": {
+   "cpu_median": 26.8,
+   "cpu_max": 58.1,
+   "mem_median_mib": 468,
+   "mem_max_mib": 476,
+   "n": 20
+  },
+  "ledger-service": {
+   "cpu_median": 10.0,
+   "cpu_max": 42.7,
+   "mem_median_mib": 374,
+   "mem_max_mib": 374,
+   "n": 20
+  },
+  "postgres": {
+   "cpu_median": 13.9,
+   "cpu_max": 36.9,
+   "mem_median_mib": 92,
+   "mem_max_mib": 100,
+   "n": 20
+  },
+  "kafka": {
+   "cpu_median": 8.7,
+   "cpu_max": 118.2,
+   "mem_median_mib": 544,
+   "mem_max_mib": 627,
+   "n": 20
+  },
+  "tree": "new",
+  "sampling": "0.1"
+ },
+ {
+  "label": "old2",
+  "bench": 1,
+  "phase": "cold",
+  "accepted": 6001,
+  "failed": 0,
+  "rate": 100.0,
+  "post_p50": 2.4,
+  "post_p95": 3.8,
+  "post_p99": 6.0,
+  "e2e": "34/43/47",
+  "drain_s": "0",
+  "violations": "0",
+  "payment-service": {
+   "cpu_median": 38.2,
+   "cpu_max": 61.8,
+   "mem_median_mib": 383,
+   "mem_max_mib": 404,
+   "n": 20
+  },
+  "ledger-service": {
+   "cpu_median": 15.1,
+   "cpu_max": 39.6,
+   "mem_median_mib": 342,
+   "mem_max_mib": 345,
+   "n": 20
+  },
+  "postgres": {
+   "cpu_median": 15.7,
+   "cpu_max": 21.3,
+   "mem_median_mib": 75,
+   "mem_max_mib": 83,
+   "n": 20
+  },
+  "kafka": {
+   "cpu_median": 20.9,
+   "cpu_max": 118.3,
+   "mem_median_mib": 541,
+   "mem_max_mib": 630,
+   "n": 20
+  },
+  "tree": "old",
+  "sampling": "n/a"
+ },
+ {
+  "label": "old2",
+  "bench": 2,
+  "phase": "warm",
+  "accepted": 6001,
+  "failed": 0,
+  "rate": 100.0,
+  "post_p50": 2.5,
+  "post_p95": 3.2,
+  "post_p99": 4.1,
+  "e2e": "33/42/44",
+  "drain_s": "1",
+  "violations": "0",
+  "payment-service": {
+   "cpu_median": 27.4,
+   "cpu_max": 49.3,
+   "mem_median_mib": 413,
+   "mem_max_mib": 419,
+   "n": 19
+  },
+  "ledger-service": {
+   "cpu_median": 9.2,
+   "cpu_max": 34.1,
+   "mem_median_mib": 346,
+   "mem_max_mib": 353,
+   "n": 19
+  },
+  "postgres": {
+   "cpu_median": 15.0,
+   "cpu_max": 18.2,
+   "mem_median_mib": 91,
+   "mem_max_mib": 98,
+   "n": 19
+  },
+  "kafka": {
+   "cpu_median": 9.0,
+   "cpu_max": 122.1,
+   "mem_median_mib": 546,
+   "mem_max_mib": 632,
+   "n": 19
+  },
+  "tree": "old",
+  "sampling": "n/a"
+ },
+ {
+  "label": "new2",
+  "bench": 1,
+  "phase": "cold",
+  "accepted": 6001,
+  "failed": 0,
+  "rate": 100.0,
+  "post_p50": 2.4,
+  "post_p95": 3.7,
+  "post_p99": 5.3,
+  "e2e": "34/44/48",
+  "drain_s": "0",
+  "violations": "0",
+  "payment-service": {
+   "cpu_median": 35.5,
+   "cpu_max": 74.7,
+   "mem_median_mib": 398,
+   "mem_max_mib": 416,
+   "n": 20
+  },
+  "ledger-service": {
+   "cpu_median": 15.4,
+   "cpu_max": 48.4,
+   "mem_median_mib": 364,
+   "mem_max_mib": 370,
+   "n": 20
+  },
+  "postgres": {
+   "cpu_median": 14.8,
+   "cpu_max": 21.4,
+   "mem_median_mib": 76,
+   "mem_max_mib": 84,
+   "n": 20
+  },
+  "kafka": {
+   "cpu_median": 23.5,
+   "cpu_max": 116.5,
+   "mem_median_mib": 540,
+   "mem_max_mib": 630,
+   "n": 20
+  },
+  "tree": "new",
+  "sampling": "0.1"
+ },
+ {
+  "label": "new2",
+  "bench": 2,
+  "phase": "warm",
+  "accepted": 6001,
+  "failed": 0,
+  "rate": 100.0,
+  "post_p50": 2.5,
+  "post_p95": 3.2,
+  "post_p99": 4.2,
+  "e2e": "33/42/45",
+  "drain_s": "0",
+  "violations": "0",
+  "payment-service": {
+   "cpu_median": 29.1,
+   "cpu_max": 53.5,
+   "mem_median_mib": 439,
+   "mem_max_mib": 440,
+   "n": 19
+  },
+  "ledger-service": {
+   "cpu_median": 10.7,
+   "cpu_max": 35.7,
+   "mem_median_mib": 370,
+   "mem_max_mib": 371,
+   "n": 19
+  },
+  "postgres": {
+   "cpu_median": 14.9,
+   "cpu_max": 18.3,
+   "mem_median_mib": 92,
+   "mem_max_mib": 99,
+   "n": 19
+  },
+  "kafka": {
+   "cpu_median": 9.1,
+   "cpu_max": 111.0,
+   "mem_median_mib": 546,
+   "mem_max_mib": 631,
+   "n": 20
+  },
+  "tree": "new",
+  "sampling": "0.1"
+ },
+ {
+  "label": "old3",
+  "bench": 1,
+  "phase": "cold",
+  "accepted": 6001,
+  "failed": 0,
+  "rate": 100.0,
+  "post_p50": 2.3,
+  "post_p95": 3.5,
+  "post_p99": 5.1,
+  "e2e": "34/43/47",
+  "drain_s": "0",
+  "violations": "0",
+  "payment-service": {
+   "cpu_median": 34.5,
+   "cpu_max": 127.0,
+   "mem_median_mib": 366,
+   "mem_max_mib": 385,
+   "n": 21
+  },
+  "ledger-service": {
+   "cpu_median": 14.6,
+   "cpu_max": 66.9,
+   "mem_median_mib": 336,
+   "mem_max_mib": 341,
+   "n": 21
+  },
+  "postgres": {
+   "cpu_median": 15.3,
+   "cpu_max": 21.7,
+   "mem_median_mib": 75,
+   "mem_max_mib": 83,
+   "n": 21
+  },
+  "kafka": {
+   "cpu_median": 19.2,
+   "cpu_max": 113.8,
+   "mem_median_mib": 539,
+   "mem_max_mib": 546,
+   "n": 21
+  },
+  "tree": "old",
+  "sampling": "n/a"
+ },
+ {
+  "label": "old3",
+  "bench": 2,
+  "phase": "warm",
+  "accepted": 6001,
+  "failed": 0,
+  "rate": 100.0,
+  "post_p50": 2.5,
+  "post_p95": 3.3,
+  "post_p99": 4.4,
+  "e2e": "34/42/45",
+  "drain_s": "0",
+  "violations": "0",
+  "payment-service": {
+   "cpu_median": 28.6,
+   "cpu_max": 47.3,
+   "mem_median_mib": 404,
+   "mem_max_mib": 423,
+   "n": 20
+  },
+  "ledger-service": {
+   "cpu_median": 9.2,
+   "cpu_max": 30.0,
+   "mem_median_mib": 343,
+   "mem_max_mib": 344,
+   "n": 20
+  },
+  "postgres": {
+   "cpu_median": 15.2,
+   "cpu_max": 22.2,
+   "mem_median_mib": 90,
+   "mem_max_mib": 98,
+   "n": 20
+  },
+  "kafka": {
+   "cpu_median": 9.3,
+   "cpu_max": 116.0,
+   "mem_median_mib": 545,
+   "mem_max_mib": 630,
+   "n": 21
+  },
+  "tree": "old",
+  "sampling": "n/a"
+ },
+ {
+  "label": "new3",
+  "bench": 1,
+  "phase": "cold",
+  "accepted": 6001,
+  "failed": 0,
+  "rate": 100.0,
+  "post_p50": 2.3,
+  "post_p95": 3.7,
+  "post_p99": 5.1,
+  "e2e": "34/44/49",
+  "drain_s": "0",
+  "violations": "0",
+  "payment-service": {
+   "cpu_median": 38.0,
+   "cpu_max": 74.6,
+   "mem_median_mib": 388,
+   "mem_max_mib": 416,
+   "n": 20
+  },
+  "ledger-service": {
+   "cpu_median": 14.6,
+   "cpu_max": 49.5,
+   "mem_median_mib": 362,
+   "mem_max_mib": 378,
+   "n": 20
+  },
+  "postgres": {
+   "cpu_median": 14.8,
+   "cpu_max": 20.0,
+   "mem_median_mib": 76,
+   "mem_max_mib": 84,
+   "n": 20
+  },
+  "kafka": {
+   "cpu_median": 16.7,
+   "cpu_max": 45.0,
+   "mem_median_mib": 539,
+   "mem_max_mib": 561,
+   "n": 20
+  },
+  "tree": "new",
+  "sampling": "0.1"
+ },
+ {
+  "label": "new3",
+  "bench": 2,
+  "phase": "warm",
+  "accepted": 6001,
+  "failed": 0,
+  "rate": 100.0,
+  "post_p50": 2.5,
+  "post_p95": 3.2,
+  "post_p99": 4.4,
+  "e2e": "34/43/45",
+  "drain_s": "1",
+  "violations": "0",
+  "payment-service": {
+   "cpu_median": 28.3,
+   "cpu_max": 47.2,
+   "mem_median_mib": 436,
+   "mem_max_mib": 436,
+   "n": 19
+  },
+  "ledger-service": {
+   "cpu_median": 9.8,
+   "cpu_max": 24.8,
+   "mem_median_mib": 390,
+   "mem_max_mib": 391,
+   "n": 19
+  },
+  "postgres": {
+   "cpu_median": 14.9,
+   "cpu_max": 17.4,
+   "mem_median_mib": 93,
+   "mem_max_mib": 100,
+   "n": 19
+  },
+  "kafka": {
+   "cpu_median": 8.5,
+   "cpu_max": 118.3,
+   "mem_median_mib": 545,
+   "mem_max_mib": 548,
+   "n": 20
+  },
+  "tree": "new",
+  "sampling": "0.1"
+ },
+ {
+  "label": "new-s0",
+  "bench": 1,
+  "phase": "cold",
+  "accepted": 6001,
+  "failed": 0,
+  "rate": 100.0,
+  "post_p50": 2.3,
+  "post_p95": 3.8,
+  "post_p99": 5.4,
+  "e2e": "34/44/50",
+  "drain_s": "0",
+  "violations": "0",
+  "payment-service": {
+   "cpu_median": 37.0,
+   "cpu_max": 179.0,
+   "mem_median_mib": 408,
+   "mem_max_mib": 422,
+   "n": 21
+  },
+  "ledger-service": {
+   "cpu_median": 19.6,
+   "cpu_max": 70.5,
+   "mem_median_mib": 380,
+   "mem_max_mib": 397,
+   "n": 21
+  },
+  "postgres": {
+   "cpu_median": 15.0,
+   "cpu_max": 18.2,
+   "mem_median_mib": 75,
+   "mem_max_mib": 83,
+   "n": 21
+  },
+  "kafka": {
+   "cpu_median": 22.6,
+   "cpu_max": 143.9,
+   "mem_median_mib": 540,
+   "mem_max_mib": 630,
+   "n": 21
+  },
+  "tree": "new",
+  "sampling": "0"
+ },
+ {
+  "label": "new-s0",
+  "bench": 2,
+  "phase": "warm",
+  "accepted": 6001,
+  "failed": 0,
+  "rate": 100.0,
+  "post_p50": 2.4,
+  "post_p95": 3.2,
+  "post_p99": 4.1,
+  "e2e": "33/42/45",
+  "drain_s": "1",
+  "violations": "0",
+  "payment-service": {
+   "cpu_median": 28.3,
+   "cpu_max": 51.6,
+   "mem_median_mib": 441,
+   "mem_max_mib": 442,
+   "n": 20
+  },
+  "ledger-service": {
+   "cpu_median": 10.1,
+   "cpu_max": 36.2,
+   "mem_median_mib": 390,
+   "mem_max_mib": 390,
+   "n": 20
+  },
+  "postgres": {
+   "cpu_median": 14.6,
+   "cpu_max": 17.9,
+   "mem_median_mib": 91,
+   "mem_max_mib": 99,
+   "n": 20
+  },
+  "kafka": {
+   "cpu_median": 8.7,
+   "cpu_max": 111.1,
+   "mem_median_mib": 546,
+   "mem_max_mib": 618,
+   "n": 21
+  },
+  "tree": "new",
+  "sampling": "0"
+ },
+ {
+  "label": "new-s1",
+  "bench": 1,
+  "phase": "cold",
+  "accepted": 6001,
+  "failed": 0,
+  "rate": 100.0,
+  "post_p50": 2.3,
+  "post_p95": 3.7,
+  "post_p99": 6.1,
+  "e2e": "34/44/49",
+  "drain_s": "1",
+  "violations": "0",
+  "payment-service": {
+   "cpu_median": 36.5,
+   "cpu_max": 72.6,
+   "mem_median_mib": 397,
+   "mem_max_mib": 412,
+   "n": 20
+  },
+  "ledger-service": {
+   "cpu_median": 16.5,
+   "cpu_max": 50.0,
+   "mem_median_mib": 358,
+   "mem_max_mib": 388,
+   "n": 20
+  },
+  "postgres": {
+   "cpu_median": 14.8,
+   "cpu_max": 21.0,
+   "mem_median_mib": 77,
+   "mem_max_mib": 84,
+   "n": 20
+  },
+  "kafka": {
+   "cpu_median": 18.1,
+   "cpu_max": 119.2,
+   "mem_median_mib": 540,
+   "mem_max_mib": 629,
+   "n": 20
+  },
+  "tree": "new",
+  "sampling": "1.0"
+ },
+ {
+  "label": "new-s1",
+  "bench": 2,
+  "phase": "warm",
+  "accepted": 6001,
+  "failed": 0,
+  "rate": 100.0,
+  "post_p50": 2.5,
+  "post_p95": 3.3,
+  "post_p99": 4.7,
+  "e2e": "33/42/45",
+  "drain_s": "0",
+  "violations": "0",
+  "payment-service": {
+   "cpu_median": 28.2,
+   "cpu_max": 46.8,
+   "mem_median_mib": 432,
+   "mem_max_mib": 433,
+   "n": 19
+  },
+  "ledger-service": {
+   "cpu_median": 10.1,
+   "cpu_max": 35.9,
+   "mem_median_mib": 384,
+   "mem_max_mib": 385,
+   "n": 19
+  },
+  "postgres": {
+   "cpu_median": 15.2,
+   "cpu_max": 18.6,
+   "mem_median_mib": 93,
+   "mem_max_mib": 100,
+   "n": 19
+  },
+  "kafka": {
+   "cpu_median": 9.5,
+   "cpu_max": 117.6,
+   "mem_median_mib": 545,
+   "mem_max_mib": 603,
+   "n": 19
+  },
+  "tree": "new",
+  "sampling": "1.0"
+ },
+ {
+  "label": "new-nosleep",
+  "bench": 1,
+  "phase": "cold",
+  "accepted": 6001,
+  "failed": 0,
+  "rate": 100.0,
+  "post_p50": 2.3,
+  "post_p95": 3.8,
+  "post_p99": 5.7,
+  "e2e": "34/44/49",
+  "drain_s": "0",
+  "violations": "0",
+  "payment-service": {
+   "cpu_median": 41.1,
+   "cpu_max": 81.4,
+   "mem_median_mib": 392,
+   "mem_max_mib": 428,
+   "n": 30
+  },
+  "ledger-service": {
+   "cpu_median": 20.0,
+   "cpu_max": 52.6,
+   "mem_median_mib": 360,
+   "mem_max_mib": 383,
+   "n": 30
+  },
+  "postgres": {
+   "cpu_median": 14.7,
+   "cpu_max": 19.8,
+   "mem_median_mib": 76,
+   "mem_max_mib": 84,
+   "n": 30
+  },
+  "kafka": {
+   "cpu_median": 15.8,
+   "cpu_max": 122.0,
+   "mem_median_mib": 541,
+   "mem_max_mib": 632,
+   "n": 30
+  },
+  "tree": "new",
+  "sampling": "1.0"
+ },
+ {
+  "label": "new-nosleep",
+  "bench": 2,
+  "phase": "warm",
+  "accepted": 6001,
+  "failed": 0,
+  "rate": 100.0,
+  "post_p50": 2.4,
+  "post_p95": 3.3,
+  "post_p99": 4.8,
+  "e2e": "34/43/46",
+  "drain_s": "1",
+  "violations": "0",
+  "payment-service": {
+   "cpu_median": 28.7,
+   "cpu_max": 47.8,
+   "mem_median_mib": 436,
+   "mem_max_mib": 442,
+   "n": 29
+  },
+  "ledger-service": {
+   "cpu_median": 10.9,
+   "cpu_max": 27.5,
+   "mem_median_mib": 378,
+   "mem_max_mib": 383,
+   "n": 29
+  },
+  "postgres": {
+   "cpu_median": 14.8,
+   "cpu_max": 19.8,
+   "mem_median_mib": 92,
+   "mem_max_mib": 106,
+   "n": 29
+  },
+  "kafka": {
+   "cpu_median": 8.8,
+   "cpu_max": 119.5,
+   "mem_median_mib": 546,
+   "mem_max_mib": 634,
+   "n": 30
+  },
+  "tree": "new",
+  "sampling": "1.0"
+ }
+]

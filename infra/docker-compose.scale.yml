@@ -1,0 +1,47 @@
+# Opt-in scaled topology (Roadmap Phase 3, ADR 0006): 2 payment-service and 3 ledger-service replicas behind HAProxy, 6 partitions per topic.
+# Used through chaos/lib.sh and perf/run.sh with SCALE=1, always together with the load overlay (the replicas get the same load identities).
+# The default Compose file and every earlier run stay unchanged. Replicas are separate services (not `scale:`), so each has a stable DNS name
+# and one of them can be killed on its own (chaos scenario kill-ledger-replica kills ledger-service-b).
+# Consumers: payment 2 replicas x 3 threads = 6 and ledger 3 replicas x 2 threads = 6, one per partition of each topic.
+# Memory limits (sum of mem_limit, all 1 GiB except the proxy): postgres 1 + kafka 1 + payment 2 + ledger 3 + haproxy 0.125 = 7.125 GiB.
+x-topology: &topology
+  TOPIC_PARTITIONS: "6"
+x-identities: &identities
+  SPRING_APPLICATION_JSON: ${PAYMENT_AUTH_JSON:?source chaos/lib.sh to generate the load identities}
+  LEDGERFLOW_AUTH_BCRYPTSTRENGTH: ${LOAD_BCRYPT_STRENGTH:-4}
+
+services:
+  payment-service:
+    ports: !reset []
+    environment: { <<: *topology, LISTENER_CONCURRENCY: "3" }
+  payment-service-b:
+    extends: { file: docker-compose.yml, service: payment-service }
+    ports: !reset []
+    environment: { <<: [*topology, *identities], LISTENER_CONCURRENCY: "3" }
+  ledger-service:
+    ports: !reset []
+    environment: { <<: *topology, LISTENER_CONCURRENCY: "2" }
+  ledger-service-b:
+    extends: { file: docker-compose.yml, service: ledger-service }
+    ports: !reset []
+    environment: { <<: *topology, LISTENER_CONCURRENCY: "2" }
+  ledger-service-c:
+    extends: { file: docker-compose.yml, service: ledger-service }
+    ports: !reset []
+    environment: { <<: *topology, LISTENER_CONCURRENCY: "2" }
+
+  lb:
+    image: haproxy:3.2.26-alpine
+    mem_limit: 128m
+    ports:
+      - "127.0.0.1:${PAYMENT_PORT:-8081}:8081"
+      - "127.0.0.1:${LEDGER_PORT:-8082}:8082"
+    volumes:
+      - ./scale/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      payment-service: { condition: service_healthy }
+      payment-service-b: { condition: service_healthy }
+      ledger-service: { condition: service_healthy }
+      ledger-service-b: { condition: service_healthy }
+      ledger-service-c: { condition: service_healthy }
+    restart: unless-stopped

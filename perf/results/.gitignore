@@ -1,0 +1,3 @@
+# Raw dumps too large to commit; the per-run summaries derived from them (summary.md, results.json, jaeger-summary.txt, k6-summary.json) are committed.
+*/diag/jaeger-traces.json
+*/k6-stdout.txt

@@ -1,0 +1,24 @@
+Prometheus instant queries at epoch 1794044699 (about 150 s into the diagnosis run, 1400 payments/s offered, 3 partitions, listener concurrency 3), run with .overnight/prom-q.py
+Q: avg by (application) (rate(spring_kafka_listener_seconds_sum[60s]) / rate(spring_kafka_listener_seconds_count[60s]))
+    {'application': 'payment-service'} 0.00246337
+    {'application': 'ledger-service'} 0.00227045
+Q: sum by (application) (rate(spring_kafka_listener_seconds_count[60s]))
+    {'application': 'payment-service'} 1198.02222
+    {'application': 'ledger-service'} 1297.64444
+Q: avg by (application, client_id) (kafka_consumer_poll_idle_ratio_avg)
+    {'application': 'payment-service', 'client_id': 'consumer-payment-service-1'} 0
+    {'application': 'payment-service', 'client_id': 'consumer-payment-service-2'} 0
+    {'application': 'payment-service', 'client_id': 'consumer-payment-service-3'} 0
+    {'application': 'ledger-service', 'client_id': 'consumer-ledger-service-1'} 0
+    {'application': 'ledger-service', 'client_id': 'consumer-ledger-service-2'} 0
+    {'application': 'ledger-service', 'client_id': 'consumer-ledger-service-3'} 0
+Q: avg by (application, client_id) (kafka_consumer_fetch_manager_records_consumed_rate)
+    {'application': 'payment-service', 'client_id': 'consumer-payment-service-1'} 414.380199
+    {'application': 'payment-service', 'client_id': 'consumer-payment-service-2'} 423.947836
+    {'application': 'payment-service', 'client_id': 'consumer-payment-service-3'} 405.730440
+    {'application': 'ledger-service', 'client_id': 'consumer-ledger-service-1'} 436.519152
+    {'application': 'ledger-service', 'client_id': 'consumer-ledger-service-2'} 460.653795
+    {'application': 'ledger-service', 'client_id': 'consumer-ledger-service-3'} 449.480053
+Q: sum by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~".+[.].+"})
+    {'application': 'payment-service', 'topic': 'ledger.results'} 4719
+    {'application': 'ledger-service', 'topic': 'payments.requested'} 48501

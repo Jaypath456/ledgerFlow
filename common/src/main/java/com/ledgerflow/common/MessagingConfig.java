@@ -21,24 +21,26 @@ import org.springframework.util.backoff.FixedBackOff;
 @EnableScheduling
 public class MessagingConfig {
 
+    // Partitions per topic: 3 unless ledgerflow.topics.partitions says otherwise (ADR 0005). The dead-letter topics need as many partitions as the
+    // topic they back, because the recoverer publishes to the same partition number. Existing topics only ever grow.
     @Bean
-    NewTopic paymentsRequestedTopic() {
-        return new NewTopic(Topics.PAYMENTS_REQUESTED, Topics.PARTITIONS, (short) 1);
+    NewTopic paymentsRequestedTopic(@Value("${ledgerflow.topics.partitions:" + Topics.PARTITIONS + "}") int partitions) {
+        return new NewTopic(Topics.PAYMENTS_REQUESTED, partitions, (short) 1);
     }
 
     @Bean
-    NewTopic ledgerResultsTopic() {
-        return new NewTopic(Topics.LEDGER_RESULTS, Topics.PARTITIONS, (short) 1);
+    NewTopic ledgerResultsTopic(@Value("${ledgerflow.topics.partitions:" + Topics.PARTITIONS + "}") int partitions) {
+        return new NewTopic(Topics.LEDGER_RESULTS, partitions, (short) 1);
     }
 
     @Bean
-    NewTopic paymentsRequestedDlt() {
-        return new NewTopic(Topics.PAYMENTS_REQUESTED + Topics.DLT_SUFFIX, Topics.PARTITIONS, (short) 1);
+    NewTopic paymentsRequestedDlt(@Value("${ledgerflow.topics.partitions:" + Topics.PARTITIONS + "}") int partitions) {
+        return new NewTopic(Topics.PAYMENTS_REQUESTED + Topics.DLT_SUFFIX, partitions, (short) 1);
     }
 
     @Bean
-    NewTopic ledgerResultsDlt() {
-        return new NewTopic(Topics.LEDGER_RESULTS + Topics.DLT_SUFFIX, Topics.PARTITIONS, (short) 1);
+    NewTopic ledgerResultsDlt(@Value("${ledgerflow.topics.partitions:" + Topics.PARTITIONS + "}") int partitions) {
+        return new NewTopic(Topics.LEDGER_RESULTS + Topics.DLT_SUFFIX, partitions, (short) 1);
     }
 
     /** Send records to their dead-letter partition after three failed attempts. */

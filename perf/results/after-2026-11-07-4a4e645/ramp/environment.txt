@@ -1,0 +1,17 @@
+Code: 4a4e645 (final service code (partitions and listener concurrency configurable; the run's own settings are below))
+date: 2026-11-07 04:53:19 EST
+git: 4acc4d1 working tree differs from HEAD
+mode: ramp  name: ramp  project: ledgerflow-p3-after-ramp  run_id: r045301
+host: Apple M4, 10 CPUs, 16 GiB RAM, Darwin 27.0.0
+docker: engine 29.8.2, compose 5.6.0, VM 10 CPUs, 10416644096 bytes
+k6: host k6 v2.3.0 (commit/devel, go1.27.1, darwin/arm64)
+compose command: docker compose -p ledgerflow-p3-after-ramp -f infra/docker-compose.yml -f infra/docker-compose.load.yml
+settings: TRACING_SAMPLING_PROBABILITY=0.1 RISK_VELOCITY_MAX=1000000 OBSERVABILITY=0 SCALE=0 (load identities bcrypt cost 4)
+load: ramp START_RATE=200 STEP_RATE=100 STEP_SECONDS=30 MAX_RATE=3600
+containers:
+  ledgerflow-p3-after-ramp-kafka-1 image=apache/kafka:4.0.0 mem_limit=1073741824 nano_cpus=0
+  ledgerflow-p3-after-ramp-ledger-service-1 image=ledgerflow-p3-after-ramp-ledger-service mem_limit=1073741824 nano_cpus=0
+  ledgerflow-p3-after-ramp-payment-service-1 image=ledgerflow-p3-after-ramp-payment-service mem_limit=1073741824 nano_cpus=0
+  ledgerflow-p3-after-ramp-postgres-1 image=postgres:17.11 mem_limit=1073741824 nano_cpus=0
+  env ledger-service {"JAVA_TOOL_OPTIONS": "-XX:MaxRAMPercentage=50", "LEDGERFLOW_CHAOS_FAULTS": "", "LEDGERFLOW_CHAOS_PROBABILITY": "0", "LEDGERFLOW_OUTBOX_POLL_MS": "10", "LISTENER_CONCURRENCY": "6", "RISK_VELOCITY_MAX": "1000000", "SPRING_PROFILES_ACTIVE": "default", "TOPIC_PARTITIONS": "6", "TRACING_SAMPLING_PROBABILITY": "0.1"}
+  env payment-service {"JAVA_TOOL_OPTIONS": "-XX:MaxRAMPercentage=50", "LEDGERFLOW_AUTH_BCRYPTSTRENGTH": "4", "LEDGERFLOW_CHAOS_FAULTS": "", "LEDGERFLOW_CHAOS_PROBABILITY": "0", "LEDGERFLOW_OUTBOX_POLL_MS": "10", "LISTENER_CONCURRENCY": "6", "RISK_VELOCITY_MAX": "1000000", "SPRING_PROFILES_ACTIVE": "default", "TOPIC_PARTITIONS": "6", "TRACING_SAMPLING_PROBABILITY": "0.1"}

@@ -1,0 +1,2 @@
+[{"step":0,"payments":15938,"completed":15938,"failed_terminal":0,"pending":0,"declined":0,"e2e_p50":206923,"e2e_p95":227512,"e2e_p99":231201}, 
+ {"step":1,"payments":62025,"completed":62025,"failed_terminal":0,"pending":0,"declined":0,"e2e_p50":121706,"e2e_p95":183786,"e2e_p99":188960}]

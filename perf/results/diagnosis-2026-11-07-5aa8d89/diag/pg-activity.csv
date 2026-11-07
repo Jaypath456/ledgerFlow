@@ -1,0 +1,254 @@
+epoch,state,wait_event_type,wait_event,count
+1794044534,idle,Client,ClientRead,20
+1794044538,idle,Client,ClientRead,20
+1794044542,idle,Client,ClientRead,20
+1794044547,idle,Client,ClientRead,20
+1794044551,active,IO,WalSync,1
+1794044551,active,LWLock,WALWrite,8
+1794044551,idle,Client,ClientRead,8
+1794044551,idle in transaction,Client,ClientRead,3
+1794044556,active,-,-,1
+1794044556,active,Client,ClientRead,2
+1794044556,active,LWLock,WALWrite,1
+1794044556,idle,Client,ClientRead,9
+1794044556,idle in transaction,-,-,2
+1794044556,idle in transaction,Client,ClientRead,5
+1794044560,active,-,-,3
+1794044560,active,IO,WalSync,1
+1794044560,active,LWLock,WALWrite,2
+1794044560,idle,Client,ClientRead,10
+1794044560,idle in transaction,Client,ClientRead,3
+1794044560,idle in transaction,LWLock,WALWrite,1
+1794044565,active,-,-,1
+1794044565,idle,-,-,1
+1794044565,idle,Client,ClientRead,8
+1794044565,idle in transaction,-,-,3
+1794044565,idle in transaction,Client,ClientRead,7
+1794044569,active,-,-,2
+1794044569,active,IO,WalSync,1
+1794044569,idle,-,-,1
+1794044569,idle,Client,ClientRead,9
+1794044569,idle in transaction,Client,ClientRead,7
+1794044573,active,-,-,3
+1794044573,idle,Client,ClientRead,12
+1794044573,idle in transaction,Client,ClientRead,5
+1794044578,active,-,-,3
+1794044578,active,Client,ClientRead,1
+1794044578,active,IO,WalSync,1
+1794044578,idle,Client,ClientRead,12
+1794044578,idle in transaction,Client,ClientRead,3
+1794044582,active,-,-,3
+1794044582,active,Client,ClientRead,1
+1794044582,idle,Client,ClientRead,7
+1794044582,idle in transaction,Client,ClientRead,8
+1794044582,idle in transaction,IO,WalSync,1
+1794044587,active,-,-,2
+1794044587,active,Client,ClientRead,2
+1794044587,active,IO,WalSync,1
+1794044587,idle,Client,ClientRead,9
+1794044587,idle in transaction,Client,ClientRead,6
+1794044591,active,-,-,1
+1794044591,active,Client,ClientRead,1
+1794044591,active,Lock,transactionid,1
+1794044591,active,LWLock,WALWrite,1
+1794044591,idle,Client,ClientRead,11
+1794044591,idle in transaction,Client,ClientRead,5
+1794044596,active,-,-,3
+1794044596,active,Client,ClientRead,1
+1794044596,active,IO,WalSync,1
+1794044596,active,LWLock,WALWrite,3
+1794044596,active,Timeout,VacuumDelay,1
+1794044596,idle,Client,ClientRead,9
+1794044596,idle in transaction,-,-,1
+1794044596,idle in transaction,Client,ClientRead,2
+1794044600,active,-,-,1
+1794044600,idle,Client,ClientRead,9
+1794044600,idle in transaction,-,-,3
+1794044600,idle in transaction,Client,ClientRead,7
+1794044605,active,-,-,2
+1794044605,active,IO,WalSync,1
+1794044605,active,LWLock,WALWrite,1
+1794044605,idle,Client,ClientRead,7
+1794044605,idle in transaction,-,-,4
+1794044605,idle in transaction,Client,ClientRead,5
+1794044609,active,-,-,2
+1794044609,idle,-,-,1
+1794044609,idle,Client,ClientRead,7
+1794044609,idle in transaction,-,-,2
+1794044609,idle in transaction,Client,ClientRead,8
+1794044614,active,-,-,2
+1794044614,active,LWLock,WALWrite,4
+1794044614,idle,Client,ClientRead,7
+1794044614,idle in transaction,-,-,2
+1794044614,idle in transaction,Client,ClientRead,4
+1794044614,idle in transaction,LWLock,WALWrite,1
+1794044618,active,IO,WalInitWrite,1
+1794044618,active,LWLock,WALWrite,12
+1794044618,idle,Client,ClientRead,7
+1794044623,active,-,-,1
+1794044623,active,IO,WalSync,1
+1794044623,active,LWLock,WALWrite,2
+1794044623,idle,-,-,1
+1794044623,idle,Client,ClientRead,8
+1794044623,idle in transaction,-,-,3
+1794044623,idle in transaction,Client,ClientRead,4
+1794044627,active,Client,ClientRead,1
+1794044627,active,IO,WalSync,1
+1794044627,active,LWLock,WALWrite,2
+1794044627,idle,Client,ClientRead,11
+1794044627,idle in transaction,-,-,2
+1794044627,idle in transaction,Client,ClientRead,3
+1794044632,active,-,-,2
+1794044632,active,IO,WalSync,1
+1794044632,active,LWLock,WALWrite,1
+1794044632,idle,-,-,1
+1794044632,idle,Client,ClientRead,7
+1794044632,idle in transaction,-,-,3
+1794044632,idle in transaction,Client,ClientRead,4
+1794044632,idle in transaction,LWLock,WALWrite,1
+1794044636,active,-,-,3
+1794044636,active,Client,ClientRead,2
+1794044636,active,LWLock,WALWrite,1
+1794044636,idle,-,-,1
+1794044636,idle,Client,ClientRead,9
+1794044636,idle in transaction,-,-,2
+1794044636,idle in transaction,Client,ClientRead,2
+1794044641,active,Client,ClientRead,3
+1794044641,active,LWLock,WALWrite,1
+1794044641,idle,-,-,1
+1794044641,idle,Client,ClientRead,9
+1794044641,idle in transaction,-,-,4
+1794044641,idle in transaction,Client,ClientRead,2
+1794044645,active,-,-,1
+1794044645,active,Lock,transactionid,1
+1794044645,active,LWLock,WALWrite,9
+1794044645,idle,Client,ClientRead,8
+1794044645,idle in transaction,IO,WalSync,1
+1794044650,active,-,-,2
+1794044650,active,Client,ClientRead,2
+1794044650,idle,-,-,2
+1794044650,idle,Client,ClientRead,6
+1794044650,idle in transaction,-,-,1
+1794044650,idle in transaction,Client,ClientRead,6
+1794044650,idle in transaction,IO,WalSync,1
+1794044654,active,-,-,2
+1794044654,active,IO,WalSync,1
+1794044654,active,Lock,transactionid,1
+1794044654,active,LWLock,WALWrite,4
+1794044654,idle,Client,ClientRead,8
+1794044654,idle in transaction,-,-,1
+1794044654,idle in transaction,Client,ClientRead,2
+1794044654,idle in transaction,LWLock,WALWrite,1
+1794044659,active,-,-,2
+1794044659,active,IO,WalSync,1
+1794044659,active,LWLock,WALWrite,2
+1794044659,active,Timeout,VacuumDelay,1
+1794044659,idle,Client,ClientRead,7
+1794044659,idle in transaction,-,-,2
+1794044659,idle in transaction,Client,ClientRead,5
+1794044659,idle in transaction,LWLock,WALWrite,1
+1794044663,active,-,-,3
+1794044663,active,Client,ClientRead,1
+1794044663,active,IO,WalSync,1
+1794044663,active,Timeout,VacuumDelay,1
+1794044663,idle,Client,ClientRead,10
+1794044663,idle in transaction,-,-,2
+1794044663,idle in transaction,Client,ClientRead,3
+1794044668,active,-,-,2
+1794044668,active,Client,ClientRead,2
+1794044668,active,Timeout,VacuumDelay,1
+1794044668,idle,-,-,1
+1794044668,idle,Client,ClientRead,6
+1794044668,idle in transaction,-,-,1
+1794044668,idle in transaction,Client,ClientRead,8
+1794044672,active,-,-,2
+1794044672,active,Client,ClientRead,2
+1794044672,active,IO,WalSync,1
+1794044672,active,Lock,transactionid,1
+1794044672,idle,Client,ClientRead,7
+1794044672,idle in transaction,-,-,1
+1794044672,idle in transaction,Client,ClientRead,4
+1794044672,idle in transaction,LWLock,WALWrite,2
+1794044677,active,Client,ClientRead,2
+1794044677,active,IO,WalSync,1
+1794044677,active,LWLock,WALWrite,1
+1794044677,idle,-,-,1
+1794044677,idle,Client,ClientRead,7
+1794044677,idle in transaction,-,-,1
+1794044677,idle in transaction,Client,ClientRead,7
+1794044681,active,-,-,1
+1794044681,active,Client,ClientRead,1
+1794044681,active,LWLock,WALWrite,3
+1794044681,idle,Client,ClientRead,9
+1794044681,idle in transaction,-,-,2
+1794044681,idle in transaction,Client,ClientRead,4
+1794044686,active,-,-,1
+1794044686,active,Client,ClientRead,1
+1794044686,idle,Client,ClientRead,12
+1794044686,idle in transaction,-,-,3
+1794044686,idle in transaction,Client,ClientRead,3
+1794044690,active,-,-,1
+1794044690,active,IO,WalSync,1
+1794044690,active,Lock,transactionid,1
+1794044690,active,LWLock,WALWrite,1
+1794044690,idle,-,-,3
+1794044690,idle,Client,ClientRead,6
+1794044690,idle in transaction,-,-,1
+1794044690,idle in transaction,Client,ClientRead,6
+1794044695,active,-,-,1
+1794044695,active,Client,ClientRead,1
+1794044695,active,IO,WalSync,1
+1794044695,active,LWLock,WALWrite,1
+1794044695,idle,Client,ClientRead,10
+1794044695,idle in transaction,Client,ClientRead,5
+1794044695,idle in transaction,LWLock,WALWrite,1
+1794044700,active,-,-,2
+1794044700,active,IO,WalSync,1
+1794044700,idle,Client,ClientRead,7
+1794044700,idle in transaction,-,-,3
+1794044700,idle in transaction,Client,ClientRead,7
+1794044704,active,-,-,4
+1794044704,active,IO,WalSync,1
+1794044704,active,LWLock,WALWrite,4
+1794044704,idle,Client,ClientRead,8
+1794044704,idle in transaction,Client,ClientRead,3
+1794044709,active,-,-,1
+1794044709,active,Client,ClientRead,2
+1794044709,active,IO,WalSync,1
+1794044709,active,Lock,transactionid,1
+1794044709,idle,Client,ClientRead,8
+1794044709,idle in transaction,-,-,4
+1794044709,idle in transaction,Client,ClientRead,3
+1794044713,active,IO,WalSync,1
+1794044713,active,LWLock,WALWrite,2
+1794044713,idle,-,-,1
+1794044713,idle,Client,ClientRead,8
+1794044713,idle in transaction,-,-,2
+1794044713,idle in transaction,Client,ClientRead,5
+1794044713,idle in transaction,LWLock,WALWrite,1
+1794044718,active,-,-,1
+1794044718,active,Client,ClientRead,3
+1794044718,active,IO,WalSync,1
+1794044718,active,Timeout,VacuumDelay,1
+1794044718,idle,-,-,1
+1794044718,idle,Client,ClientRead,13
+1794044718,idle in transaction,Client,ClientRead,1
+1794044722,active,Timeout,VacuumDelay,1
+1794044722,idle,Client,ClientRead,18
+1794044722,idle in transaction,Client,ClientRead,2
+1794044726,active,IO,DataFileRead,1
+1794044726,active,IO,WalSync,1
+1794044726,active,LWLock,WALWrite,4
+1794044726,idle,Client,ClientRead,15
+1794044731,active,IO,WalSync,1
+1794044731,active,Timeout,VacuumDelay,1
+1794044731,idle,Client,ClientRead,19
+1794044735,active,Client,ClientRead,1
+1794044735,idle,Client,ClientRead,19
+1794044739,active,Client,ClientRead,1
+1794044739,idle,Client,ClientRead,19
+1794044743,idle,Client,ClientRead,18
+1794044743,idle in transaction,-,-,1
+1794044743,idle in transaction,Client,ClientRead,1
+1794044748,active,-,-,3
+1794044748,idle,Client,ClientRead,20

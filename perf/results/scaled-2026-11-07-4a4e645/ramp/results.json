@@ -1,0 +1,1351 @@
+{
+ "mode": "ramp",
+ "k6": "host k6",
+ "k6_exit": 0,
+ "dropped_iterations": 56597,
+ "vus_max": 3000,
+ "drain_s": "113",
+ "invariant_violations": "0",
+ "steps": [
+  {
+   "step": 1,
+   "offered": 100,
+   "seconds": 30,
+   "accepted": 2885,
+   "declined": 0,
+   "http_4xx": 0,
+   "http_5xx": 79,
+   "no_response": 0,
+   "p50": 2045.2545,
+   "p95": 6009.777699999999,
+   "p99": 7556.3394499999995,
+   "max": 11637.052,
+   "achieved": 96.2,
+   "failed": 79,
+   "e2e_p50": 83789,
+   "e2e_p95": 309365,
+   "e2e_p99": 431560,
+   "payments_in_db": 2885,
+   "pending_after_drain": 0,
+   "completed": 2885,
+   "failed_terminal": 0,
+   "window": [
+    1794077817,
+    1794077847
+   ],
+   "cpu": {
+    "kafka-1": {
+     "cpu_median": 134.0,
+     "cpu_max": 173.8,
+     "mem_median_mib": 615,
+     "mem_max_mib": 696,
+     "samples": 8
+    },
+    "lb-1": {
+     "cpu_median": 18.3,
+     "cpu_max": 25.5,
+     "mem_median_mib": 87,
+     "mem_max_mib": 87,
+     "samples": 8
+    },
+    "ledger-service-1": {
+     "cpu_median": 114.2,
+     "cpu_max": 189.5,
+     "mem_median_mib": 359,
+     "mem_max_mib": 362,
+     "samples": 8
+    },
+    "ledger-service-b-1": {
+     "cpu_median": 111.7,
+     "cpu_max": 160.1,
+     "mem_median_mib": 343,
+     "mem_max_mib": 350,
+     "samples": 8
+    },
+    "ledger-service-c-1": {
+     "cpu_median": 116.4,
+     "cpu_max": 159.8,
+     "mem_median_mib": 355,
+     "mem_max_mib": 360,
+     "samples": 8
+    },
+    "payment-service-1": {
+     "cpu_median": 278.8,
+     "cpu_max": 407.5,
+     "mem_median_mib": 542,
+     "mem_max_mib": 557,
+     "samples": 8
+    },
+    "payment-service-b-1": {
+     "cpu_median": 276.9,
+     "cpu_max": 417.6,
+     "mem_median_mib": 494,
+     "mem_max_mib": 512,
+     "samples": 8
+    },
+    "postgres-1": {
+     "cpu_median": 114.9,
+     "cpu_max": 190.8,
+     "mem_median_mib": 128,
+     "mem_max_mib": 134,
+     "samples": 8
+    }
+   },
+   "backlog": {
+    "max": 2610,
+    "end": 2610
+   }
+  },
+  {
+   "step": 2,
+   "offered": 200,
+   "seconds": 30,
+   "accepted": 5061,
+   "declined": 0,
+   "http_4xx": 0,
+   "http_5xx": 619,
+   "no_response": 0,
+   "p50": 1544.085,
+   "p95": 5503.079199999998,
+   "p99": 7467.743599999997,
+   "max": 12207.016,
+   "achieved": 168.7,
+   "failed": 619,
+   "e2e_p50": 417257,
+   "e2e_p95": 429576,
+   "e2e_p99": 433691,
+   "payments_in_db": 5061,
+   "pending_after_drain": 0,
+   "completed": 5061,
+   "failed_terminal": 0,
+   "window": [
+    1794077847,
+    1794077877
+   ],
+   "cpu": {
+    "kafka-1": {
+     "cpu_median": 52.4,
+     "cpu_max": 151.7,
+     "mem_median_mib": 635,
+     "mem_max_mib": 691,
+     "samples": 9
+    },
+    "lb-1": {
+     "cpu_median": 21.7,
+     "cpu_max": 36.8,
+     "mem_median_mib": 89,
+     "mem_max_mib": 90,
+     "samples": 9
+    },
+    "ledger-service-1": {
+     "cpu_median": 85.8,
+     "cpu_max": 115.8,
+     "mem_median_mib": 365,
+     "mem_max_mib": 369,
+     "samples": 9
+    },
+    "ledger-service-b-1": {
+     "cpu_median": 85.9,
+     "cpu_max": 127.4,
+     "mem_median_mib": 359,
+     "mem_max_mib": 363,
+     "samples": 9
+    },
+    "ledger-service-c-1": {
+     "cpu_median": 94.4,
+     "cpu_max": 113.0,
+     "mem_median_mib": 363,
+     "mem_max_mib": 366,
+     "samples": 9
+    },
+    "payment-service-1": {
+     "cpu_median": 281.0,
+     "cpu_max": 359.6,
+     "mem_median_mib": 588,
+     "mem_max_mib": 596,
+     "samples": 9
+    },
+    "payment-service-b-1": {
+     "cpu_median": 291.8,
+     "cpu_max": 376.1,
+     "mem_median_mib": 531,
+     "mem_max_mib": 559,
+     "samples": 9
+    },
+    "postgres-1": {
+     "cpu_median": 150.8,
+     "cpu_max": 247.8,
+     "mem_median_mib": 144,
+     "mem_max_mib": 152,
+     "samples": 9
+    }
+   },
+   "backlog": {
+    "max": 7718,
+    "end": 7718
+   }
+  },
+  {
+   "step": 3,
+   "offered": 300,
+   "seconds": 30,
+   "accepted": 5020,
+   "declined": 0,
+   "http_4xx": 0,
+   "http_5xx": 2505,
+   "no_response": 0,
+   "p50": 3314.768,
+   "p95": 12405.1114,
+   "p99": 14621.16196,
+   "max": 16320.568,
+   "achieved": 167.3,
+   "failed": 2505,
+   "e2e_p50": 400777,
+   "e2e_p95": 412914,
+   "e2e_p99": 416413,
+   "payments_in_db": 5020,
+   "pending_after_drain": 0,
+   "completed": 5020,
+   "failed_terminal": 0,
+   "window": [
+    1794077877,
+    1794077907
+   ],
+   "cpu": {
+    "kafka-1": {
+     "cpu_median": 148.1,
+     "cpu_max": 255.5,
+     "mem_median_mib": 679,
+     "mem_max_mib": 707,
+     "samples": 8
+    },
+    "lb-1": {
+     "cpu_median": 28.4,
+     "cpu_max": 55.2,
+     "mem_median_mib": 101,
+     "mem_max_mib": 104,
+     "samples": 8
+    },
+    "ledger-service-1": {
+     "cpu_median": 72.3,
+     "cpu_max": 115.5,
+     "mem_median_mib": 368,
+     "mem_max_mib": 379,
+     "samples": 8
+    },
+    "ledger-service-b-1": {
+     "cpu_median": 74.0,
+     "cpu_max": 98.3,
+     "mem_median_mib": 364,
+     "mem_max_mib": 368,
+     "samples": 8
+    },
+    "ledger-service-c-1": {
+     "cpu_median": 68.4,
+     "cpu_max": 100.2,
+     "mem_median_mib": 366,
+     "mem_max_mib": 372,
+     "samples": 8
+    },
+    "payment-service-1": {
+     "cpu_median": 271.4,
+     "cpu_max": 325.8,
+     "mem_median_mib": 628,
+     "mem_max_mib": 648,
+     "samples": 8
+    },
+    "payment-service-b-1": {
+     "cpu_median": 240.4,
+     "cpu_max": 343.1,
+     "mem_median_mib": 587,
+     "mem_max_mib": 605,
+     "samples": 8
+    },
+    "postgres-1": {
+     "cpu_median": 168.4,
+     "cpu_max": 199.3,
+     "mem_median_mib": 158,
+     "mem_max_mib": 163,
+     "samples": 8
+    }
+   },
+   "backlog": {
+    "max": 10642,
+    "end": 10642
+   }
+  },
+  {
+   "step": 4,
+   "offered": 400,
+   "seconds": 30,
+   "accepted": 5613,
+   "declined": 0,
+   "http_4xx": 0,
+   "http_5xx": 5362,
+   "no_response": 0,
+   "p50": 415.401,
+   "p95": 14526.3013,
+   "p99": 16311.526479999999,
+   "max": 19709.869,
+   "achieved": 187.1,
+   "failed": 5362,
+   "e2e_p50": 374414,
+   "e2e_p95": 389626,
+   "e2e_p99": 392205,
+   "payments_in_db": 5613,
+   "pending_after_drain": 0,
+   "completed": 5613,
+   "failed_terminal": 0,
+   "window": [
+    1794077907,
+    1794077937
+   ],
+   "cpu": {
+    "kafka-1": {
+     "cpu_median": 98.5,
+     "cpu_max": 180.1,
+     "mem_median_mib": 647,
+     "mem_max_mib": 699,
+     "samples": 8
+    },
+    "lb-1": {
+     "cpu_median": 57.3,
+     "cpu_max": 108.8,
+     "mem_median_mib": 107,
+     "mem_max_mib": 109,
+     "samples": 8
+    },
+    "ledger-service-1": {
+     "cpu_median": 100.7,
+     "cpu_max": 206.7,
+     "mem_median_mib": 375,
+     "mem_max_mib": 379,
+     "samples": 8
+    },
+    "ledger-service-b-1": {
+     "cpu_median": 109.1,
+     "cpu_max": 141.6,
+     "mem_median_mib": 369,
+     "mem_max_mib": 373,
+     "samples": 8
+    },
+    "ledger-service-c-1": {
+     "cpu_median": 68.9,
+     "cpu_max": 125.2,
+     "mem_median_mib": 373,
+     "mem_max_mib": 380,
+     "samples": 8
+    },
+    "payment-service-1": {
+     "cpu_median": 229.9,
+     "cpu_max": 415.2,
+     "mem_median_mib": 667,
+     "mem_max_mib": 688,
+     "samples": 8
+    },
+    "payment-service-b-1": {
+     "cpu_median": 262.9,
+     "cpu_max": 331.0,
+     "mem_median_mib": 630,
+     "mem_max_mib": 634,
+     "samples": 8
+    },
+    "postgres-1": {
+     "cpu_median": 209.9,
+     "cpu_max": 257.3,
+     "mem_median_mib": 171,
+     "mem_max_mib": 192,
+     "samples": 8
+    }
+   },
+   "backlog": {
+    "max": 15985,
+    "end": 15985
+   }
+  },
+  {
+   "step": 5,
+   "offered": 500,
+   "seconds": 30,
+   "accepted": 4026,
+   "declined": 0,
+   "http_4xx": 0,
+   "http_5xx": 9309,
+   "no_response": 0,
+   "p50": 21.673,
+   "p95": 17166.73319999999,
+   "p99": 23028.255759999996,
+   "max": 26976.801,
+   "achieved": 134.2,
+   "failed": 9309,
+   "e2e_p50": 350238,
+   "e2e_p95": 363687,
+   "e2e_p99": 368234,
+   "payments_in_db": 4026,
+   "pending_after_drain": 0,
+   "completed": 4026,
+   "failed_terminal": 0,
+   "window": [
+    1794077937,
+    1794077967
+   ],
+   "cpu": {
+    "kafka-1": {
+     "cpu_median": 145.3,
+     "cpu_max": 179.6,
+     "mem_median_mib": 679,
+     "mem_max_mib": 732,
+     "samples": 8
+    },
+    "lb-1": {
+     "cpu_median": 39.5,
+     "cpu_max": 69.0,
+     "mem_median_mib": 114,
+     "mem_max_mib": 119,
+     "samples": 8
+    },
+    "ledger-service-1": {
+     "cpu_median": 61.9,
+     "cpu_max": 144.7,
+     "mem_median_mib": 378,
+     "mem_max_mib": 387,
+     "samples": 8
+    },
+    "ledger-service-b-1": {
+     "cpu_median": 69.2,
+     "cpu_max": 87.6,
+     "mem_median_mib": 373,
+     "mem_max_mib": 378,
+     "samples": 8
+    },
+    "ledger-service-c-1": {
+     "cpu_median": 71.8,
+     "cpu_max": 121.1,
+     "mem_median_mib": 373,
+     "mem_max_mib": 374,
+     "samples": 8
+    },
+    "payment-service-1": {
+     "cpu_median": 210.8,
+     "cpu_max": 286.2,
+     "mem_median_mib": 695,
+     "mem_max_mib": 712,
+     "samples": 8
+    },
+    "payment-service-b-1": {
+     "cpu_median": 202.6,
+     "cpu_max": 292.6,
+     "mem_median_mib": 661,
+     "mem_max_mib": 683,
+     "samples": 8
+    },
+    "postgres-1": {
+     "cpu_median": 191.8,
+     "cpu_max": 260.4,
+     "mem_median_mib": 182,
+     "mem_max_mib": 189,
+     "samples": 8
+    }
+   },
+   "backlog": {
+    "max": 20507,
+    "end": 20507
+   }
+  },
+  {
+   "step": 6,
+   "offered": 600,
+   "seconds": 30,
+   "accepted": 4207,
+   "declined": 0,
+   "http_4xx": 0,
+   "http_5xx": 11247,
+   "no_response": 372,
+   "p50": 35.9305,
+   "p95": 23203.01905,
+   "p99": 27816.56481,
+   "max": 29978.375,
+   "achieved": 140.2,
+   "failed": 11619,
+   "e2e_p50": 323031,
+   "e2e_p95": 339508,
+   "e2e_p99": 344173,
+   "payments_in_db": 4579,
+   "pending_after_drain": 0,
+   "completed": 4579,
+   "failed_terminal": 0,
+   "window": [
+    1794077967,
+    1794077997
+   ],
+   "cpu": {
+    "kafka-1": {
+     "cpu_median": 104.9,
+     "cpu_max": 241.8,
+     "mem_median_mib": 682,
+     "mem_max_mib": 726,
+     "samples": 8
+    },
+    "lb-1": {
+     "cpu_median": 73.2,
+     "cpu_max": 166.0,
+     "mem_median_mib": 128,
+     "mem_max_mib": 128,
+     "samples": 8
+    },
+    "ledger-service-1": {
+     "cpu_median": 70.6,
+     "cpu_max": 175.2,
+     "mem_median_mib": 383,
+     "mem_max_mib": 384,
+     "samples": 8
+    },
+    "ledger-service-b-1": {
+     "cpu_median": 95.6,
+     "cpu_max": 183.4,
+     "mem_median_mib": 386,
+     "mem_max_mib": 386,
+     "samples": 8
+    },
+    "ledger-service-c-1": {
+     "cpu_median": 69.3,
+     "cpu_max": 126.1,
+     "mem_median_mib": 373,
+     "mem_max_mib": 374,
+     "samples": 8
+    },
+    "payment-service-1": {
+     "cpu_median": 213.3,
+     "cpu_max": 354.3,
+     "mem_median_mib": 765,
+     "mem_max_mib": 767,
+     "samples": 8
+    },
+    "payment-service-b-1": {
+     "cpu_median": 222.3,
+     "cpu_max": 355.6,
+     "mem_median_mib": 691,
+     "mem_max_mib": 709,
+     "samples": 8
+    },
+    "postgres-1": {
+     "cpu_median": 233.5,
+     "cpu_max": 283.7,
+     "mem_median_mib": 197,
+     "mem_max_mib": 224,
+     "samples": 8
+    }
+   },
+   "backlog": {
+    "max": 23251,
+    "end": 23251
+   }
+  },
+  {
+   "step": 7,
+   "offered": 700,
+   "seconds": 30,
+   "accepted": 3989,
+   "declined": 0,
+   "http_4xx": 0,
+   "http_5xx": 15944,
+   "no_response": 61,
+   "p50": 44.936,
+   "p95": 16776.112999999994,
+   "p99": 27560.568479999984,
+   "max": 29998.721,
+   "achieved": 133.0,
+   "failed": 16005,
+   "e2e_p50": 294374,
+   "e2e_p95": 310067,
+   "e2e_p99": 312596,
+   "payments_in_db": 4050,
+   "pending_after_drain": 0,
+   "completed": 4050,
+   "failed_terminal": 0,
+   "window": [
+    1794077997,
+    1794078027
+   ],
+   "cpu": {
+    "kafka-1": {
+     "cpu_median": 122.9,
+     "cpu_max": 328.2,
+     "mem_median_mib": 682,
+     "mem_max_mib": 735,
+     "samples": 8
+    },
+    "lb-1": {
+     "cpu_median": 67.0,
+     "cpu_max": 142.0,
+     "mem_median_mib": 125,
+     "mem_max_mib": 128,
+     "samples": 8
+    },
+    "ledger-service-1": {
+     "cpu_median": 59.9,
+     "cpu_max": 144.1,
+     "mem_median_mib": 384,
+     "mem_max_mib": 388,
+     "samples": 8
+    },
+    "ledger-service-b-1": {
+     "cpu_median": 67.8,
+     "cpu_max": 91.4,
+     "mem_median_mib": 386,
+     "mem_max_mib": 387,
+     "samples": 8
+    },
+    "ledger-service-c-1": {
+     "cpu_median": 63.0,
+     "cpu_max": 132.4,
+     "mem_median_mib": 373,
+     "mem_max_mib": 376,
+     "samples": 8
+    },
+    "payment-service-1": {
+     "cpu_median": 215.2,
+     "cpu_max": 352.8,
+     "mem_median_mib": 769,
+     "mem_max_mib": 802,
+     "samples": 8
+    },
+    "payment-service-b-1": {
+     "cpu_median": 217.0,
+     "cpu_max": 265.2,
+     "mem_median_mib": 710,
+     "mem_max_mib": 731,
+     "samples": 8
+    },
+    "postgres-1": {
+     "cpu_median": 228.0,
+     "cpu_max": 350.4,
+     "mem_median_mib": 210,
+     "mem_max_mib": 221,
+     "samples": 8
+    }
+   },
+   "backlog": {
+    "max": 26199,
+    "end": 26199
+   }
+  },
+  {
+   "step": 8,
+   "offered": 800,
+   "seconds": 30,
+   "accepted": 3229,
+   "declined": 0,
+   "http_4xx": 0,
+   "http_5xx": 16032,
+   "no_response": 945,
+   "p50": 42.851,
+   "p95": 17159.923,
+   "p99": 27351.1456,
+   "max": 29956.511,
+   "achieved": 107.6,
+   "failed": 16977,
+   "e2e_p50": 263882,
+   "e2e_p95": 283980,
+   "e2e_p99": 286421,
+   "payments_in_db": 4174,
+   "pending_after_drain": 0,
+   "completed": 4174,
+   "failed_terminal": 0,
+   "window": [
+    1794078027,
+    1794078057
+   ],
+   "cpu": {
+    "kafka-1": {
+     "cpu_median": 48.1,
+     "cpu_max": 203.0,
+     "mem_median_mib": 680,
+     "mem_max_mib": 706,
+     "samples": 7
+    },
+    "lb-1": {
+     "cpu_median": 62.9,
+     "cpu_max": 230.6,
+     "mem_median_mib": 126,
+     "mem_max_mib": 128,
+     "samples": 7
+    },
+    "ledger-service-1": {
+     "cpu_median": 64.7,
+     "cpu_max": 132.9,
+     "mem_median_mib": 388,
+     "mem_max_mib": 389,
+     "samples": 7
+    },
+    "ledger-service-b-1": {
+     "cpu_median": 70.0,
+     "cpu_max": 112.5,
+     "mem_median_mib": 387,
+     "mem_max_mib": 389,
+     "samples": 7
+    },
+    "ledger-service-c-1": {
+     "cpu_median": 87.8,
+     "cpu_max": 117.4,
+     "mem_median_mib": 380,
+     "mem_max_mib": 381,
+     "samples": 7
+    },
+    "payment-service-1": {
+     "cpu_median": 207.6,
+     "cpu_max": 238.5,
+     "mem_median_mib": 803,
+     "mem_max_mib": 804,
+     "samples": 7
+    },
+    "payment-service-b-1": {
+     "cpu_median": 175.5,
+     "cpu_max": 301.4,
+     "mem_median_mib": 736,
+     "mem_max_mib": 799,
+     "samples": 7
+    },
+    "postgres-1": {
+     "cpu_median": 243.9,
+     "cpu_max": 272.2,
+     "mem_median_mib": 219,
+     "mem_max_mib": 245,
+     "samples": 7
+    }
+   },
+   "backlog": {
+    "max": 28676,
+    "end": 28676
+   }
+  },
+  {
+   "step": 9,
+   "offered": 900,
+   "seconds": 30,
+   "accepted": 2410,
+   "declined": 0,
+   "http_4xx": 0,
+   "http_5xx": 18834,
+   "no_response": 141,
+   "p50": 34.293,
+   "p95": 16413.68525,
+   "p99": 27947.265079999997,
+   "max": 30000.248,
+   "achieved": 80.3,
+   "failed": 18975,
+   "e2e_p50": 245224,
+   "e2e_p95": 268192,
+   "e2e_p99": 274010,
+   "payments_in_db": 2551,
+   "pending_after_drain": 0,
+   "completed": 2551,
+   "failed_terminal": 0,
+   "window": [
+    1794078057,
+    1794078087
+   ],
+   "cpu": {
+    "kafka-1": {
+     "cpu_median": 104.1,
+     "cpu_max": 193.0,
+     "mem_median_mib": 681,
+     "mem_max_mib": 718,
+     "samples": 8
+    },
+    "lb-1": {
+     "cpu_median": 102.5,
+     "cpu_max": 201.0,
+     "mem_median_mib": 126,
+     "mem_max_mib": 128,
+     "samples": 8
+    },
+    "ledger-service-1": {
+     "cpu_median": 84.0,
+     "cpu_max": 155.7,
+     "mem_median_mib": 389,
+     "mem_max_mib": 395,
+     "samples": 8
+    },
+    "ledger-service-b-1": {
+     "cpu_median": 84.2,
+     "cpu_max": 173.4,
+     "mem_median_mib": 389,
+     "mem_max_mib": 394,
+     "samples": 8
+    },
+    "ledger-service-c-1": {
+     "cpu_median": 80.3,
+     "cpu_max": 188.8,
+     "mem_median_mib": 381,
+     "mem_max_mib": 384,
+     "samples": 8
+    },
+    "payment-service-1": {
+     "cpu_median": 207.0,
+     "cpu_max": 268.1,
+     "mem_median_mib": 828,
+     "mem_max_mib": 851,
+     "samples": 8
+    },
+    "payment-service-b-1": {
+     "cpu_median": 206.7,
+     "cpu_max": 282.3,
+     "mem_median_mib": 800,
+     "mem_max_mib": 803,
+     "samples": 8
+    },
+    "postgres-1": {
+     "cpu_median": 259.5,
+     "cpu_max": 360.3,
+     "mem_median_mib": 230,
+     "mem_max_mib": 248,
+     "samples": 8
+    }
+   },
+   "backlog": {
+    "max": 33673,
+    "end": 33673
+   }
+  },
+  {
+   "step": 10,
+   "offered": 1000,
+   "seconds": 30,
+   "accepted": 3211,
+   "declined": 0,
+   "http_4xx": 0,
+   "http_5xx": 19329,
+   "no_response": 1412,
+   "p50": 49.6465,
+   "p95": 18516.9135,
+   "p99": 28118.977609999994,
+   "max": 29962.768,
+   "achieved": 107.0,
+   "failed": 20741,
+   "e2e_p50": 213123,
+   "e2e_p95": 239447,
+   "e2e_p99": 245719,
+   "payments_in_db": 4621,
+   "pending_after_drain": 0,
+   "completed": 4621,
+   "failed_terminal": 0,
+   "window": [
+    1794078087,
+    1794078117
+   ],
+   "cpu": {
+    "kafka-1": {
+     "cpu_median": 47.5,
+     "cpu_max": 191.9,
+     "mem_median_mib": 685,
+     "mem_max_mib": 728,
+     "samples": 7
+    },
+    "lb-1": {
+     "cpu_median": 75.1,
+     "cpu_max": 154.5,
+     "mem_median_mib": 124,
+     "mem_max_mib": 127,
+     "samples": 7
+    },
+    "ledger-service-1": {
+     "cpu_median": 64.8,
+     "cpu_max": 188.7,
+     "mem_median_mib": 390,
+     "mem_max_mib": 420,
+     "samples": 7
+    },
+    "ledger-service-b-1": {
+     "cpu_median": 69.5,
+     "cpu_max": 128.6,
+     "mem_median_mib": 393,
+     "mem_max_mib": 394,
+     "samples": 7
+    },
+    "ledger-service-c-1": {
+     "cpu_median": 75.6,
+     "cpu_max": 90.6,
+     "mem_median_mib": 381,
+     "mem_max_mib": 381,
+     "samples": 7
+    },
+    "payment-service-1": {
+     "cpu_median": 181.5,
+     "cpu_max": 238.3,
+     "mem_median_mib": 852,
+     "mem_max_mib": 882,
+     "samples": 7
+    },
+    "payment-service-b-1": {
+     "cpu_median": 193.9,
+     "cpu_max": 450.6,
+     "mem_median_mib": 840,
+     "mem_max_mib": 844,
+     "samples": 7
+    },
+    "postgres-1": {
+     "cpu_median": 273.4,
+     "cpu_max": 394.4,
+     "mem_median_mib": 245,
+     "mem_max_mib": 265,
+     "samples": 7
+    }
+   },
+   "backlog": {
+    "max": 36443,
+    "end": 36096
+   }
+  },
+  {
+   "step": 11,
+   "offered": 1100,
+   "seconds": 30,
+   "accepted": 8,
+   "declined": 0,
+   "http_4xx": 0,
+   "http_5xx": 32171,
+   "no_response": 184,
+   "p50": 41.754,
+   "p95": 294.36609999999996,
+   "p99": 546.5676199999999,
+   "max": 5197.608,
+   "achieved": 0.3,
+   "failed": 32355,
+   "e2e_p50": 187929,
+   "e2e_p95": 198638,
+   "e2e_p99": 219817,
+   "payments_in_db": 192,
+   "pending_after_drain": 0,
+   "completed": 192,
+   "failed_terminal": 0,
+   "window": [
+    1794078117,
+    1794078147
+   ],
+   "cpu": {
+    "kafka-1": {
+     "cpu_median": 82.5,
+     "cpu_max": 178.0,
+     "mem_median_mib": 686,
+     "mem_max_mib": 721,
+     "samples": 7
+    },
+    "lb-1": {
+     "cpu_median": 90.0,
+     "cpu_max": 127.3,
+     "mem_median_mib": 126,
+     "mem_max_mib": 128,
+     "samples": 7
+    },
+    "ledger-service-1": {
+     "cpu_median": 59.1,
+     "cpu_max": 195.8,
+     "mem_median_mib": 414,
+     "mem_max_mib": 437,
+     "samples": 7
+    },
+    "ledger-service-b-1": {
+     "cpu_median": 51.8,
+     "cpu_max": 332.6,
+     "mem_median_mib": 394,
+     "mem_max_mib": 396,
+     "samples": 7
+    },
+    "ledger-service-c-1": {
+     "cpu_median": 64.1,
+     "cpu_max": 164.9,
+     "mem_median_mib": 382,
+     "mem_max_mib": 390,
+     "samples": 7
+    },
+    "payment-service-1": {
+     "cpu_median": 172.7,
+     "cpu_max": 221.7,
+     "mem_median_mib": 886,
+     "mem_max_mib": 888,
+     "samples": 7
+    },
+    "payment-service-b-1": {
+     "cpu_median": 196.6,
+     "cpu_max": 265.0,
+     "mem_median_mib": 848,
+     "mem_max_mib": 878,
+     "samples": 7
+    },
+    "postgres-1": {
+     "cpu_median": 246.8,
+     "cpu_max": 292.1,
+     "mem_median_mib": 250,
+     "mem_max_mib": 269,
+     "samples": 7
+    }
+   },
+   "backlog": {
+    "max": 39362,
+    "end": 39362
+   }
+  },
+  {
+   "step": 12,
+   "offered": 1200,
+   "seconds": 30,
+   "accepted": 3344,
+   "declined": 0,
+   "http_4xx": 0,
+   "http_5xx": 17883,
+   "no_response": 1541,
+   "p50": 41.387,
+   "p95": 17632.338599999995,
+   "p99": 25837.81296,
+   "max": 29978.516,
+   "achieved": 111.5,
+   "failed": 19424,
+   "e2e_p50": 171915,
+   "e2e_p95": 194594,
+   "e2e_p99": 198808,
+   "payments_in_db": 4866,
+   "pending_after_drain": 0,
+   "completed": 4866,
+   "failed_terminal": 0,
+   "window": [
+    1794078147,
+    1794078177
+   ],
+   "cpu": {
+    "kafka-1": {
+     "cpu_median": 97.8,
+     "cpu_max": 172.3,
+     "mem_median_mib": 686,
+     "mem_max_mib": 730,
+     "samples": 7
+    },
+    "lb-1": {
+     "cpu_median": 50.7,
+     "cpu_max": 102.0,
+     "mem_median_mib": 113,
+     "mem_max_mib": 119,
+     "samples": 7
+    },
+    "ledger-service-1": {
+     "cpu_median": 73.8,
+     "cpu_max": 226.6,
+     "mem_median_mib": 419,
+     "mem_max_mib": 420,
+     "samples": 7
+    },
+    "ledger-service-b-1": {
+     "cpu_median": 56.4,
+     "cpu_max": 173.2,
+     "mem_median_mib": 396,
+     "mem_max_mib": 405,
+     "samples": 7
+    },
+    "ledger-service-c-1": {
+     "cpu_median": 94.4,
+     "cpu_max": 106.4,
+     "mem_median_mib": 382,
+     "mem_max_mib": 382,
+     "samples": 7
+    },
+    "payment-service-1": {
+     "cpu_median": 220.8,
+     "cpu_max": 260.1,
+     "mem_median_mib": 896,
+     "mem_max_mib": 900,
+     "samples": 7
+    },
+    "payment-service-b-1": {
+     "cpu_median": 249.0,
+     "cpu_max": 297.2,
+     "mem_median_mib": 988,
+     "mem_max_mib": 992,
+     "samples": 7
+    },
+    "postgres-1": {
+     "cpu_median": 220.8,
+     "cpu_max": 356.5,
+     "mem_median_mib": 259,
+     "mem_max_mib": 281,
+     "samples": 7
+    }
+   },
+   "backlog": {
+    "max": 42203,
+    "end": 42203
+   }
+  },
+  {
+   "step": 13,
+   "offered": 1300,
+   "seconds": 30,
+   "accepted": 1543,
+   "declined": 0,
+   "http_4xx": 0,
+   "http_5xx": 35322,
+   "no_response": 805,
+   "p50": 160.759,
+   "p95": 3964.7679999999996,
+   "p99": 18249.598879999987,
+   "max": 29995.012,
+   "achieved": 51.4,
+   "failed": 36127,
+   "e2e_p50": 125272,
+   "e2e_p95": 148732,
+   "e2e_p99": 156337,
+   "payments_in_db": 1971,
+   "pending_after_drain": 0,
+   "completed": 1971,
+   "failed_terminal": 0,
+   "window": [
+    1794078177,
+    1794078207
+   ],
+   "cpu": {
+    "kafka-1": {
+     "cpu_median": 106.4,
+     "cpu_max": 218.2,
+     "mem_median_mib": 686,
+     "mem_max_mib": 692,
+     "samples": 6
+    },
+    "lb-1": {
+     "cpu_median": 147.9,
+     "cpu_max": 180.9,
+     "mem_median_mib": 118,
+     "mem_max_mib": 126,
+     "samples": 6
+    },
+    "ledger-service-1": {
+     "cpu_median": 59.2,
+     "cpu_max": 116.0,
+     "mem_median_mib": 419,
+     "mem_max_mib": 420,
+     "samples": 6
+    },
+    "ledger-service-b-1": {
+     "cpu_median": 54.8,
+     "cpu_max": 138.9,
+     "mem_median_mib": 402,
+     "mem_max_mib": 406,
+     "samples": 6
+    },
+    "ledger-service-c-1": {
+     "cpu_median": 49.8,
+     "cpu_max": 78.2,
+     "mem_median_mib": 382,
+     "mem_max_mib": 385,
+     "samples": 6
+    },
+    "payment-service-1": {
+     "cpu_median": 275.9,
+     "cpu_max": 370.0,
+     "mem_median_mib": 929,
+     "mem_max_mib": 987,
+     "samples": 6
+    },
+    "payment-service-b-1": {
+     "cpu_median": 223.9,
+     "cpu_max": 292.1,
+     "mem_median_mib": 987,
+     "mem_max_mib": 989,
+     "samples": 6
+    },
+    "postgres-1": {
+     "cpu_median": 337.9,
+     "cpu_max": 446.6,
+     "mem_median_mib": 280,
+     "mem_max_mib": 289,
+     "samples": 6
+    }
+   },
+   "backlog": {
+    "max": 44411,
+    "end": 44411
+   }
+  },
+  {
+   "step": 14,
+   "offered": 1400,
+   "seconds": 30,
+   "accepted": 2267,
+   "declined": 0,
+   "http_4xx": 0,
+   "http_5xx": 28535,
+   "no_response": 637,
+   "p50": 60.696,
+   "p95": 6140.124649999999,
+   "p99": 24047.412089999998,
+   "max": 29985.764,
+   "achieved": 75.6,
+   "failed": 29172,
+   "e2e_p50": 117142,
+   "e2e_p95": 143949,
+   "e2e_p99": 145888,
+   "payments_in_db": 2904,
+   "pending_after_drain": 0,
+   "completed": 2904,
+   "failed_terminal": 0,
+   "window": [
+    1794078207,
+    1794078237
+   ],
+   "cpu": {
+    "kafka-1": {
+     "cpu_median": 113.0,
+     "cpu_max": 185.7,
+     "mem_median_mib": 690,
+     "mem_max_mib": 722,
+     "samples": 8
+    },
+    "lb-1": {
+     "cpu_median": 100.3,
+     "cpu_max": 180.3,
+     "mem_median_mib": 122,
+     "mem_max_mib": 124,
+     "samples": 8
+    },
+    "ledger-service-1": {
+     "cpu_median": 71.9,
+     "cpu_max": 237.6,
+     "mem_median_mib": 423,
+     "mem_max_mib": 425,
+     "samples": 8
+    },
+    "ledger-service-b-1": {
+     "cpu_median": 40.3,
+     "cpu_max": 82.7,
+     "mem_median_mib": 402,
+     "mem_max_mib": 406,
+     "samples": 8
+    },
+    "ledger-service-c-1": {
+     "cpu_median": 50.0,
+     "cpu_max": 75.4,
+     "mem_median_mib": 382,
+     "mem_max_mib": 385,
+     "samples": 8
+    },
+    "payment-service-1": {
+     "cpu_median": 246.1,
+     "cpu_max": 301.4,
+     "mem_median_mib": 1022,
+     "mem_max_mib": 1024,
+     "samples": 8
+    },
+    "payment-service-b-1": {
+     "cpu_median": 279.7,
+     "cpu_max": 345.9,
+     "mem_median_mib": 987,
+     "mem_max_mib": 989,
+     "samples": 8
+    },
+    "postgres-1": {
+     "cpu_median": 235.1,
+     "cpu_max": 268.7,
+     "mem_median_mib": 269,
+     "mem_max_mib": 291,
+     "samples": 8
+    }
+   },
+   "backlog": {
+    "max": 48520,
+    "end": 48520
+   }
+  },
+  {
+   "step": 15,
+   "offered": 1500,
+   "seconds": 30,
+   "accepted": 3772,
+   "declined": 0,
+   "http_4xx": 0,
+   "http_5xx": 32787,
+   "no_response": 54,
+   "p50": 100.238,
+   "p95": 15833.31139999999,
+   "p99": 28163.662959999994,
+   "max": 29981.754,
+   "achieved": 125.7,
+   "failed": 32841,
+   "e2e_p50": 82445,
+   "e2e_p95": 107166,
+   "e2e_p99": 112240,
+   "payments_in_db": 3826,
+   "pending_after_drain": 0,
+   "completed": 3826,
+   "failed_terminal": 0,
+   "window": [
+    1794078237,
+    1794078267
+   ],
+   "cpu": {
+    "kafka-1": {
+     "cpu_median": 97.1,
+     "cpu_max": 214.9,
+     "mem_median_mib": 690,
+     "mem_max_mib": 691,
+     "samples": 7
+    },
+    "lb-1": {
+     "cpu_median": 113.1,
+     "cpu_max": 243.5,
+     "mem_median_mib": 119,
+     "mem_max_mib": 123,
+     "samples": 7
+    },
+    "ledger-service-1": {
+     "cpu_median": 56.9,
+     "cpu_max": 156.5,
+     "mem_median_mib": 425,
+     "mem_max_mib": 426,
+     "samples": 7
+    },
+    "ledger-service-b-1": {
+     "cpu_median": 54.0,
+     "cpu_max": 126.8,
+     "mem_median_mib": 402,
+     "mem_max_mib": 402,
+     "samples": 7
+    },
+    "ledger-service-c-1": {
+     "cpu_median": 81.9,
+     "cpu_max": 153.0,
+     "mem_median_mib": 382,
+     "mem_max_mib": 383,
+     "samples": 7
+    },
+    "payment-service-1": {
+     "cpu_median": 224.1,
+     "cpu_max": 292.4,
+     "mem_median_mib": 1021,
+     "mem_max_mib": 1024,
+     "samples": 7
+    },
+    "payment-service-b-1": {
+     "cpu_median": 246.0,
+     "cpu_max": 289.8,
+     "mem_median_mib": 984,
+     "mem_max_mib": 986,
+     "samples": 7
+    },
+    "postgres-1": {
+     "cpu_median": 287.9,
+     "cpu_max": 440.6,
+     "mem_median_mib": 284,
+     "mem_max_mib": 294,
+     "samples": 7
+    }
+   },
+   "backlog": {
+    "max": 49910,
+    "end": 49910
+   }
+  }
+ ],
+ "first_saturated_step": 1,
+ "first_saturated_offered": 100,
+ "last_sustained_offered": null,
+ "max_achieved": 187.1,
+ "steady_target_70pct": null
+}

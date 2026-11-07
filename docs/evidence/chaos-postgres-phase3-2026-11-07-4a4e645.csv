@@ -1,0 +1,32 @@
+campaign,run,scenario,result,k6,recovery_s,settle_s,crashes,dup_ledger,dup_payment,dlt_new,e2e_ms_p50_p95_p99,violations,note,attempt
+final-part1,1,kill-ledger,PASS,accepted=5682 declined=0 failed=0 retries=0 rate=94.9/s post_p50=13.9ms p95=645.1ms p99=3735.6ms,57.1,3,0,61,0,0,33681/51030/52578,0,,1
+final-part1,2,kill-payment,PASS,accepted=4749 declined=0 failed=827 retries=4893 rate=92.9/s post_p50=8.3ms p95=703.6ms p99=1786.0ms,43.5,0,0,61,1,0,11500/27985/28564,0,,1
+final-part1,3,pause-postgres,PASS,accepted=5368 declined=0 failed=0 retries=0 rate=89.5/s post_p50=5.8ms p95=6117.9ms p99=9911.6ms,0.8,0,0,61,1,0,40/292/497,0,,1
+final-part1,4,restart-kafka,PASS,accepted=6001 declined=0 failed=0 retries=0 rate=100.0/s post_p50=6.0ms p95=24.2ms p99=63.2ms,21.3,0,0,61,1,0,56/16858/18453,0,,1
+final-part1,5,replay,PASS,accepted=3629 declined=0 failed=1692 retries=9248 rate=88.6/s post_p50=6.9ms p95=740.7ms p99=1629.6ms,40.5,2,0,3000,3000,0,5861/39498/40283,0,,1
+final-part1,6,hot-account,PASS,accepted=6001 declined=0 failed=0 retries=0 rate=100.0/s post_p50=6.8ms p95=73.6ms p99=720.9ms,4.4,1,0,3000,3000,0,44/1547/2555,0,hot completed/failed/total=50/150/200 balance=0;,1
+final-part1,7,crash-before-payment-outbox-commit,PASS,accepted=2908 declined=0 failed=1959 retries=11847 rate=72.7/s post_p50=211.1ms p95=2771.9ms p99=3892.5ms,28.5,0,3,3084,0,0,54610/76268/77009,0,,1
+final-part1,8,crash-after-publish-before-mark,PASS,accepted=6001 declined=0 failed=0 retries=0 rate=100.0/s post_p50=8.6ms p95=102.3ms p99=239.7ms,35.8,5,1,0,7,0,44227/63016/64336,0,,1
+final-part1,9,crash-after-ledger-commit-before-ack,PASS,accepted=6001 declined=0 failed=0 retries=0 rate=100.0/s post_p50=7.3ms p95=50.5ms p99=97.2ms,26.5,3,1,0,0,0,35731/53270/54573,0,,1
+final-part1,10,kill-ledger,PASS,accepted=6001 declined=0 failed=0 retries=0 rate=100.0/s post_p50=5.8ms p95=27.0ms p99=64.3ms,55.4,2,0,0,0,0,27827/44934/45161,0,,1
+final-part1,11,kill-payment,PASS,accepted=4427 declined=0 failed=1056 retries=6090 rate=91.4/s post_p50=9.2ms p95=977.9ms p99=2033.8ms,43.0,1,0,0,0,0,10322/25087/25701,0,,1
+final-part1,12,pause-postgres,PASS,accepted=5364 declined=0 failed=0 retries=0 rate=89.4/s post_p50=6.4ms p95=6312.0ms p99=10059.9ms,2.4,0,0,0,0,0,42/1245/1739,0,,1
+final-part1,13,restart-kafka,PASS,accepted=6001 declined=0 failed=0 retries=0 rate=100.0/s post_p50=7.0ms p95=28.5ms p99=69.2ms,21.6,1,0,0,0,0,130/20325/23915,0,,1
+final-part1,14,replay,PASS,accepted=3585 declined=0 failed=1712 retries=9351 rate=88.2/s post_p50=8.4ms p95=1004.6ms p99=2016.0ms,41.7,3,0,3000,3000,0,5643/40467/41305,0,,1
+final-part1,15,hot-account,PASS,accepted=6001 declined=0 failed=0 retries=0 rate=100.0/s post_p50=7.5ms p95=146.3ms p99=856.7ms,4.8,0,0,3000,3000,0,47/1950/2418,0,hot completed/failed/total=50/150/200 balance=0;,1
+final-part1,16,crash-before-payment-outbox-commit,PASS,accepted=4090 declined=0 failed=1231 retries=7524 rate=88.2/s post_p50=30.9ms p95=1983.3ms p99=2698.2ms,56.1,0,2,3000,0,0,1131/76749/77222,0,,1
+final-part1,17,crash-after-publish-before-mark,FAIL,accepted=4988 declined=0 failed=638 retries=3996 rate=89.2/s post_p50=9.9ms p95=277.4ms p99=743.5ms,TIMEOUT,TIMEOUT,1,2,0,0,2790/4093/4370,3608,no recovery;settle timeout;,1
+final-part2,1,crash-after-publish-before-mark,PASS,accepted=4853 declined=0 failed=811 retries=4811 rate=73.5/s post_p50=37.5ms p95=973.0ms p99=1848.9ms,36.8,3,2,5,0,0,15157/77978/78549,0,,1
+final-part2,2,crash-after-ledger-commit-before-ack,PASS,accepted=5982 declined=0 failed=0 retries=0 rate=99.7/s post_p50=8.9ms p95=151.0ms p99=1227.9ms,23.1,1,1,0,0,0,27655/45560/46780,0,,1
+final-part2,3,kill-ledger,PASS,accepted=6001 declined=0 failed=0 retries=0 rate=100.0/s post_p50=5.6ms p95=26.3ms p99=48.9ms,51.7,2,0,1,0,0,23643/43040/44940,0,,1
+final-part2,4,kill-payment,PASS,accepted=4517 declined=0 failed=1001 retries=5810 rate=91.9/s post_p50=8.5ms p95=358.8ms p99=1250.2ms,43.4,1,0,1,0,0,10603/25913/26374,0,,1
+final-part2,5,pause-postgres,PASS,accepted=5367 declined=0 failed=0 retries=0 rate=89.4/s post_p50=6.5ms p95=6062.4ms p99=10085.4ms,2.2,1,0,1,0,0,42/1062/1550,0,,1
+final-part2,6,restart-kafka,PASS,accepted=6000 declined=0 failed=0 retries=0 rate=100.0/s post_p50=5.8ms p95=22.2ms p99=48.5ms,21.7,1,0,1,0,0,56/17589/20603,0,,1
+final-part2,7,replay,PASS,accepted=3105 declined=0 failed=1974 retries=10698 rate=84.4/s post_p50=6.2ms p95=2963.1ms p99=3972.2ms,47.6,4,0,3000,3000,0,7906/47156/48169,0,,1
+final-part2,8,hot-account,PASS,accepted=6000 declined=0 failed=0 retries=0 rate=100.0/s post_p50=6.9ms p95=421.8ms p99=894.3ms,4.8,0,0,3000,3000,0,46/1974/3019,0,hot completed/failed/total=50/150/200 balance=0;,1
+final-part2,9,crash-before-payment-outbox-commit,PASS,accepted=3634 declined=0 failed=1609 retries=9388 rate=81.0/s post_p50=11.5ms p95=889.5ms p99=1648.6ms,97.5,0,3,3000,0,0,75/117504/118059,0,,1
+final-part2,10,crash-after-publish-before-mark,PASS,accepted=6000 declined=0 failed=0 retries=0 rate=100.0/s post_p50=8.9ms p95=191.3ms p99=424.2ms,39.0,3,1,0,2,0,44239/60801/62391,0,,1
+final-part2,11,crash-after-ledger-commit-before-ack,PASS,accepted=6001 declined=0 failed=0 retries=0 rate=100.0/s post_p50=8.4ms p95=69.6ms p99=208.4ms,22.4,2,1,0,0,0,27146/45541/46600,0,,1
+scaled,1,kill-ledger-replica,PASS,accepted=5879 declined=0 failed=0 retries=0 rate=97.9/s post_p50=134.9ms p95=1732.3ms p99=3106.0ms,6.4,17,0,2,4,0,8267/47142/52357,0,,1
+scaled,2,kill-ledger-replica,PASS,accepted=6001 declined=0 failed=0 retries=0 rate=100.0/s post_p50=22.1ms p95=136.2ms p99=285.4ms,47.5,2,0,2,2,0,184/36940/44072,0,,1
+scaled,3,kill-ledger-replica,PASS,accepted=6001 declined=0 failed=0 retries=0 rate=100.0/s post_p50=10.3ms p95=49.1ms p99=95.5ms,1.4,12,0,0,2,0,159/40335/45688,0,,1

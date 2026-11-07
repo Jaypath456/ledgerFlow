@@ -3,6 +3,8 @@ PROJECT=${PROJECT:-ledgerflow-chaos}
 C="docker compose -p $PROJECT -f infra/docker-compose.yml -f infra/docker-compose.load.yml"
 # OBSERVABILITY=1 (chaos/bench.sh only): add the opt-in observability profile and its app overlay (ADR 0004).
 if [ "${OBSERVABILITY:-0}" = 1 ]; then C="$C -f infra/docker-compose.observability.yml --profile observability"; fi
+# SCALE=1: scaled topology, 2 payment-service + 3 ledger-service replicas behind HAProxy on the usual host ports 8081/8082 (ADR 0006).
+if [ "${SCALE:-0}" = 1 ]; then C="$C -f infra/docker-compose.scale.yml"; fi
 PAYMENT_URL=${PAYMENT_URL:-http://localhost:8081}
 LEDGER_URL=${LEDGER_URL:-http://localhost:8082}
 
