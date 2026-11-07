@@ -1,5 +1,5 @@
 Chaos regression, Roadmap Phase 2 on PostgreSQL, 2026-11-07 (one campaign, one run per scenario)
-Code: 6e278b9 (feat/observability) plus the uncommitted Phase 2 changes (commit 6e278b9). Raw rows: chaos-postgres-phase2-2026-11-07-0c5dc1d.csv
+Code: 0c5dc1d (feat/observability, based on 6e278b9). Raw rows: chaos-postgres-phase2-2026-11-07-0c5dc1d.csv
 (copy of chaos/results/chaos-20261107-023935/runs.csv).
 
 Purpose: regression check of the Phase 2 relay and listener changes (trace context on outbox rows, per-row publish spans, Kafka

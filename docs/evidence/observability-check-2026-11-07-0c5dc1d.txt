@@ -1,5 +1,5 @@
 Observability profile check, Roadmap Phase 2, 2026-11-07
-Code: 6e278b9 (feat/observability) plus the uncommitted Phase 2 changes (commit 6e278b9).
+Code: 0c5dc1d (feat/observability, based on 6e278b9).
 Host: MacBook Air (Apple M4), 10 CPUs, 16 GiB RAM, macOS 27.0.1, Docker Desktop (Engine 29.8.2, Compose 5.6.0; VM 10 CPUs, 9.701 GiB).
 Stack: Compose project ledgerflow-obs1, started with
   PROJECT=ledgerflow-obs1 OBSERVABILITY=1, i.e. docker compose -p ledgerflow-obs1 -f infra/docker-compose.yml -f infra/docker-compose.load.yml

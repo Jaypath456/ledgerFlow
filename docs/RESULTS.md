@@ -506,7 +506,7 @@ Local laptop only, one broker and one database, one run per scenario per campaig
 
 ## Roadmap Phase 2: observability, 2026-11-07
 
-Branch `feat/observability`, based on `6e278b9` plus the Phase 2 changes (commit `6e278b9`). Design and alternatives: ADR 0004.
+Branch `feat/observability`, based on `6e278b9` plus the Phase 2 changes (commit `0c5dc1d`). Design and alternatives: ADR 0004.
 
 Environment: MacBook Air (Apple M4), 10 CPUs, 16 GiB RAM, macOS 27.0.1, Docker Desktop (Engine 29.8.2, Compose 5.6.0, VM 10 CPUs and
 9.701 GiB), JDK Temurin 25.0.4.1. Containers: `postgres:17.11`, `apache/kafka:4.0.0`, services on `eclipse-temurin:25.0.5_8-jre` with a

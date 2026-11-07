@@ -1,5 +1,5 @@
 Date: 2026-11-07
-Commit: 6e278b9 (6e278b9 plus all Phase 2 changes, final tree after step 5)
+Commit: 0c5dc1d (6e278b9 plus all Phase 2 changes, final tree after step 5)
 Command: bash scripts/smoke.sh   (fresh project ledgerflow-delivery-4e87b5b156, stopped afterwards with the command it prints; data kept)
 Host: MacBook Air (Apple M4), 10 CPUs, 16 GiB RAM, macOS 27.0.1, Docker Desktop (Engine 29.8.2, Compose 5.6.0)
 Earlier run on the same day after the step 4 verify (before the step 5 Compose changes): 7 of 7 passed, project ledgerflow-delivery-a8c34b4930.
