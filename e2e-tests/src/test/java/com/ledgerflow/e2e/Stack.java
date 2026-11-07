@@ -4,6 +4,7 @@ import com.ledgerflow.ledger.LedgerService;
 import com.ledgerflow.ledger.LedgerServiceApplication;
 import com.ledgerflow.payment.PaymentSecurity;
 import com.ledgerflow.payment.PaymentServiceApplication;
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -42,6 +43,8 @@ final class Stack {
     static final ConfigurableApplicationContext LEDGER;
     static final ConfigurableApplicationContext PAYMENT;
     static final JsonMapper JSON = JsonMapper.builder().build();
+    /** Finished spans of both services (sampling 1.0 is the default). */
+    static final InMemorySpanExporter SPANS = InMemorySpanExporter.create();
     private static final HttpClient HTTP = HttpClient.newHttpClient();
 
     static {
@@ -54,13 +57,16 @@ final class Stack {
     private Stack() {}
 
     private static ConfigurableApplicationContext start(Class<?> app, String configName, String dbUser) {
-        return new SpringApplicationBuilder(app).properties(configName).run(
+        return new SpringApplicationBuilder(app).properties(configName)
+                .initializers(context -> context.getBeanFactory().registerSingleton("e2eSpanExporter", SPANS))
+                .run(
                 "--server.port=0",
                 "--spring.datasource.url=" + POSTGRES.getJdbcUrl(),
                 "--spring.datasource.username=" + dbUser,
                 "--spring.datasource.password=" + dbUser,
                 "--spring.kafka.bootstrap-servers=" + KAFKA.getBootstrapServers(),
-                "--ledgerflow.reconcile.interval-ms=1000"); // stale threshold stays 30 s
+                "--ledgerflow.reconcile.interval-ms=1000", // stale threshold stays 30 s
+                "--management.opentelemetry.tracing.export.schedule-delay=100ms");
     }
 
     static JdbcClient ledgerDb() {
