@@ -10,7 +10,7 @@ a fixed bottleneck, horizontal scaling, Kubernetes deployment and clear docs. Ev
 ## Baseline
 - `v1.3.0-mongodb` = `33cd86d` (main when this roadmap was written; MongoDB 8.0 build).
 - `v1.2.0-postgres` tests: 58 (payment-service 23, ledger-service 21, e2e-tests 14), from `docs/evidence/verify-2026-10-25.txt`.
-- Current main tests: 66 (payment-service 28, ledger-service 21, e2e-tests 17), as stated in the README.
+- Current main tests: 69 (payment-service 31, ledger-service 21, e2e-tests 17), from `docs/evidence/verify-postgres-phase1b-2026-11-05-2b58c27.txt`.
 
 ## Global rules (every phase)
 - Never run git commit, push, tag, merge, rebase or reset. I create branches, tags and commits myself. After each logical step, stop and show:

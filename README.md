@@ -1,3 +1,7 @@
+> **Status:** `main` now runs PostgreSQL 17 (v2.0 in progress). The sections below still describe the MongoDB version
+> (tag `v1.3.0-mongodb`) until the README rewrite. Current results: [docs/RESULTS.md](docs/RESULTS.md); why PostgreSQL:
+> [docs/adr/0001-postgres-over-mongodb.md](docs/adr/0001-postgres-over-mongodb.md).
+
 I built LedgerFlow to study a local payments backend with Java 25, Spring Boot, MongoDB and Kafka. It has a payment service and a double-entry ledger service, each with its own database and user. I use it to study retries, duplicate messages, concurrent payments and recovery after crashes. I built this project with help from AI tools, including Claude Code and Codex.
 
 I run the stack with Docker and Docker Compose:
