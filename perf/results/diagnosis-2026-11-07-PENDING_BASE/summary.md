@@ -1,0 +1,12 @@
+mode steady; load generator host k6 (exit 0); dropped iterations 1462; max VUs 1130; drain 32 s; invariant violations 0
+measured window 120 s after a 45 s warm-up (excluded)
+offered 1400/s, achieved 1398.8/s, accepted 167857, declined 0, failed 0 (4xx 0, 5xx 0, no response 0)
+POST p50/p95/p99 ms: 13.1/371.1/732.3   request-to-terminal p50/p95/p99 ms: 27614/61917/65681   pending after drain: 0
+  grafana-1: CPU median 0.3 % max 8.4 %, memory median 356 MiB max 357 MiB
+  jaeger-1: CPU median 1.9 % max 46.8 %, memory median 437 MiB max 437 MiB
+  kafka-1: CPU median 7.8 % max 135.3 %, memory median 543 MiB max 628 MiB
+  ledger-service-1: CPU median 62.0 % max 78.6 %, memory median 592 MiB max 678 MiB
+  payment-service-1: CPU median 329.1 % max 372.2 %, memory median 994 MiB max 1000 MiB
+  postgres-1: CPU median 265.9 % max 325.0 %, memory median 228 MiB max 249 MiB
+  prometheus-1: CPU median 0.2 % max 2.6 %, memory median 59 MiB max 153 MiB
+  backlog max 61369 end 61369

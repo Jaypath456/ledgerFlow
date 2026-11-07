@@ -1,0 +1,20 @@
+Code: PENDING_BASE (service code unchanged from Phase 2 (baseline))
+date: 2026-11-07 04:42:13 EST
+git: 4acc4d1 working tree differs from HEAD
+mode: steady  name: steady  project: ledgerflow-p3-diag  run_id: r044153
+host: Apple M4, 10 CPUs, 16 GiB RAM, Darwin 27.0.0
+docker: engine 29.8.2, compose 5.6.0, VM 10 CPUs, 10416644096 bytes
+k6: host k6 v2.3.0 (commit/devel, go1.27.1, darwin/arm64)
+compose command: docker compose -p ledgerflow-p3-diag -f infra/docker-compose.yml -f infra/docker-compose.load.yml -f infra/docker-compose.observability.yml --profile observability
+settings: TRACING_SAMPLING_PROBABILITY=0.1 RISK_VELOCITY_MAX=1000000 OBSERVABILITY=1 SCALE=0 (load identities bcrypt cost 4)
+load: steady RATE=1400 WARMUP_SECONDS=45 DURATION_SECONDS=120
+containers:
+  ledgerflow-p3-diag-grafana-1 image=grafana/grafana-oss:12.4.3 mem_limit=402653184 nano_cpus=0
+  ledgerflow-p3-diag-jaeger-1 image=jaegertracing/jaeger:2.23.0 mem_limit=536870912 nano_cpus=0
+  ledgerflow-p3-diag-kafka-1 image=apache/kafka:4.0.0 mem_limit=1073741824 nano_cpus=0
+  ledgerflow-p3-diag-ledger-service-1 image=ledgerflow-p3-diag-ledger-service mem_limit=1073741824 nano_cpus=0
+  ledgerflow-p3-diag-payment-service-1 image=ledgerflow-p3-diag-payment-service mem_limit=1073741824 nano_cpus=0
+  ledgerflow-p3-diag-postgres-1 image=postgres:17.11 mem_limit=1073741824 nano_cpus=0
+  ledgerflow-p3-diag-prometheus-1 image=prom/prometheus:v3.15.1 mem_limit=536870912 nano_cpus=0
+  env ledger-service {"JAVA_TOOL_OPTIONS": "-XX:MaxRAMPercentage=50", "LEDGERFLOW_CHAOS_FAULTS": "", "LEDGERFLOW_CHAOS_PROBABILITY": "0", "LEDGERFLOW_OUTBOX_POLL_MS": "10", "MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT": "http://jaeger:4318/v1/traces", "MANAGEMENT_SERVER_PORT": "9082", "RISK_VELOCITY_MAX": "1000000", "SPRING_PROFILES_ACTIVE": "default", "TRACING_SAMPLING_PROBABILITY": "0.1"}
+  env payment-service {"JAVA_TOOL_OPTIONS": "-XX:MaxRAMPercentage=50", "LEDGERFLOW_AUTH_BCRYPTSTRENGTH": "4", "LEDGERFLOW_CHAOS_FAULTS": "", "LEDGERFLOW_CHAOS_PROBABILITY": "0", "LEDGERFLOW_OUTBOX_POLL_MS": "10", "MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT": "http://jaeger:4318/v1/traces", "MANAGEMENT_SERVER_PORT": "9081", "RISK_VELOCITY_MAX": "1000000", "SPRING_PROFILES_ACTIVE": "default", "TRACING_SAMPLING_PROBABILITY": "0.1"}

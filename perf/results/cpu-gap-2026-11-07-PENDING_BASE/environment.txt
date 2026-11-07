@@ -1,0 +1,6 @@
+Code: PENDING_BASE (service code unchanged from Phase 2 (baseline))
+date: 2026-11-07 04:03:53 EST
+host: Apple M4, 10 CPUs, 16 GiB RAM, Darwin 27.0.0
+docker: engine 29.8.2, compose 5.6.0, VM 10 CPUs, 10416644096 bytes
+images: postgres:17.11 apache/kafka:4.0.0 grafana/k6:2.3.0 (--memory 1g) eclipse-temurin:25.0.5_8-jre; 1 GiB limit per container, -XX:MaxRAMPercentage=50
+runner: .overnight/p3-bench.sh (not part of the repo), driver .overnight/p3-step1.sh; old tree = git archive 6e278b9; current tree HEAD 4acc4d1 clean

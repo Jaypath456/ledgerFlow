@@ -1,0 +1,489 @@
+{"t":1794044534,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[]}
+{"t":1794044534,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[]}
+{"t":1794044534,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[]}
+{"t":1794044534,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[]}
+{"t":1794044534,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[]}
+{"t":1794044534,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[]}
+{"t":1794044534,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[]}
+{"t":1794044534,"q":"sum by (application) (hikaricp_connections_active)","r":[]}
+{"t":1794044534,"q":"sum by (application) (hikaricp_connections_pending)","r":[]}
+{"t":1794044534,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[]}
+{"t":1794044538,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044538,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044538,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[]}
+{"t":1794044538,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[]}
+{"t":1794044538,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[]}
+{"t":1794044538,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[]}
+{"t":1794044538,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[]}
+{"t":1794044538,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044538,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044538,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"0.000552"},{"m":{"application":"ledger-service"},"v":"0.00065425"}]}
+{"t":1794044542,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044542,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044542,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[]}
+{"t":1794044542,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[]}
+{"t":1794044542,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[]}
+{"t":1794044542,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[]}
+{"t":1794044542,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[]}
+{"t":1794044542,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044542,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044542,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"0.000552"},{"m":{"application":"ledger-service"},"v":"0.00065425"}]}
+{"t":1794044547,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044547,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044547,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[]}
+{"t":1794044547,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[]}
+{"t":1794044547,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[]}
+{"t":1794044547,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[]}
+{"t":1794044547,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[]}
+{"t":1794044547,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044547,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044547,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"0.000552"},{"m":{"application":"ledger-service"},"v":"0.00065425"}]}
+{"t":1794044551,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044551,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044551,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[]}
+{"t":1794044551,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[]}
+{"t":1794044551,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[]}
+{"t":1794044551,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[]}
+{"t":1794044551,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[]}
+{"t":1794044551,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044551,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044551,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"0.000552"},{"m":{"application":"ledger-service"},"v":"0.00065425"}]}
+{"t":1794044556,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044556,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044556,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[]}
+{"t":1794044556,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[]}
+{"t":1794044556,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"3.480024781184615"}]}
+{"t":1794044556,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[]}
+{"t":1794044556,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[]}
+{"t":1794044556,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"4"}]}
+{"t":1794044556,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"186"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044556,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044560,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044560,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044560,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[]}
+{"t":1794044560,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[]}
+{"t":1794044560,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"3.480024781184615"}]}
+{"t":1794044560,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[]}
+{"t":1794044560,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[]}
+{"t":1794044560,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"4"}]}
+{"t":1794044560,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"186"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044560,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044565,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044565,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044565,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[]}
+{"t":1794044565,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[]}
+{"t":1794044565,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"3.480024781184615"}]}
+{"t":1794044565,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[]}
+{"t":1794044565,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[]}
+{"t":1794044565,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"4"}]}
+{"t":1794044565,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"186"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044565,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044569,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"525"},{"m":{"application":"ledger-service"},"v":"7"}]}
+{"t":1794044569,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.501785"},{"m":{"application":"ledger-service"},"v":"0.013321"}]}
+{"t":1794044569,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[]}
+{"t":1794044569,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"479.18027424050496"}]}
+{"t":1794044569,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"15.407137980033031"}]}
+{"t":1794044569,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.4312029703743399"}]}
+{"t":1794044569,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"929.9554066666668"}]}
+{"t":1794044569,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"9"},{"m":{"application":"ledger-service"},"v":"4"}]}
+{"t":1794044569,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"29"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044569,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044573,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"525"},{"m":{"application":"ledger-service"},"v":"7"}]}
+{"t":1794044573,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.501785"},{"m":{"application":"ledger-service"},"v":"0.013321"}]}
+{"t":1794044573,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[]}
+{"t":1794044573,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"590.5995155232571"}]}
+{"t":1794044573,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"15.408015534767433"}]}
+{"t":1794044573,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.42407411624080377"}]}
+{"t":1794044573,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1147.0986022222223"}]}
+{"t":1794044573,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"9"},{"m":{"application":"ledger-service"},"v":"4"}]}
+{"t":1794044573,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"29"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044573,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044578,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"525"},{"m":{"application":"ledger-service"},"v":"7"}]}
+{"t":1794044578,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.501785"},{"m":{"application":"ledger-service"},"v":"0.013321"}]}
+{"t":1794044578,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[]}
+{"t":1794044578,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"702.7173100428917"}]}
+{"t":1794044578,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"15.408593257353566"}]}
+{"t":1794044578,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.41893511201735917"}]}
+{"t":1794044578,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1364.8721822222224"}]}
+{"t":1794044578,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"9"},{"m":{"application":"ledger-service"},"v":"4"}]}
+{"t":1794044578,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"29"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044578,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044582,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"23"},{"m":{"application":"ledger-service"},"v":"5"}]}
+{"t":1794044582,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.026325"},{"m":{"application":"ledger-service"},"v":"0.013628"}]}
+{"t":1794044582,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[]}
+{"t":1794044582,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"561.1625891607227"}]}
+{"t":1794044582,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"21.56478872232912"}]}
+{"t":1794044582,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.1879736124451533"}]}
+{"t":1794044582,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1394.8"}]}
+{"t":1794044582,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"3"}]}
+{"t":1794044582,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"66"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044582,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044587,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"23"},{"m":{"application":"ledger-service"},"v":"5"}]}
+{"t":1794044587,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.026325"},{"m":{"application":"ledger-service"},"v":"0.013628"}]}
+{"t":1794044587,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[]}
+{"t":1794044587,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"561.1625891607226"}]}
+{"t":1794044587,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"21.63630799928389"}]}
+{"t":1794044587,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.08749523091134162"}]}
+{"t":1794044587,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1394.8"}]}
+{"t":1794044587,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"3"}]}
+{"t":1794044587,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"66"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044587,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044591,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"23"},{"m":{"application":"ledger-service"},"v":"5"}]}
+{"t":1794044591,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.026325"},{"m":{"application":"ledger-service"},"v":"0.013628"}]}
+{"t":1794044591,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[]}
+{"t":1794044591,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"561.1625891607226"}]}
+{"t":1794044591,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"21.8177411758928"}]}
+{"t":1794044591,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.08749523091134162"}]}
+{"t":1794044591,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1394.8"}]}
+{"t":1794044591,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"3"}]}
+{"t":1794044591,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"66"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044591,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044596,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"23"},{"m":{"application":"ledger-service"},"v":"5"}]}
+{"t":1794044596,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.026325"},{"m":{"application":"ledger-service"},"v":"0.013628"}]}
+{"t":1794044596,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[]}
+{"t":1794044596,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"561.1625891607226"}]}
+{"t":1794044596,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"21.88332102641491"}]}
+{"t":1794044596,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.08749523091134162"}]}
+{"t":1794044596,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1394.8"}]}
+{"t":1794044596,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"3"}]}
+{"t":1794044596,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"66"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044596,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044600,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"34"},{"m":{"application":"ledger-service"},"v":"8"}]}
+{"t":1794044600,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.021677"},{"m":{"application":"ledger-service"},"v":"0.014976"}]}
+{"t":1794044600,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2701"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"14876"}]}
+{"t":1794044600,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"510.73333333333335"}]}
+{"t":1794044600,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"27.72054347799253"}]}
+{"t":1794044600,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.28847947093822823"}]}
+{"t":1794044600,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1385.0666666666666"}]}
+{"t":1794044600,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"3"}]}
+{"t":1794044600,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"194"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044600,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044605,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"34"},{"m":{"application":"ledger-service"},"v":"8"}]}
+{"t":1794044605,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.021677"},{"m":{"application":"ledger-service"},"v":"0.014976"}]}
+{"t":1794044605,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2701"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"14876"}]}
+{"t":1794044605,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"510.73333333333335"}]}
+{"t":1794044605,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"27.72054347799253"}]}
+{"t":1794044605,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.28847947093822823"}]}
+{"t":1794044605,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1385.0666666666666"}]}
+{"t":1794044605,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"3"}]}
+{"t":1794044605,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"194"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044605,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044609,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"34"},{"m":{"application":"ledger-service"},"v":"8"}]}
+{"t":1794044609,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.021677"},{"m":{"application":"ledger-service"},"v":"0.014976"}]}
+{"t":1794044609,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2701"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"14876"}]}
+{"t":1794044609,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"510.73333333333335"}]}
+{"t":1794044609,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"27.72054347799253"}]}
+{"t":1794044609,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.28847947093822823"}]}
+{"t":1794044609,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1385.0666666666666"}]}
+{"t":1794044609,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"3"}]}
+{"t":1794044609,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"194"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044609,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044614,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"67"},{"m":{"application":"ledger-service"},"v":"43"}]}
+{"t":1794044614,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.07448"},{"m":{"application":"ledger-service"},"v":"0.022975"}]}
+{"t":1794044614,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2701"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"17907"}]}
+{"t":1794044614,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1348.8"}]}
+{"t":1794044614,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"36.49534863372779"}]}
+{"t":1794044614,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.2632700220763485"}]}
+{"t":1794044614,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1408.8666666666666"}]}
+{"t":1794044614,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"9"},{"m":{"application":"ledger-service"},"v":"4"}]}
+{"t":1794044614,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"13"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044614,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044618,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"67"},{"m":{"application":"ledger-service"},"v":"43"}]}
+{"t":1794044618,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.07448"},{"m":{"application":"ledger-service"},"v":"0.022975"}]}
+{"t":1794044618,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2701"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"17907"}]}
+{"t":1794044618,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1348.8"}]}
+{"t":1794044618,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"36.49534863372779"}]}
+{"t":1794044618,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.26327002207634853"}]}
+{"t":1794044618,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1408.8666666666666"}]}
+{"t":1794044618,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"9"},{"m":{"application":"ledger-service"},"v":"4"}]}
+{"t":1794044618,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"13"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044618,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044623,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"67"},{"m":{"application":"ledger-service"},"v":"43"}]}
+{"t":1794044623,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.07448"},{"m":{"application":"ledger-service"},"v":"0.022975"}]}
+{"t":1794044623,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2701"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"17907"}]}
+{"t":1794044623,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1348.8"}]}
+{"t":1794044623,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"36.49534863372779"}]}
+{"t":1794044623,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.2632700220763485"}]}
+{"t":1794044623,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1408.8666666666666"}]}
+{"t":1794044623,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"9"},{"m":{"application":"ledger-service"},"v":"4"}]}
+{"t":1794044623,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"13"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044623,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044627,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"67"},{"m":{"application":"ledger-service"},"v":"43"}]}
+{"t":1794044627,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.07448"},{"m":{"application":"ledger-service"},"v":"0.022975"}]}
+{"t":1794044627,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2701"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"17907"}]}
+{"t":1794044627,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1348.8"}]}
+{"t":1794044627,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"40.151123527101774"}]}
+{"t":1794044627,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.23765485450400015"}]}
+{"t":1794044627,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1398.4"}]}
+{"t":1794044627,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"4"}]}
+{"t":1794044627,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"23"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044627,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044632,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"115"},{"m":{"application":"ledger-service"},"v":"18"}]}
+{"t":1794044632,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.073401"},{"m":{"application":"ledger-service"},"v":"0.026538"}]}
+{"t":1794044632,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2701"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"19882"}]}
+{"t":1794044632,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1290.8"}]}
+{"t":1794044632,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"40.151123527101774"}]}
+{"t":1794044632,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.23765485450400015"}]}
+{"t":1794044632,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1398.4"}]}
+{"t":1794044632,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"3"}]}
+{"t":1794044632,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"23"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044632,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044636,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"115"},{"m":{"application":"ledger-service"},"v":"18"}]}
+{"t":1794044636,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.073401"},{"m":{"application":"ledger-service"},"v":"0.026538"}]}
+{"t":1794044636,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2701"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"19882"}]}
+{"t":1794044636,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1290.8"}]}
+{"t":1794044636,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"40.151123527101774"}]}
+{"t":1794044636,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.23765485450400015"}]}
+{"t":1794044636,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1398.4"}]}
+{"t":1794044636,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"3"}]}
+{"t":1794044636,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"23"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044636,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044641,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"115"},{"m":{"application":"ledger-service"},"v":"18"}]}
+{"t":1794044641,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.073401"},{"m":{"application":"ledger-service"},"v":"0.026538"}]}
+{"t":1794044641,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2701"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"19882"}]}
+{"t":1794044641,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1290.8"}]}
+{"t":1794044641,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"40.151123527101774"}]}
+{"t":1794044641,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.23765485450400015"}]}
+{"t":1794044641,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1398.4"}]}
+{"t":1794044641,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"3"}]}
+{"t":1794044641,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"23"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044641,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044645,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"16"},{"m":{"application":"ledger-service"},"v":"13"}]}
+{"t":1794044645,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.012933"},{"m":{"application":"ledger-service"},"v":"0.007727"}]}
+{"t":1794044645,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2701"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"22952"}]}
+{"t":1794044645,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1303.086872458164"}]}
+{"t":1794044645,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"44.189481813965806"}]}
+{"t":1794044645,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.12316315059486294"}]}
+{"t":1794044645,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1403.0666666666666"}]}
+{"t":1794044645,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"9"},{"m":{"application":"ledger-service"},"v":"4"}]}
+{"t":1794044645,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"36"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044645,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044650,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"16"},{"m":{"application":"ledger-service"},"v":"13"}]}
+{"t":1794044650,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.012933"},{"m":{"application":"ledger-service"},"v":"0.007727"}]}
+{"t":1794044650,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2701"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"22952"}]}
+{"t":1794044650,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1303.086872458164"}]}
+{"t":1794044650,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"44.189481813965806"}]}
+{"t":1794044650,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.12316315059486294"}]}
+{"t":1794044650,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1403.0666666666666"}]}
+{"t":1794044650,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"9"},{"m":{"application":"ledger-service"},"v":"4"}]}
+{"t":1794044650,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"36"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044650,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044654,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"16"},{"m":{"application":"ledger-service"},"v":"13"}]}
+{"t":1794044654,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.012933"},{"m":{"application":"ledger-service"},"v":"0.007727"}]}
+{"t":1794044654,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2701"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"22952"}]}
+{"t":1794044654,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1303.086872458164"}]}
+{"t":1794044654,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"44.189481813965806"}]}
+{"t":1794044654,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.12316315059486294"}]}
+{"t":1794044654,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1403.0666666666666"}]}
+{"t":1794044654,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"9"},{"m":{"application":"ledger-service"},"v":"4"}]}
+{"t":1794044654,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"36"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044654,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044659,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"35"},{"m":{"application":"ledger-service"},"v":"17"}]}
+{"t":1794044659,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.027889"},{"m":{"application":"ledger-service"},"v":"0.011702"}]}
+{"t":1794044659,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"1631"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"26371"}]}
+{"t":1794044659,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1316.4666666666667"}]}
+{"t":1794044659,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"45.30764333368819"}]}
+{"t":1794044659,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.230093922606"}]}
+{"t":1794044659,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1398"}]}
+{"t":1794044659,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"9"},{"m":{"application":"ledger-service"},"v":"2"}]}
+{"t":1794044659,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"1"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044659,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044663,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"35"},{"m":{"application":"ledger-service"},"v":"17"}]}
+{"t":1794044663,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.027889"},{"m":{"application":"ledger-service"},"v":"0.011702"}]}
+{"t":1794044663,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"1631"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"26371"}]}
+{"t":1794044663,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1316.4666666666667"}]}
+{"t":1794044663,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"45.30764333368819"}]}
+{"t":1794044663,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.230093922606"}]}
+{"t":1794044663,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1398"}]}
+{"t":1794044663,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"9"},{"m":{"application":"ledger-service"},"v":"2"}]}
+{"t":1794044663,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"1"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044663,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044668,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"35"},{"m":{"application":"ledger-service"},"v":"17"}]}
+{"t":1794044668,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.027889"},{"m":{"application":"ledger-service"},"v":"0.011702"}]}
+{"t":1794044668,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"1631"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"26371"}]}
+{"t":1794044668,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1316.4666666666667"}]}
+{"t":1794044668,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"45.30764333368819"}]}
+{"t":1794044668,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.230093922606"}]}
+{"t":1794044668,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1398"}]}
+{"t":1794044668,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"9"},{"m":{"application":"ledger-service"},"v":"2"}]}
+{"t":1794044668,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"1"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044668,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044672,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"40"},{"m":{"application":"ledger-service"},"v":"17"}]}
+{"t":1794044672,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.038017"},{"m":{"application":"ledger-service"},"v":"0.011702"}]}
+{"t":1794044672,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"1631"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"26371"}]}
+{"t":1794044672,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1316.4666666666667"}]}
+{"t":1794044672,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"50.64422660543343"}]}
+{"t":1794044672,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.1813972912909091"}]}
+{"t":1794044672,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1398.759917327822"}]}
+{"t":1794044672,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"2"}]}
+{"t":1794044672,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"39"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044672,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044677,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"40"},{"m":{"application":"ledger-service"},"v":"25"}]}
+{"t":1794044677,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.038017"},{"m":{"application":"ledger-service"},"v":"0.017161"}]}
+{"t":1794044677,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"1631"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"28961"}]}
+{"t":1794044677,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1236.7333333333336"}]}
+{"t":1794044677,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"50.64422660543343"}]}
+{"t":1794044677,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.1813972912909091"}]}
+{"t":1794044677,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1398.759917327822"}]}
+{"t":1794044677,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"4"}]}
+{"t":1794044677,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"39"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044677,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044681,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"40"},{"m":{"application":"ledger-service"},"v":"25"}]}
+{"t":1794044681,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.038017"},{"m":{"application":"ledger-service"},"v":"0.017161"}]}
+{"t":1794044681,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"1631"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"28961"}]}
+{"t":1794044681,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1236.7333333333333"}]}
+{"t":1794044681,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"50.64422660543343"}]}
+{"t":1794044681,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.1813972912909091"}]}
+{"t":1794044681,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1398.759917327822"}]}
+{"t":1794044681,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"4"}]}
+{"t":1794044681,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"39"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044681,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044686,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"40"},{"m":{"application":"ledger-service"},"v":"25"}]}
+{"t":1794044686,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.038017"},{"m":{"application":"ledger-service"},"v":"0.017161"}]}
+{"t":1794044686,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"1631"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"28961"}]}
+{"t":1794044686,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1236.7333333333333"}]}
+{"t":1794044686,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"50.64422660543343"}]}
+{"t":1794044686,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.1813972912909091"}]}
+{"t":1794044686,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1398.759917327822"}]}
+{"t":1794044686,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"4"}]}
+{"t":1794044686,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"39"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044686,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044690,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"69"},{"m":{"application":"ledger-service"},"v":"32"}]}
+{"t":1794044690,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.052024"},{"m":{"application":"ledger-service"},"v":"0.020991"}]}
+{"t":1794044690,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"1831"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"30953"}]}
+{"t":1794044690,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1239.666666666667"}]}
+{"t":1794044690,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"56.08551188553196"}]}
+{"t":1794044690,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.22644875544275078"}]}
+{"t":1794044690,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1403.773081794547"}]}
+{"t":1794044690,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"9"},{"m":{"application":"ledger-service"},"v":"3"}]}
+{"t":1794044690,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044690,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044695,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"69"},{"m":{"application":"ledger-service"},"v":"32"}]}
+{"t":1794044695,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.052024"},{"m":{"application":"ledger-service"},"v":"0.020991"}]}
+{"t":1794044695,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"1831"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"30953"}]}
+{"t":1794044695,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1239.6666666666667"}]}
+{"t":1794044695,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"56.08551188553196"}]}
+{"t":1794044695,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.22644875544275078"}]}
+{"t":1794044695,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1403.773081794547"}]}
+{"t":1794044695,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"9"},{"m":{"application":"ledger-service"},"v":"3"}]}
+{"t":1794044695,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044695,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044700,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"69"},{"m":{"application":"ledger-service"},"v":"32"}]}
+{"t":1794044700,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.052024"},{"m":{"application":"ledger-service"},"v":"0.020991"}]}
+{"t":1794044700,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"1831"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"30953"}]}
+{"t":1794044700,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1239.6666666666667"}]}
+{"t":1794044700,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"56.08551188553196"}]}
+{"t":1794044700,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.22644875544275078"}]}
+{"t":1794044700,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1403.773081794547"}]}
+{"t":1794044700,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"9"},{"m":{"application":"ledger-service"},"v":"3"}]}
+{"t":1794044700,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044700,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044704,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"15"},{"m":{"application":"ledger-service"},"v":"37"}]}
+{"t":1794044704,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.010845"},{"m":{"application":"ledger-service"},"v":"0.024473"}]}
+{"t":1794044704,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2015"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"34334"}]}
+{"t":1794044704,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1139.9906672888474"}]}
+{"t":1794044704,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"61.65751132766658"}]}
+{"t":1794044704,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.2186687722872013"}]}
+{"t":1794044704,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1397.1333333333332"}]}
+{"t":1794044704,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"4"}]}
+{"t":1794044704,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"18"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044704,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044709,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"15"},{"m":{"application":"ledger-service"},"v":"37"}]}
+{"t":1794044709,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.010845"},{"m":{"application":"ledger-service"},"v":"0.024473"}]}
+{"t":1794044709,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2015"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"34334"}]}
+{"t":1794044709,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1139.9906672888474"}]}
+{"t":1794044709,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"61.65751132766658"}]}
+{"t":1794044709,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.21866877228720114"}]}
+{"t":1794044709,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1397.1333333333332"}]}
+{"t":1794044709,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"4"}]}
+{"t":1794044709,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"18"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044709,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044713,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"15"},{"m":{"application":"ledger-service"},"v":"37"}]}
+{"t":1794044713,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.010845"},{"m":{"application":"ledger-service"},"v":"0.024473"}]}
+{"t":1794044713,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2015"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"34334"}]}
+{"t":1794044713,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1139.9906672888474"}]}
+{"t":1794044713,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"61.65751132766658"}]}
+{"t":1794044713,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.21866877228720114"}]}
+{"t":1794044713,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1397.1333333333332"}]}
+{"t":1794044713,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"10"},{"m":{"application":"ledger-service"},"v":"4"}]}
+{"t":1794044713,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"18"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044713,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.578234334"},{"m":{"application":"ledger-service"},"v":"0.003087917"}]}
+{"t":1794044718,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"24"},{"m":{"application":"ledger-service"},"v":"15"}]}
+{"t":1794044718,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.020017"},{"m":{"application":"ledger-service"},"v":"0.018983"}]}
+{"t":1794044718,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2273"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"36704"}]}
+{"t":1794044718,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1467.6666666666667"}]}
+{"t":1794044718,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"67.53236820834603"}]}
+{"t":1794044718,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.16352431025691475"}]}
+{"t":1794044718,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1055.8"}]}
+{"t":1794044718,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"1"},{"m":{"application":"ledger-service"},"v":"3"}]}
+{"t":1794044718,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044718,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.387784958"},{"m":{"application":"ledger-service"},"v":"0.002330625"}]}
+{"t":1794044722,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"24"},{"m":{"application":"ledger-service"},"v":"15"}]}
+{"t":1794044722,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.020017"},{"m":{"application":"ledger-service"},"v":"0.018983"}]}
+{"t":1794044722,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2273"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"36704"}]}
+{"t":1794044722,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1467.6666666666667"}]}
+{"t":1794044722,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"67.53236820834603"}]}
+{"t":1794044722,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.16352431025691466"}]}
+{"t":1794044722,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1055.8"}]}
+{"t":1794044722,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"1"},{"m":{"application":"ledger-service"},"v":"3"}]}
+{"t":1794044722,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044722,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.387784958"},{"m":{"application":"ledger-service"},"v":"0.002330625"}]}
+{"t":1794044726,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"24"},{"m":{"application":"ledger-service"},"v":"15"}]}
+{"t":1794044726,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.020017"},{"m":{"application":"ledger-service"},"v":"0.018983"}]}
+{"t":1794044726,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2273"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"36704"}]}
+{"t":1794044726,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1467.6666666666667"}]}
+{"t":1794044726,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"67.53236820834603"}]}
+{"t":1794044726,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.16352431025691466"}]}
+{"t":1794044726,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1055.8"}]}
+{"t":1794044726,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"1"},{"m":{"application":"ledger-service"},"v":"3"}]}
+{"t":1794044726,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044726,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.387784958"},{"m":{"application":"ledger-service"},"v":"0.002330625"}]}
+{"t":1794044731,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"24"},{"m":{"application":"ledger-service"},"v":"15"}]}
+{"t":1794044731,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0.020017"},{"m":{"application":"ledger-service"},"v":"0.018983"}]}
+{"t":1794044731,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2273"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"36704"}]}
+{"t":1794044731,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1467.6666666666667"}]}
+{"t":1794044731,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"67.53236820834603"}]}
+{"t":1794044731,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"0.16352431025691466"}]}
+{"t":1794044731,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"1055.8"}]}
+{"t":1794044731,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"1"},{"m":{"application":"ledger-service"},"v":"3"}]}
+{"t":1794044731,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044731,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.387784958"},{"m":{"application":"ledger-service"},"v":"0.002330625"}]}
+{"t":1794044735,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"28"}]}
+{"t":1794044735,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0.026684"}]}
+{"t":1794044735,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2273"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"36704"}]}
+{"t":1794044735,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1779"}]}
+{"t":1794044735,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"62.1260146427945"}]}
+{"t":1794044735,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"NaN"}]}
+{"t":1794044735,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"0"}]}
+{"t":1794044735,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"1"},{"m":{"application":"ledger-service"},"v":"1"}]}
+{"t":1794044735,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044735,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.387784958"},{"m":{"application":"ledger-service"},"v":"0.00336725"}]}
+{"t":1794044739,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"28"}]}
+{"t":1794044739,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0.026684"}]}
+{"t":1794044739,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2273"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"36704"}]}
+{"t":1794044739,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1779"}]}
+{"t":1794044739,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"62.1260146427945"}]}
+{"t":1794044739,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"NaN"}]}
+{"t":1794044739,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"0"}]}
+{"t":1794044739,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"1"},{"m":{"application":"ledger-service"},"v":"1"}]}
+{"t":1794044739,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044739,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.387784958"},{"m":{"application":"ledger-service"},"v":"0.00336725"}]}
+{"t":1794044743,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"28"}]}
+{"t":1794044743,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0.026684"}]}
+{"t":1794044743,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2273"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"36704"}]}
+{"t":1794044743,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1779"}]}
+{"t":1794044743,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"62.1260146427945"}]}
+{"t":1794044743,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"NaN"}]}
+{"t":1794044743,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"0"}]}
+{"t":1794044743,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"1"},{"m":{"application":"ledger-service"},"v":"1"}]}
+{"t":1794044743,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}
+{"t":1794044743,"q":"max by (application) (hikaricp_connections_acquire_seconds_max)","r":[{"m":{"application":"payment-service"},"v":"1.387784958"},{"m":{"application":"ledger-service"},"v":"0.00336725"}]}
+{"t":1794044748,"q":"sum by (application) (ledgerflow_outbox_backlog)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"10"}]}
+{"t":1794044748,"q":"max by (application) (ledgerflow_outbox_oldest_unpublished_age_seconds)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0.008977"}]}
+{"t":1794044748,"q":"max by (application, topic) (kafka_consumer_fetch_manager_records_lag_max{topic=~\".+[.].+\"})","r":[{"m":{"application":"payment-service","topic":"ledger.results"},"v":"2273"},{"m":{"application":"ledger-service","topic":"payments.requested"},"v":"36704"}]}
+{"t":1794044748,"q":"sum by (status) (rate(ledgerflow_ledger_outcomes_total[30s]))","r":[{"m":{"status":"POSTED"},"v":"1233.4666666666667"}]}
+{"t":1794044748,"q":"histogram_quantile(0.95, sum by (le) (rate(ledgerflow_payment_e2e_seconds_bucket[30s])))","r":[{"m":{},"v":"51.885013936008974"}]}
+{"t":1794044748,"q":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/payments\",method=\"POST\"}[30s])))","r":[{"m":{},"v":"NaN"}]}
+{"t":1794044748,"q":"sum by (status) (rate(http_server_requests_seconds_count{uri=\"/api/payments\",method=\"POST\"}[30s]))","r":[{"m":{"status":"202"},"v":"0"}]}
+{"t":1794044748,"q":"sum by (application) (hikaricp_connections_active)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"1"}]}
+{"t":1794044748,"q":"sum by (application) (hikaricp_connections_pending)","r":[{"m":{"application":"payment-service"},"v":"0"},{"m":{"application":"ledger-service"},"v":"0"}]}

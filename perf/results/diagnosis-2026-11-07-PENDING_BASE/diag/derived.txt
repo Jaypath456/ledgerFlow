@@ -1,0 +1,3 @@
+Derived from consumer-metrics.txt (Prometheus, ~150 s into the 1,400/s run):
+  mean ledger-service listener time per record: 0.00227045 s = 2.27 ms
+  ledger consumers, records/s each: [436.5, 460.7, 449.5]  sum 1346.7
