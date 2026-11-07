@@ -8,6 +8,10 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 source chaos/lib.sh
+if [ "${OBSERVABILITY:-0}" = 1 ]; then
+  echo 'OBSERVABILITY=1 is for chaos/bench.sh only: with the observability overlay, actuator is not on the API ports this runner probes.' >&2
+  exit 1
+fi
 
 RUNS=${1:-27}
 LOAD_RATE=${LOAD_RATE:-100}

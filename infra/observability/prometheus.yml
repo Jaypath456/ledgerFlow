@@ -1,0 +1,14 @@
+# Prometheus for the local "observability" Compose profile (Roadmap Phase 2). Retention (2 d) is set on the command line.
+# Targets are the services' management ports, reachable only on the Compose network (infra/docker-compose.observability.yml).
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+scrape_configs:
+  - job_name: payment-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["payment-service:9081"]
+  - job_name: ledger-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["ledger-service:9082"]

@@ -56,6 +56,7 @@ services:
       BOB_PASSWORD: ${BOB_PASSWORD:-bob-local}
       BOB_ACCOUNTS: ${BOB_ACCOUNTS:-4}
       LEDGERFLOW_OUTBOX_POLL_MS: ${OUTBOX_POLL_MS:-10}
+      TRACING_SAMPLING_PROBABILITY: ${TRACING_SAMPLING_PROBABILITY:-1.0} # spans are exported only with the observability overlay
       # Fault injection: only with SPRING_PROFILES_ACTIVE=chaos (see docs/DECISIONS.md).
       SPRING_PROFILES_ACTIVE: ${PAYMENT_PROFILES:-default}
       LEDGERFLOW_CHAOS_FAULTS: ${PAYMENT_CHAOS_FAULTS:-}
@@ -90,5 +91,53 @@ services:
       retries: 30
       start_period: 120s
 
+  # Opt-in observability (Roadmap Phase 2, ADR 0004). Not started without --profile observability. Use with the app overlay:
+  #   docker compose -f infra/docker-compose.yml -f infra/docker-compose.observability.yml --profile observability up -d --build
+  prometheus:
+    image: prom/prometheus:v3.15.1
+    profiles: [observability]
+    mem_limit: 512m
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus", "--storage.tsdb.retention.time=2d"]
+    environment:
+      GOMEMLIMIT: 450MiB
+    ports: ["127.0.0.1:9090:9090"]
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - promdata:/prometheus
+
+  grafana:
+    image: grafana/grafana-oss:12.4.3
+    profiles: [observability]
+    mem_limit: 384m
+    environment:
+      GOMEMLIMIT: 340MiB
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      GF_NEWS_NEWS_FEED_ENABLED: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/ledgerflow-overview.json
+    ports: ["127.0.0.1:3000:3000"]
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on: [prometheus, jaeger]
+
+  jaeger:
+    image: jaegertracing/jaeger:2.23.0
+    profiles: [observability]
+    mem_limit: 512m
+    command: ["--config=file:/etc/jaeger/config.yaml"]
+    environment:
+      GOMEMLIMIT: 450MiB
+    # UI only; OTLP/HTTP 4318 stays on the Compose network.
+    ports: ["127.0.0.1:16686:16686"]
+    volumes:
+      - ./observability/jaeger.yaml:/etc/jaeger/config.yaml:ro
+
 volumes:
   pgdata:
+  promdata:

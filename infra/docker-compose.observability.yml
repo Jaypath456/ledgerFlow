@@ -1,0 +1,20 @@
+# App side of the opt-in "observability" profile (Roadmap Phase 2, ADR 0004). Always together with the profile:
+#   docker compose -f infra/docker-compose.yml -f infra/docker-compose.observability.yml --profile observability up -d --build
+# Actuator moves to a management port that is never published to the host; Prometheus scrapes it on the Compose network
+# without credentials, and the API ports keep today's auth rules. Spans are exported to Jaeger over OTLP/HTTP.
+# Host-side scripts that read /actuator on 8081/8082 (chaos/run_chaos.sh, scripts/smoke.sh) are not used with this overlay;
+# chaos/bench.sh is (OBSERVABILITY=1).
+services:
+  payment-service:
+    environment:
+      MANAGEMENT_SERVER_PORT: "9081"
+      MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/9081 && printf 'GET /actuator/health HTTP/1.0\r\n\r\n' >&3 && grep -q '\"status\":\"UP\"' <&3"]
+
+  ledger-service:
+    environment:
+      MANAGEMENT_SERVER_PORT: "9082"
+      MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/9082 && printf 'GET /actuator/health HTTP/1.0\r\n\r\n' >&3 && grep -q '\"status\":\"UP\"' <&3"]
