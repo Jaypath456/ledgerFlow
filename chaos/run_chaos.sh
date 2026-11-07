@@ -5,6 +5,10 @@
 #      KEEP_GOING=1 (do not stop at the first failed run), ONLY=a,b (subset of scenarios).
 # Each run: background k6 load -> one fault -> recovery probe -> settle -> invariants (+ scenario checks).
 # A run fails on any invariant violation, a checker error, a settle timeout or a failed scenario check.
+# A crash scenario whose fault never fired (crashes=0) is NOFIRE, not a pass: it is re-run up to 2 more times and every attempt is a CSV row
+# (last column "attempt"). A scenario still NOFIRE after 3 attempts counts as failed. Duplicate counts of crash scenarios are read before the
+# services are recreated (the counters restart with every crash restart, so they only cover the time since the last crash).
+# kill-ledger-replica needs the scaled topology (SCALE=1, infra/docker-compose.scale.yml): ONLY=kill-ledger-replica SCALE=1 chaos/run_chaos.sh 3
 set -uo pipefail
 cd "$(dirname "$0")/.."
 source chaos/lib.sh
@@ -19,13 +23,18 @@ LOAD_SECONDS=${LOAD_SECONDS:-60}
 SCENARIOS=(kill-ledger kill-payment pause-postgres restart-kafka replay hot-account
            crash-before-payment-outbox-commit crash-after-publish-before-mark crash-after-ledger-commit-before-ack)
 [ -n "${ONLY:-}" ] && read -ra SCENARIOS <<< "${ONLY//,/ }" # e.g. ONLY=replay,hot-account
+for sc in "${SCENARIOS[@]}"; do
+  if [ "$sc" = kill-ledger-replica ] && [ "${SCALE:-0}" != 1 ]; then echo 'kill-ledger-replica needs the scaled topology: SCALE=1' >&2; exit 1; fi
+done
 export RISK_VELOCITY_MAX=1000000 # load and hot-account runs must reach the ledger (DECISIONS 21)
 
 OUT=chaos/results/chaos-$(date +%Y%m%d-%H%M%S)
 mkdir -p "$OUT"
 CSV=$OUT/runs.csv
-echo "run,scenario,result,k6,recovery_s,settle_s,crashes,dup_ledger,dup_payment,dlt_new,e2e_ms_p50_p95_p99,violations,note" > "$CSV"
+echo "run,scenario,result,k6,recovery_s,settle_s,crashes,dup_ledger,dup_payment,dlt_new,e2e_ms_p50_p95_p99,violations,note,attempt" > "$CSV"
 log() { echo "[$(date +%T)] $*" | tee -a "$OUT/chaos.log"; }
+
+kafka_bug_count() { docker logs "$($C ps -q kafka)" 2>&1 | grep -c 'Histogram recorded value cannot be negative'; } # apache/kafka:4.0.0 coordinator bug (docs/RESULTS.md, Roadmap Phase 3)
 
 restarts() { local n=0 svc; for svc in "$@"; do n=$(( n + $(docker inspect -f '{{.RestartCount}}' "$($C ps -q "$svc")") )); done; echo $n; }
 
@@ -60,8 +69,12 @@ log "host: $host_cpus CPUs, $host_ram GiB RAM, $(uname -sr); load ${LOAD_RATE}/s
 failures=0
 for run in $(seq 1 "$RUNS"); do
   scenario=${SCENARIOS[$(( (run - 1) % ${#SCENARIOS[@]} ))]}
-  note="" ok=1 crashes=0 dup_l=0 dup_p=0
-  log "run $run/$RUNS: $scenario"
+  max_attempts=1; case $scenario in crash-*) max_attempts=3 ;; esac
+  for attempt in $(seq 1 "$max_attempts"); do
+  rid=run$run; [ "$attempt" -gt 1 ] && rid=run$run-attempt$attempt
+  note="" ok=1 crashes=0 dup_l=0 dup_p=0 dup_captured=0
+  kbug_before=$(kafka_bug_count)
+  log "run $run/$RUNS: $scenario (attempt $attempt/$max_attempts)"
   dlt_before=$(dlt_total)
 
   case $scenario in
@@ -73,12 +86,13 @@ for run in $(seq 1 "$RUNS"); do
   restarts_before=$(restarts payment-service ledger-service)
 
   since=$(now_ts)
-  k6_run "$OUT/run$run" "$LOAD_RATE" "${LOAD_SECONDS}s" > "$OUT/run$run.k6" 2>&1 &
+  k6_run "$OUT/$rid" "$LOAD_RATE" "${LOAD_SECONDS}s" > "$OUT/$rid.k6" 2>&1 &
   k6_pid=$!
   sleep 15
 
   case $scenario in
     kill-ledger)    $C kill ledger-service >/dev/null 2>&1; sleep 5; t=$(date +%s.%N); $C start ledger-service >/dev/null 2>&1 ;;
+    kill-ledger-replica) $C kill ledger-service-b >/dev/null 2>&1; sleep 5; t=$(date +%s.%N); $C start ledger-service-b >/dev/null 2>&1 ;; # one of three replicas
     kill-payment)   $C kill payment-service >/dev/null 2>&1; sleep 5; t=$(date +%s.%N); $C start payment-service >/dev/null 2>&1 ;;
     pause-postgres) $C pause postgres >/dev/null 2>&1; sleep 10; t=$(date +%s.%N); $C unpause postgres >/dev/null 2>&1 ;;
     restart-kafka)  $C restart kafka >/dev/null 2>&1; t=$(date +%s.%N) ;;
@@ -100,6 +114,9 @@ for run in $(seq 1 "$RUNS"); do
         -d "{\"payerAccountId\":$hot,\"payeeAccountId\":20001,\"amountMinor\":100,\"currency\":\"USD\"}" ;;
     crash-*) wait $k6_pid; t=$(date +%s.%N)
       crashes=$(( $(restarts payment-service ledger-service) - restarts_before ))
+      dup_l=$(metric "$LEDGER_URL" ledgerflow.events.duplicate | cut -d. -f1) # before the recreate below resets the counters
+      dup_p=$(metric "$PAYMENT_URL" ledgerflow.events.duplicate | cut -d. -f1)
+      dup_captured=1
       without_chaos payment-service ledger-service ;;
   esac
 
@@ -119,7 +136,7 @@ for run in $(seq 1 "$RUNS"); do
     dup_l=$(metric "$LEDGER_URL" ledgerflow.events.duplicate | cut -d. -f1)
     dup_p=$(metric "$PAYMENT_URL" ledgerflow.events.duplicate | cut -d. -f1)
     [ "$dup_l" -ge 1000 ] && [ "$dup_p" -ge 1000 ] || { ok=0; note+="replay absorbed too few duplicates;"; }
-  else
+  elif [ "$dup_captured" = 0 ]; then
     dup_l=$(metric "$LEDGER_URL" ledgerflow.events.duplicate | cut -d. -f1)
     dup_p=$(metric "$PAYMENT_URL" ledgerflow.events.duplicate | cut -d. -f1)
   fi
@@ -134,15 +151,22 @@ for run in $(seq 1 "$RUNS"); do
 
   if v=$(violations); then
     nviol=$(echo -n "$v" | grep -c . || true)
-    [ "$nviol" = 0 ] || { ok=0; echo "$v" > "$OUT/run$run.violations"; }
+    [ "$nviol" = 0 ] || { ok=0; echo "$v" > "$OUT/$rid.violations"; }
   else
     ok=0; nviol=ERROR; note+="checker failed to run;"
   fi
 
+  kbug=$(( $(kafka_bug_count) - kbug_before )) # only annotates: it does not change PASS/FAIL
+  [ "$kbug" -gt 0 ] && note+="Kafka coordinator error (Histogram recorded value cannot be negative) logged $kbug x during this run;"
   result=$([ $ok = 1 ] && echo PASS || echo FAIL)
+  case $scenario in crash-*) [ $ok = 1 ] && [ "$crashes" = 0 ] && { result=NOFIRE; note+="fault did not fire (crashes=0);"; } ;; esac
   dlt_new=$(( $(dlt_total) - dlt_before ))
-  echo "$run,$scenario,$result,\"$(cat "$OUT/run$run.k6")\",$recovery,$settle_s,$crashes,$dup_l,$dup_p,$dlt_new,$(e2e_latency_ms "$since"),$nviol,\"$note\"" >> "$CSV"
-  log "run $run $result recovery=${recovery}s settle=${settle_s}s crashes=$crashes dup=$dup_l/$dup_p dlt_new=$dlt_new violations=$nviol $note"
+  echo "$run,$scenario,$result,\"$(cat "$OUT/$rid.k6")\",$recovery,$settle_s,$crashes,$dup_l,$dup_p,$dlt_new,$(e2e_latency_ms "$since"),$nviol,\"$note\",$attempt" >> "$CSV"
+  log "run $run $result (attempt $attempt) recovery=${recovery}s settle=${settle_s}s crashes=$crashes dup=$dup_l/$dup_p dlt_new=$dlt_new violations=$nviol $note"
+  if [ "$result" = NOFIRE ] && [ "$attempt" -lt "$max_attempts" ]; then log "fault did not fire; re-running $scenario"; continue; fi
+  break
+  done
+  [ "$result" = NOFIRE ] && ok=0 # still no fault after every attempt: not a pass
   if [ $ok = 0 ]; then
     failures=$(( failures + 1 ))
     [ "${KEEP_GOING:-0}" = 1 ] || { log "stopping at first failure; state kept for investigation"; break; }
