@@ -503,3 +503,77 @@ one run per scenario per campaign (`docs/evidence/chaos-postgres-phase1b-2026-11
   replay run whose consumer lag has not drained after 300 s. The error did not occur in the two campaigns.
 
 Local laptop only, one broker and one database, one run per scenario per campaign: no high-availability or production claim.
+
+## Roadmap Phase 2: observability, 2026-11-07
+
+Branch `feat/observability`, based on `6e278b9` plus the Phase 2 changes (commit `6e278b9`). Design and alternatives: ADR 0004.
+
+Environment: MacBook Air (Apple M4), 10 CPUs, 16 GiB RAM, macOS 27.0.1, Docker Desktop (Engine 29.8.2, Compose 5.6.0, VM 10 CPUs and
+9.701 GiB), JDK Temurin 25.0.4.1. Containers: `postgres:17.11`, `apache/kafka:4.0.0`, services on `eclipse-temurin:25.0.5_8-jre` with a
+1 GiB limit each; with the profile also `prom/prometheus:v3.15.1` (512 MiB), `grafana/grafana-oss:12.4.3` (384 MiB) and
+`jaegertracing/jaeger:2.23.0` (512 MiB).
+
+**Build.** `./mvnw -B clean verify`: BUILD SUCCESS, 02:00 min, 0 failures, 0 errors, 0 skipped
+(`docs/evidence/verify-postgres-phase2-2026-11-07-0c5dc1d.txt`).
+
+| Module | Tests | Phase 1b |
+|---|---|---|
+| payment-service | 38 | 31 |
+| ledger-service | 24 | 21 |
+| e2e-tests | 18 | 17 |
+| **Total** | **80** | **69** |
+
+New tests: `PaymentManagementPortTest` (3), `PaymentMetricsTest` (2), `PaymentTracingTest` (2), `LedgerMetricsTest` (2),
+`LedgerTracingTest` (1), `TracePropagationTest` (1). The expected migration counts in `PaymentDbSmokeTest` and `LedgerDbSmokeTest` went
+from 3 to 4 and from 4 to 5 for the new trace-context migrations (payments V4, ledger V5).
+
+**Smoke.** `bash scripts/smoke.sh`: 7 of 7 scenarios passed, 0 I1–I6 violations after each, both after the Java changes and again on
+the final tree after the Compose changes (`docs/evidence/smoke-postgres-phase2-2026-11-07-0c5dc1d.txt`).
+
+**Observability profile on a running stack** (`docs/evidence/observability-check-2026-11-07-0c5dc1d.txt`): both Prometheus targets
+(`payment-service:9081`, `ledger-service:9082`, management ports not published to the host) were up; Jaeger listed both services; one
+payment's trace held 13 spans under one root (the HTTP POST), every parent inside the trace, covering both outbox publish spans,
+`payments.requested send`/`process`, `ledgerflow.ledger.posting` and `ledger.results send`/`process`. Anonymous Grafana could read the
+provisioned dashboard and got 403 on a write. `/actuator/prometheus` on the API port answered 401 without credentials. Without
+`--profile observability`, Compose lists the same four services as before.
+
+**Load with and without tracing** (`docs/evidence/observability-load-2026-11-07-0c5dc1d.txt` and `.csv`). Fault-free
+`chaos/bench.sh 100 60s` with the cost-4 load credentials (ADR 0003). **Single runs**, each started shortly after the services:
+
+| Run | Rate | POST p50/p95/p99 ms | Request-to-terminal p50/p95/p99 ms | payment-service CPU median % |
+|---|---|---|---|---|
+| (a) profile off, sampling 1.0 | 97.2/s | 5.8/159.7/1811.6 | 42/1031/1535 | 102.3 |
+| (b) profile on, spans exported | 100.0/s | 4.9/23.9/58.3 | 38/128/425 | 80.3 |
+| (c) profile off, sampling 0 | 100.0/s | 4.8/107.3/283.3 | 38/2330/3072 | 79.6 |
+| Phase 1b, cost 4 (`recovery-investigation-2026-11-05-2b58c27.txt`) | 100.0/s | 3.6/9.7/139.7 | 34/54/140 | 37 |
+
+All three runs had 0 failed payments and 0 invariant violations. Their tails disagree with each other (the run without any sampling has
+the worst request-to-terminal tail, the run with export on the best), so these runs do not measure a cost of tracing. During (b),
+Prometheus, Grafana and Jaeger used CPU medians of 0.3 %, 0.4 % and 1.3 %. Prometheus counted 6001 request-to-terminal samples, the same
+as the 6001 payments k6 had accepted.
+
+**Chaos regression.** `PROJECT=ledgerflow-p2 bash chaos/run_chaos.sh 9`: no profile, sampling 1.0, cost-4 load credentials, 100
+payments/s for 60 s per run, one run per scenario (`docs/evidence/chaos-postgres-phase2-2026-11-07-0c5dc1d.csv` and `.txt`). It
+passed 9 of 9 with 0 invariant violations and 0 new dead-letter messages. The comparison is with the two Phase 1b campaigns
+(`chaos-postgres-phase1b-2026-11-05-2b58c27.csv`), recovery in seconds:
+
+| scenario | Phase 1b c1 | Phase 1b c2 | Phase 2 | crashes 1b c1/c2 | crashes Phase 2 | dup Phase 2 | violations | dlt_new |
+|---|---|---|---|---|---|---|---|---|
+| kill-ledger | 47.1 | 46.7 | 50.3 | 0/0 | 0 | 0/0 | 0 | 0 |
+| kill-payment | 41.3 | 51.4 | 43.4 | 0/0 | 0 | 0/0 | 0 | 0 |
+| pause-postgres | 1.3 | 4.8 | 0.9 | 0/0 | 0 | 0/0 | 0 | 0 |
+| restart-kafka | 18.7 | 28.4 | 20.3 | 0/0 | 0 | 0/0 | 0 | 0 |
+| replay | 21.9 | 24.4 | 18.2 | 0/0 | 0 | 3000/3000 | 0 | 0 |
+| hot-account | 1.2 | 3.2 | 2.2 | 0/0 | 0 | 3000/3000 | 0 | 0 |
+| crash-before-payment-outbox-commit | 39.2 | 12.0 | 39.6 | 2/0 | 2 | 3000/0 | 0 | 0 |
+| crash-after-publish-before-mark | 28.1 | 59.6 | 44.8 | 1/1 | 1 | 0/2 | 0 | 0 |
+| crash-after-ledger-commit-before-ack | 32.8 | 48.9 | 6.9 | 1/2 | 1 | 0/2 | 0 | 0 |
+
+- Every crash scenario fired its fault, recording 2, 1 and 1 JVM halts.
+- 7 of 9 recovery values are within or below the two Phase 1b values. kill-ledger (50.3) is 3.2 s above the higher one, and
+  crash-before-payment-outbox-commit (39.6) 0.4 s above it. With one run per scenario this is not clearly worse, so no sampling A/B was
+  run.
+- Totals: 49,772 payments accepted, 2,008 abandoned after 5 attempts (in 3 runs), 12,883 retries, 4 JVM halts, k6 rate 89.6–100.0/s.
+- The chaos scripts read no service log lines, so the trace ids now in the log lines do not affect them.
+
+Local laptop only, one broker and one database: no high-availability or production claim.

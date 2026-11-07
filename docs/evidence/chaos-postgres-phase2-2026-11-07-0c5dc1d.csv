@@ -1,0 +1,10 @@
+run,scenario,result,k6,recovery_s,settle_s,crashes,dup_ledger,dup_payment,dlt_new,e2e_ms_p50_p95_p99,violations,note
+1,kill-ledger,PASS,"accepted=5998 declined=0 failed=0 retries=0 rate=100.0/s post_p50=13.7ms p95=452.8ms p99=1058.6ms",50.3,3,0,0,0,0,22934/43755/45158,0,""
+2,kill-payment,PASS,"accepted=4924 declined=0 failed=687 retries=4272 rate=93.5/s post_p50=6.3ms p95=48.4ms p99=672.8ms",43.4,1,0,0,0,0,11070/30244/30558,0,""
+3,pause-postgres,PASS,"accepted=5377 declined=0 failed=0 retries=0 rate=89.6/s post_p50=3.9ms p95=6043.4ms p99=9973.8ms",0.9,0,0,0,0,0,34/368/460,0,""
+4,restart-kafka,PASS,"accepted=6001 declined=0 failed=0 retries=0 rate=100.0/s post_p50=4.0ms p95=16.2ms p99=245.4ms",20.3,0,0,0,0,0,41/16817/19638,0,""
+5,replay,PASS,"accepted=5116 declined=0 failed=539 retries=3493 rate=94.2/s post_p50=4.3ms p95=52.5ms p99=599.0ms",18.2,0,0,3000,3000,0,38/17137/18838,0,""
+6,hot-account,PASS,"accepted=5818 declined=0 failed=0 retries=0 rate=96.9/s post_p50=4.3ms p95=108.7ms p99=1826.4ms",2.2,1,0,3000,3000,0,37/542/1681,0,"hot completed/failed/total=50/150/200 balance=0;"
+7,crash-before-payment-outbox-commit,PASS,"accepted=4659 declined=0 failed=782 retries=5118 rate=90.7/s post_p50=5.3ms p95=118.1ms p99=917.5ms",39.6,1,2,3000,0,0,43242/70429/79620,0,""
+8,crash-after-publish-before-mark,PASS,"accepted=5878 declined=0 failed=0 retries=0 rate=97.9/s post_p50=5.8ms p95=112.7ms p99=1394.7ms",44.8,0,1,0,2,0,41/1369/45627,0,""
+9,crash-after-ledger-commit-before-ack,PASS,"accepted=6001 declined=0 failed=0 retries=0 rate=100.0/s post_p50=6.9ms p95=112.8ms p99=532.9ms",6.9,0,1,0,2,0,21722/43064/44851,0,""
