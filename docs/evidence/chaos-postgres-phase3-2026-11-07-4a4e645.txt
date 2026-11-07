@@ -1,0 +1,59 @@
+Final chaos campaign, Roadmap Phase 3, 2026-11-07
+Code: 4a4e645 (final service code: partitions and listener concurrency configurable, defaults 3 and 3 as before; chaos runner with NOFIRE retries and the
+scaled-topology scenario). Raw rows: chaos-postgres-phase3-2026-11-07-4a4e645.csv (columns: campaign = final-part1 | final-part2 | scaled; last column attempt).
+
+Environment: MacBook Air (Apple M4), 10 CPUs, 16 GiB RAM, Darwin 27.0.0, Docker Desktop (VM 10 CPUs, 9.701 GiB), on battery power. postgres:17.11, apache/kafka:4.0.0,
+grafana/k6:2.3.0 (--memory 1g), 1 GiB limit per service container, cost-4 load credentials (ADR 0003), RISK_VELOCITY_MAX=1000000 set by the runner (ADR 0002),
+TRACING_SAMPLING_PROBABILITY=0.1, observability profile off, 100 payments/s for 60 s per run, crash probability 0.0005 per injection-point hit.
+HOST CAVEAT: this campaign ran while the host was under heavy memory pressure (see perf/results/drift-check-2026-11-07-4a4e645/host-state.txt: swap nearly full, 7+ GB in the
+compressor, user applications open). The same baseline load that achieved 840.0/s in the morning achieved 344.6/s then. Pass/fail, violations and which faults fired are valid;
+recovery times are inflated and must not be compared with the earlier campaigns as if the machine were the same.
+
+Commands (default topology, 3 partitions, 3 consumer threads):
+  part 1: TRACING_SAMPLING_PROBABILITY=0.1 PROJECT=ledgerflow-p3-final KEEP_GOING=1 bash chaos/run_chaos.sh 27      (stopped by me after run 17 and a partial run 18, see below)
+  part 2: ONLY=<the 11 remaining scenarios in plan order, starting with a re-run of run 17's scenario> PROJECT=ledgerflow-p3-final2 KEEP_GOING=1 bash chaos/run_chaos.sh 11   (fresh stack)
+  scaled: ONLY=kill-ledger-replica SCALE=1 PROJECT=ledgerflow-p3-final-scaled KEEP_GOING=1 bash chaos/run_chaos.sh 3
+Plan: 9 scenarios x 3 runs = 27 runs. Recorded: 28 runs on the default topology (the failed run's scenario was run once more) plus 3 on the scaled topology.
+
+What happened in part 1: runs 1 to 16 passed. Run 17 (crash-after-publish-before-mark, second cycle) FAILED: recovery and settle both timed out (300 s each) and the checker reported
+3,608 I3 violations (payments still PENDING_LEDGER; no balance or posting violations). The Kafka broker log (apache/kafka:4.0.0) has "ArrayIndexOutOfBoundsException: Histogram recorded value
+cannot be negative" at 18:12:35 UTC (13:12:35 local), 43 s after run 17 started; it appeared twice earlier (17:49 UTC, runs 1-2, which passed). Afterwards the payment-service consumer group
+was stuck in PreparingRebalance, re-forming every few seconds (generation 160 at 18:25 UTC, 276 at 18:34 UTC) with 70,676 records of lag on ledger.results. This is the same broker error
+as in the Phase 1b investigation. Run 18 was in that state for about 10 minutes when I stopped the runner (no result row), because every remaining run would have timed out.
+Part 2 on a fresh stack saw no such error (0 occurrences in its broker log) and all 11 runs passed.
+
+Default topology, per scenario (final run per plan slot; the failed run counts as a run and a FAIL):
+| scenario | runs | pass | NOFIRE attempts | recovery s median (min-max) | crashes per run | dup ledger/payment per run | violations | new DLT | settle s median |
+|---|---|---|---|---|---|---|---|---|---|
+| kill-ledger | 3 | 3 | 0 | 55.4 (51.7-57.1) | 0/0/0 | 61/0; 0/0; 1/0 | 0 | 0 | 2 |
+| kill-payment | 3 | 3 | 0 | 43.4 (43.0-43.5) | 0/0/0 | 61/1; 0/0; 1/0 | 0 | 0 | 1 |
+| pause-postgres | 3 | 3 | 0 | 2.2 (0.8-2.4) | 0/0/0 | 61/1; 0/0; 1/0 | 0 | 0 | 0 |
+| restart-kafka | 3 | 3 | 0 | 21.6 (21.3-21.7) | 0/0/0 | 61/1; 0/0; 1/0 | 0 | 0 | 1 |
+| replay | 3 | 3 | 0 | 41.7 (40.5-47.6) | 0/0/0 | 3000/3000; 3000/3000; 3000/3000 | 0 | 0 | 3 |
+| hot-account | 3 | 3 | 0 | 4.8 (4.4-4.8) | 0/0/0 | 3000/3000; 3000/3000; 3000/3000 | 0 | 0 | 0 |
+| crash-before-payment-outbox-commit | 3 | 3 | 0 | 56.1 (28.5-97.5) | 3/2/3 | 3084/0; 3000/0; 3000/0 | 0 | 0 | 0 |
+| crash-after-publish-before-mark | 4 | 3 | 0 | 36.8 (35.8-39.0) (+1 timeout) | 1/1/2/1 | 0/7; 2/0; 5/0; 0/2 | 3608 | 0 | 3 (+1 timeout) |
+| crash-after-ledger-commit-before-ack | 3 | 3 | 0 | 23.1 (22.4-26.5) | 1/1/1 | 0/0; 0/0; 0/0 | 0 | 0 | 2 |
+
+final runs 28: 27 PASS, 1 FAIL, 0 NOFIRE; attempts recorded 28; violations 3608; new DLT 0; accepted 144257; abandoned after 5 attempts 14510; k6 rate 72.7-100.0/s
+
+comparison, recovery_s (final campaign median | Phase 1b run 1, run 2 | Phase 2 single run):
+  kill-ledger                              55.4 | 47.1, 46.7   | 50.3
+  kill-payment                             43.4 | 41.3, 51.4   | 43.4
+  pause-postgres                            2.2 | 1.3, 4.8     | 0.9
+  restart-kafka                            21.6 | 18.7, 28.4   | 20.3
+  replay                                   41.7 | 21.9, 24.4   | 18.2
+  hot-account                               4.8 | 1.2, 3.2     | 2.2
+  crash-before-payment-outbox-commit       56.1 | 39.2, 12.0   | 39.6
+  crash-after-publish-before-mark          36.8 | 28.1, 59.6   | 44.8
+  crash-after-ledger-commit-before-ack     23.1 | 32.8, 48.9   | 6.9
+crash scenarios that fired in the final runs (runs with crashes >= 1 / runs): {'crash-before-payment-outbox-commit': '3/3', 'crash-after-publish-before-mark': '4/4', 'crash-after-ledger-commit-before-ack': '3/3'}
+
+Scaled topology (2 payment + 3 ledger replicas behind HAProxy, 6 partitions), kill-ledger-replica:
+  run 1: PASS, recovery 6.4 s, settle 17 s, dup ledger/payment 2/4, new DLT 0, violations 0
+  run 2: PASS, recovery 47.5 s, settle 2 s, dup ledger/payment 2/2, new DLT 0, violations 0
+  run 3: PASS, recovery 1.4 s, settle 12 s, dup ledger/payment 0/2, new DLT 0, violations 0
+  crashes is 0 by definition (the scenario kills a container with docker compose kill and restarts it; it does not use the crash fault points).
+
+NOFIRE: none of the 10 crash-scenario recordings had crashes = 0, so no re-run was triggered by the new rule.
+Limits: one laptop, one broker, one database; 3 runs per scenario; host under memory pressure; the broker bug above is an environment fault of the pinned image, not an application fault, but it is a FAIL in the campaign record.

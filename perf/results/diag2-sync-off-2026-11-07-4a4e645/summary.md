@@ -1,0 +1,9 @@
+mode steady; load generator host k6 (exit 0); dropped iterations 193255; max VUs 3000; drain 136 s; invariant violations 0
+measured window 120 s after a 45 s warm-up (excluded)
+offered 1600/s, achieved 265.9/s, accepted 31905, declined 0, failed 7590 (4xx 0, 5xx 0, no response 7590)
+POST p50/p95/p99 ms: 3810.3/11504.3/24531.0   request-to-terminal p50/p95/p99 ms: 236390/251504/252818   pending after drain: 0
+  kafka-1: CPU median 196.1 % max 705.8 %, memory median 777 MiB max 841 MiB
+  ledger-service-1: CPU median 121.5 % max 774.8 %, memory median 439 MiB max 446 MiB
+  payment-service-1: CPU median 538.5 % max 1486.3 %, memory median 984 MiB max 1024 MiB
+  postgres-1: CPU median 329.9 % max 1057.8 %, memory median 298 MiB max 326 MiB
+  backlog max 62618 end 62618

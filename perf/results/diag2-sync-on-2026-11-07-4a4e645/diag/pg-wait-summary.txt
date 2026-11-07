@@ -1,0 +1,10 @@
+48 samples (every ~4 s); average number of database sessions per sample, by state / wait_event_type / wait_event
+    7.88  idle                 Client   ClientRead
+    3.46  idle in transaction  Client   ClientRead
+    3.15  active               LWLock   WALWrite
+    1.81  active               -        -
+    1.23  idle in transaction  -        -
+    0.60  active               Client   ClientRead
+    0.56  active               IO       WalSync
+    0.56  idle                 -        -
+ungranted locks per sample: max 3, mean 0.42

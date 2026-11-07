@@ -1,0 +1,12 @@
+Rendered Compose configuration of the scaled topology (no containers started): docker compose -f infra/docker-compose.yml -f infra/docker-compose.load.yml -f infra/docker-compose.scale.yml config
+Code: 4a4e645. Docker VM total memory: 10416644096 bytes = 9.701 GiB.
+kafka              mem= 1024M ports=[('127.0.0.1', '29092', 29092)] partitions=None concurrency=None
+lb                 mem=  128M ports=[('127.0.0.1', '8081', 8081), ('127.0.0.1', '8082', 8082)] partitions=None concurrency=None
+ledger-service     mem= 1024M ports=[] partitions=6 concurrency=2
+ledger-service-b   mem= 1024M ports=[] partitions=6 concurrency=2
+ledger-service-c   mem= 1024M ports=[] partitions=6 concurrency=2
+payment-service    mem= 1024M ports=[] partitions=6 concurrency=3
+payment-service-b  mem= 1024M ports=[] partitions=6 concurrency=3
+postgres           mem= 1024M ports=[('127.0.0.1', '5432', 5432)] partitions=None concurrency=None
+sum of mem_limit (GiB): 7.125
+With the pinned Docker k6 (--memory 1g) added: 8.125 GiB; host k6 adds nothing to the VM.

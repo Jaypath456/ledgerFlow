@@ -1,0 +1,138 @@
+epoch,state,wait_event_type,wait_event,count
+1794072155,idle,-,-,1
+1794072155,idle,Client,ClientRead,19
+1794072160,idle,Client,ClientRead,20
+1794072165,idle,Client,ClientRead,19
+1794072165,idle in transaction,Client,ClientRead,1
+1794072169,idle,Client,ClientRead,20
+1794072179,idle,Client,ClientRead,13
+1794072179,idle in transaction,Client,ClientRead,7
+1794072193,idle,Client,ClientRead,10
+1794072193,idle in transaction,Client,ClientRead,10
+1794072198,active,-,-,2
+1794072198,idle,Client,ClientRead,10
+1794072198,idle in transaction,Client,ClientRead,8
+1794072204,active,Client,ClientRead,1
+1794072204,active,Lock,transactionid,2
+1794072204,idle,Client,ClientRead,6
+1794072204,idle in transaction,Client,ClientRead,11
+1794072209,active,-,-,1
+1794072209,idle,Client,ClientRead,7
+1794072209,idle in transaction,-,-,2
+1794072209,idle in transaction,Client,ClientRead,10
+1794072215,active,-,-,1
+1794072215,idle,Client,ClientRead,12
+1794072215,idle in transaction,Client,ClientRead,7
+1794072220,active,-,-,3
+1794072220,active,Lock,transactionid,2
+1794072220,idle,Client,ClientRead,8
+1794072220,idle in transaction,-,-,1
+1794072220,idle in transaction,Client,ClientRead,6
+1794072225,active,Client,ClientRead,1
+1794072225,active,Lock,transactionid,1
+1794072225,idle,Client,ClientRead,6
+1794072225,idle in transaction,-,-,4
+1794072225,idle in transaction,Client,ClientRead,8
+1794072231,active,-,-,1
+1794072231,idle,-,-,1
+1794072231,idle,Client,ClientRead,7
+1794072231,idle in transaction,-,-,3
+1794072231,idle in transaction,Client,ClientRead,8
+1794072236,idle,Client,ClientRead,5
+1794072236,idle in transaction,-,-,7
+1794072236,idle in transaction,Client,ClientRead,8
+1794072242,idle,Client,ClientRead,13
+1794072242,idle in transaction,Client,ClientRead,7
+1794072247,active,-,-,3
+1794072247,active,IO,DataFileExtend,1
+1794072247,active,Lock,transactionid,2
+1794072247,active,Lock,tuple,2
+1794072247,idle,-,-,1
+1794072247,idle,Client,ClientRead,7
+1794072247,idle in transaction,-,-,2
+1794072247,idle in transaction,Client,ClientRead,2
+1794072253,active,Client,ClientRead,1
+1794072253,idle,Client,ClientRead,7
+1794072253,idle in transaction,-,-,3
+1794072253,idle in transaction,Client,ClientRead,9
+1794072258,active,Client,ClientRead,2
+1794072258,idle,-,-,2
+1794072258,idle,Client,ClientRead,11
+1794072258,idle in transaction,-,-,1
+1794072258,idle in transaction,Client,ClientRead,4
+1794072264,active,-,-,1
+1794072264,idle,Client,ClientRead,16
+1794072264,idle in transaction,Client,ClientRead,3
+1794072269,active,-,-,2
+1794072269,idle,Client,ClientRead,6
+1794072269,idle in transaction,-,-,2
+1794072269,idle in transaction,Client,ClientRead,10
+1794072275,active,-,-,2
+1794072275,active,Lock,transactionid,1
+1794072275,idle,-,-,1
+1794072275,idle,Client,ClientRead,4
+1794072275,idle in transaction,-,-,3
+1794072275,idle in transaction,Client,ClientRead,9
+1794072281,active,-,-,2
+1794072281,idle,-,-,2
+1794072281,idle,Client,ClientRead,10
+1794072281,idle in transaction,Client,ClientRead,6
+1794072286,active,-,-,2
+1794072286,active,LWLock,BufferContent,1
+1794072286,idle,-,-,1
+1794072286,idle,Client,ClientRead,8
+1794072286,idle in transaction,Client,ClientRead,8
+1794072292,active,-,-,4
+1794072292,idle,-,-,2
+1794072292,idle,Client,ClientRead,6
+1794072292,idle in transaction,-,-,7
+1794072292,idle in transaction,Client,ClientRead,2
+1794072298,active,-,-,2
+1794072298,idle,-,-,3
+1794072298,idle,Client,ClientRead,9
+1794072298,idle in transaction,-,-,2
+1794072298,idle in transaction,Client,ClientRead,4
+1794072304,active,-,-,2
+1794072304,idle,-,-,2
+1794072304,idle,Client,ClientRead,9
+1794072304,idle in transaction,-,-,6
+1794072304,idle in transaction,Client,ClientRead,1
+1794072310,active,-,-,2
+1794072310,idle,-,-,1
+1794072310,idle,Client,ClientRead,10
+1794072310,idle in transaction,-,-,1
+1794072310,idle in transaction,Client,ClientRead,6
+1794072316,idle,Client,ClientRead,15
+1794072316,idle in transaction,Client,ClientRead,5
+1794072321,active,-,-,2
+1794072321,active,Client,ClientRead,1
+1794072321,idle,-,-,1
+1794072321,idle,Client,ClientRead,6
+1794072321,idle in transaction,-,-,2
+1794072321,idle in transaction,Client,ClientRead,8
+1794072326,active,-,-,3
+1794072326,idle,-,-,1
+1794072326,idle,Client,ClientRead,7
+1794072326,idle in transaction,-,-,3
+1794072326,idle in transaction,Client,ClientRead,6
+1794072332,active,-,-,1
+1794072332,active,Lock,transactionid,1
+1794072332,idle,-,-,1
+1794072332,idle,Client,ClientRead,7
+1794072332,idle in transaction,-,-,3
+1794072332,idle in transaction,Client,ClientRead,7
+1794072338,active,-,-,5
+1794072338,active,Lock,transactionid,2
+1794072338,idle,-,-,1
+1794072338,idle,Client,ClientRead,8
+1794072338,idle in transaction,-,-,2
+1794072338,idle in transaction,Client,ClientRead,2
+1794072344,active,-,-,1
+1794072344,idle,-,-,4
+1794072344,idle,Client,ClientRead,12
+1794072344,idle in transaction,-,-,2
+1794072344,idle in transaction,Client,ClientRead,1
+1794072349,active,-,-,4
+1794072349,idle,-,-,1
+1794072349,idle,Client,ClientRead,15
+1794072349,idle in transaction,-,-,1

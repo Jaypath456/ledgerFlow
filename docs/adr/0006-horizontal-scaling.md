@@ -48,16 +48,16 @@ How several replicas behave (read from the code, and confirmed on the running st
   ledger may see them in either order. Outcomes stay valid and idempotent and the invariants hold; which of two competing payments wins the balance is not defined by arrival order.
 - **Losing a ledger replica pauses its partitions until the group notices.** The probe payment of the chaos runner maps to one partition; when that partition belonged to the killed
   replica, recovery waits for the group to reassign it. Recovery times of the three runs were 6.4, 47.5 and 1.4 s with settle times of 17, 2 and 12 s
-  (`docs/evidence/chaos-postgres-phase3-2026-11-07-PENDING_FINAL.txt`). The 47.5 s run is consistent with Kafka's default 45 s consumer session timeout; this was not measured separately.
+  (`docs/evidence/chaos-postgres-phase3-2026-11-07-4a4e645.txt`). The 47.5 s run is consistent with Kafka's default 45 s consumer session timeout; this was not measured separately.
 - The host ports 8081/8082 now belong to the proxy, so `scripts/smoke.sh` and the k8s scripts, which start their own stacks, are unaffected, but anything that talks to a single replica from the host
   cannot (use `docker compose exec`). Per-replica duplicate counters read through the proxy come from one replica only.
 
 ## Measured
 
-- **Functional check on a running stack** (`perf/results/scaled-2026-11-07-PENDING_FINAL/topology-check.txt`): all four topics have 6 partitions, each consumer group has 6 distinct
+- **Functional check on a running stack** (`perf/results/scaled-2026-11-07-4a4e645/topology-check.txt`): all four topics have 6 partitions, each consumer group has 6 distinct
   consumers, health answers through the proxy, both payment replicas serve traffic, and a 30 s run at 100/s accepted 2,998 payments with 0 failed and 0 invariant violations.
-- **`kill-ledger-replica`, 3 runs** (`docs/evidence/chaos-postgres-phase3-2026-11-07-PENDING_FINAL.txt`): 3 of 3 passed, 0 invariant violations, 0 new dead letters.
-- **Throughput of the scaled topology was not measured.** The scaled ramp (`perf/results/scaled-2026-11-07-PENDING_FINAL/ramp`) ran on a host under memory pressure
+- **`kill-ledger-replica`, 3 runs** (`docs/evidence/chaos-postgres-phase3-2026-11-07-4a4e645.txt`): 3 of 3 passed, 0 invariant violations, 0 new dead letters.
+- **Throughput of the scaled topology was not measured.** The scaled ramp (`perf/results/scaled-2026-11-07-4a4e645/ramp`) ran on a host under memory pressure
   (swap 14,535.62M of 15,360.00M used, recorded in its `environment.txt`): even the first step, 100/s offered, achieved 96.2/s with 79 failed requests and a POST p50 of 2,045.3 ms, and the best
   achieved rate was 187.1/s. Five JVMs and a proxy need more memory than the default stack's two JVMs, so this host state hurts the scaled topology more than the baseline; the
   result says nothing about the topology itself. The planned scaled steady runs and their same-period default-topology reference were not run. To measure it, on an idle machine:

@@ -4,13 +4,13 @@ Status: accepted (Roadmap Phase 3), 2026-11-07. The decision is a measured, mixe
 
 ## Context
 
-The Phase 3 baseline (`perf/results/baseline-2026-11-07-PENDING_BASE/`) drives the unchanged services on the default Compose topology with
+The Phase 3 baseline (`perf/results/baseline-2026-11-07-5aa8d89/`) drives the unchanged services on the default Compose topology with
 the cost-4 load credentials (ADR 0003) and the velocity limit raised (ADR 0002): one payment-service, one ledger-service, 3 partitions per
 topic, 3 consumer threads. A ramp from 200 payments/s in steps of 100 every 30 s (`ramp-2`) sustained 1,200/s with no failed request. The first
 saturated step was 1,300/s (the backlog kept growing), the best achieved rate was 1,641.8/s, and no request was ever rejected up to 2,400/s
 offered. Three steady runs at 70 % of the last sustained rate (840/s) each achieved 840.0/s with 0 failed requests.
 
-A diagnosis run just above the knee (`perf/results/diagnosis-2026-11-07-PENDING_BASE/`, 1,400/s, observability profile on, sampling 0.1) found:
+A diagnosis run just above the knee (`perf/results/diagnosis-2026-11-07-5aa8d89/`, 1,400/s, observability profile on, sampling 0.1) found:
 
 - **The ledger consumer is the first stage to fall behind.** Kafka lag on `payments.requested` (consumed by ledger-service) grew from 14,876 to
   36,704 records during the run. Outbox backlogs stayed small (at most 525 rows in payment-service and 43 in ledger-service, oldest unpublished
@@ -30,7 +30,7 @@ Make the partition count and the consumer thread count configurable, **with the 
 (`TOPIC_PARTITIONS`, default 3; applies to both topics and their dead-letter topics, which need as many partitions as the topic they back) and
 `spring.kafka.listener.concurrency` (`LISTENER_CONCURRENCY`, default 3). Before and after therefore run the same image.
 
-Measure 6 partitions with 6 threads on the same ramp (`perf/results/after-2026-11-07-PENDING_FINAL/ramp`), single runs:
+Measure 6 partitions with 6 threads on the same ramp (`perf/results/after-2026-11-07-4a4e645/ramp`), single runs:
 
 | | 3 partitions, 3 threads | 6 partitions, 6 threads |
 |---|---|---|
@@ -49,7 +49,7 @@ correctness. **The default stays at 3 and 3.**
 
 1. **More consumer threads without more partitions.** Useless: threads beyond the partition count stay idle.
 2. **More partitions and threads (6 and 6).** Measured above; a one-step shift of the knee at best, and a lower peak, on this laptop. In a control at 1,600/s the database sessions waiting on
-   `WALWrite` rose to 3.15 on average (`perf/results/diag2-sync-on-2026-11-07-PENDING_FINAL/diag/pg-wait-summary.txt`), which is consistent with commits queueing
+   `WALWrite` rose to 3.15 on average (`perf/results/diag2-sync-on-2026-11-07-4a4e645/diag/pg-wait-summary.txt`), which is consistent with commits queueing
    behind one WAL writer, but this was not isolated.
 3. **`synchronous_commit = off`** would show whether the WAL flush is the shared limit, but it weakens durability for committed payments, so it is a diagnostic
    at most and never a product setting. The two diagnostic runs failed to answer the question: the host had degraded (see Consequences), and both the
@@ -65,5 +65,5 @@ correctness. **The default stays at 3 and 3.**
 - The two settings are kept because the scaled topology needs them (6 partitions, 6 consumers over several replicas, ADR 0006). Raising the partition count of an
   existing topic changes which partition a key maps to, so the per-payer order of events still in flight at that moment is not guaranteed; do it on a drained system.
 - Measurements taken later the same day are not comparable with the morning's: with the machine under memory pressure, the same baseline steady run (840/s,
-  default configuration) achieved 344.6/s instead of 840.0/s (`perf/results/drift-check-2026-11-07-PENDING_FINAL/`, host state in `host-state.txt`).
+  default configuration) achieved 344.6/s instead of 840.0/s (`perf/results/drift-check-2026-11-07-4a4e645/`, host state in `host-state.txt`).
   `perf/run.sh` now records the host's swap, free memory and power state in each run's `environment.txt`.
