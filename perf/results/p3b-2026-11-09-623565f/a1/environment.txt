@@ -1,0 +1,23 @@
+Code: 623565f (Kafka 4.0.2, host-gated perf/run.sh; this run: 3 partitions, 3 consumer threads)
+date: 2026-11-09 11:43:18 EST
+git: 623565f clean
+mode: steady  name: steady  project: ledgerflow-p3b-a1  run_id: r114259
+host: Apple M4, 10 CPUs, 16 GiB RAM, Darwin 27.0.0
+docker: engine 29.8.2, compose 5.6.0, VM 10 CPUs, 10416644096 bytes
+host state before start (host gate on):
+  power: Now drawing from AC Power
+  swap: total = 0.00M  used = 0.00M  free = 0.00M  
+  memory: System-wide memory free percentage: 48%; load averages 5.77 12.72 7.14
+  heaviest processes by memory (MB RSS): Google 395; Google 329; Visual 319; Visual 290;
+host state: Now drawing from AC Power; swap total = 0.00M  used = 0.00M  free = 0.00M  ; System-wide memory free percentage: 40%; load averages 4.86 12.06 7.03
+k6: host k6 v2.3.0 (commit/devel, go1.27.1, darwin/arm64)
+compose command: docker compose -p ledgerflow-p3b-a1 -f infra/docker-compose.yml -f infra/docker-compose.load.yml
+settings: TRACING_SAMPLING_PROBABILITY=0.1 RISK_VELOCITY_MAX=1000000 OBSERVABILITY=0 SCALE=0 (load identities bcrypt cost 4)
+load: steady RATE=840 WARMUP_SECONDS=60 DURATION_SECONDS=180
+containers:
+  ledgerflow-p3b-a1-kafka-1 image=apache/kafka:4.0.2 mem_limit=1073741824 nano_cpus=0
+  ledgerflow-p3b-a1-ledger-service-1 image=ledgerflow-p3b-a1-ledger-service mem_limit=1073741824 nano_cpus=0
+  ledgerflow-p3b-a1-payment-service-1 image=ledgerflow-p3b-a1-payment-service mem_limit=1073741824 nano_cpus=0
+  ledgerflow-p3b-a1-postgres-1 image=postgres:17.11 mem_limit=1073741824 nano_cpus=0
+  env ledger-service {"JAVA_TOOL_OPTIONS": "-XX:MaxRAMPercentage=50", "LEDGERFLOW_CHAOS_FAULTS": "", "LEDGERFLOW_CHAOS_PROBABILITY": "0", "LEDGERFLOW_OUTBOX_POLL_MS": "10", "LISTENER_CONCURRENCY": "3", "RISK_VELOCITY_MAX": "1000000", "SPRING_PROFILES_ACTIVE": "default", "TOPIC_PARTITIONS": "3", "TRACING_SAMPLING_PROBABILITY": "0.1"}
+  env payment-service {"JAVA_TOOL_OPTIONS": "-XX:MaxRAMPercentage=50", "LEDGERFLOW_AUTH_BCRYPTSTRENGTH": "4", "LEDGERFLOW_CHAOS_FAULTS": "", "LEDGERFLOW_CHAOS_PROBABILITY": "0", "LEDGERFLOW_OUTBOX_POLL_MS": "10", "LISTENER_CONCURRENCY": "3", "RISK_VELOCITY_MAX": "1000000", "SPRING_PROFILES_ACTIVE": "default", "TOPIC_PARTITIONS": "3", "TRACING_SAMPLING_PROBABILITY": "0.1"}

@@ -70,5 +70,8 @@ correctness. **The default stays at 3 and 3.**
 
 ## Update, Roadmap Phase 3b (2026-11-09)
 
-The planned quiet-machine runs (three baseline and three 6-partition steady runs, and a `synchronous_commit` A/B/A on one ramp and one steady run) were **not made**: the host gate required at most 1 GiB of swap in use and the host stayed between 5,707 and 6,782 MiB (5.57 to 6.62 GiB)
-(`perf/results/p3b-2026-11-09-b96d66e/host-gate-log.txt`). Whether the commit path is the shared limit therefore remains **open**, and the decision above (defaults stay 3 and 3) stands on the Phase 3 single runs.
+Six steady runs at 840/s were made with the host gate open (three with 3 partitions and 3 threads, three with 6 and 6; `perf/results/p3b-2026-11-09-623565f/summary.md`, single runs). All achieved 840.0/s with 0 failed requests. That rate is below the knee (1,200/s sustained by the baseline), so the runs cannot show a capacity difference; in them the 6-and-6
+configuration used more ledger CPU (43.0 to 45.1 % against 35.4 to 38.0 %) and its POST p99 ranged from 11.8 to 42.6 ms against 11.0 to 13.7 ms. The decision above (defaults stay 3 and 3) is unchanged.
+
+The `synchronous_commit` A/B/A and both ramps were **not measured**: the driver skipped them (the gate was closed, then the time ran out, per the person who ran it). Between 04:54 and 06:43 on the same day the gate was closed throughout: swap in use was between 5,707 and 6,782 MiB in all 28 samples
+(`perf/results/p3b-2026-11-09-b96d66e/host-gate-log.txt`), against a threshold of 1,024 MiB. Whether the commit path is the shared limit therefore remains **open**.
