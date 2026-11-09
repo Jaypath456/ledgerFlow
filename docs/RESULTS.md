@@ -693,7 +693,7 @@ Local laptop only, one broker and one database node: no high-availability or pro
 
 ### Roadmap Phase 3b: Kafka 4.0.2 and the re-measurement attempt, 2026-11-09
 
-Branch `feat/perf-remeasure`. Code: `b96d66e` (service code as in Roadmap Phase 3; `apache/kafka` pinned to 4.0.2 in Compose, the k8s manifests and the four test-container classes; `perf/run.sh` gained a host gate).
+Branch `feat/perf-remeasure`. Code: `b96d66e` for the Kafka pin, the chaos campaign and the host gate; `PENDING_P3B` for the six steady runs below (service code as in Roadmap Phase 3; `apache/kafka` pinned to 4.0.2 in Compose, the k8s manifests and the four test-container classes; `perf/run.sh` gained a host gate).
 
 **Kafka 4.0.2.** The pin is meant to remove the coordinator error seen on 4.0.0 in Roadmap Phase 1b and in run 17 of the Roadmap Phase 3 campaign (Kafka 4.0.2 lists KAFKA-19888 in its release notes; the notes were not re-read here, the claim is the one given in the task).
 `./mvnw -B clean verify`: 39 + 25 + 20 = 84 tests, 0 failures, BUILD SUCCESS (`docs/evidence/verify-postgres-phase3b-2026-11-09-b96d66e.txt`); `bash scripts/smoke.sh`: 7 of 7 (`docs/evidence/smoke-postgres-phase3b-2026-11-09-b96d66e.txt`).
@@ -703,8 +703,23 @@ Branch `feat/perf-remeasure`. Code: `b96d66e` (service code as in Roadmap Phase 
 - Scaled topology, `kill-ledger-replica` x 3: 3 of 3 PASS, 0 violations; recovery 43.0, 41.7 and 0.8 s.
 - The string `Histogram recorded value` occurs **0 times** in the broker logs of both stacks (and 0 times in a preceding run of 3 x `crash-after-publish-before-mark` on 4.0.2). On 4.0.0 the campaign of Roadmap Phase 3 logged it and one run failed (`docs/evidence/chaos-postgres-phase3-2026-11-07-4a4e645.txt`). Three clean stacks are encouraging, not proof: on 4.0.0 the error also did not appear in every stack.
 
-**Host state: the quiet-machine measurements were not made.** The session's rule was to measure only on AC power with at most 1 GiB of swap in use. Power was AC, but swap in use stayed between 5,707 and 6,782 MiB (5.57 to 6.62 GiB) in all 28 samples from the first check to the end
-(`perf/results/p3b-2026-11-09-b96d66e/host-gate-log.txt`), so none of the planned runs was made: the three baseline and three 6-partition steady runs, the `synchronous_commit` A/B/A, and the scaled ramp and steady runs.
-`perf/run.sh` now enforces the rule itself (it refuses to start on battery power or above 1 GiB of swap, and records power, swap, free memory, load and the heaviest processes in `environment.txt`).
-Consequences: the commit-path question of ADR 0005 is still open, and the throughput of the scaled topology is still unmeasured. The recovery times of the chaos campaign above came from this same host state; they are recorded but are not performance measurements.
-(For information only: they were close to the October values, for example replay 7.6 s and pause-postgres 0.5 s, whereas the Roadmap Phase 3 campaign on the degraded host showed 41.7 s and 2.2 s. Swap in use alone therefore does not predict a slow run.)
+**Host gate and what was measured.** The rule for measured runs was AC power with at most 1,024 MiB of swap in use. `perf/run.sh` now enforces it itself (it refuses to start on battery power or above that swap use, and records power, swap, free memory, load and the heaviest processes in `environment.txt`).
+- *First window, 04:54 to 06:43.* Power was AC, but swap in use was between 5,707 and 6,782 MiB in all 28 samples (`perf/results/p3b-2026-11-09-b96d66e/host-gate-log.txt`), so the gate stayed closed and no measured run was started. The chaos campaign above was run in this window for its functional results; its recovery times come from this host state and are not performance measurements.
+  (For information only: they were close to the October values, for example replay 7.6 s and pause-postgres 0.5 s, whereas the Roadmap Phase 3 campaign on the degraded host showed 41.7 s and 2.2 s. Swap in use alone therefore does not predict a slow run.)
+- *Later driver run, 11:43 onwards.* Six steady runs at 840 payments/s were made with the gate open (swap in use 0 to 878 MiB at their start) and are **single runs** (`perf/results/p3b-2026-11-09-PENDING_P3B/summary.md`):
+
+| Run | Partitions / threads | Achieved/s | POST p50/p95/p99 ms | Request-to-terminal p50/p95/p99 ms | Payment / ledger / Postgres CPU median % |
+|---|---|---|---|---|---|
+| a1 | 3 / 3 | 840.0 | 2.3/4.6/11.0 | 33/46/79 | 127.2 / 35.4 / 94.6 |
+| a2 | 3 / 3 | 840.0 | 2.4/5.0/12.7 | 34/48/71 | 131.5 / 38.0 / 103.5 |
+| a3 | 3 / 3 | 840.0 | 2.3/4.7/13.7 | 34/47/84 | 128.9 / 36.7 / 100.6 |
+| b1 | 6 / 6 | 840.0 | 2.4/5.4/26.0 | 34/46/112 | 138.6 / 45.1 / 108.3 |
+| b2 | 6 / 6 | 840.0 | 2.3/4.8/11.8 | 33/45/52 | 134.0 / 43.0 / 103.3 |
+| b3 | 6 / 6 | 840.0 | 2.4/6.3/42.6 | 34/48/146 | 135.9 / 44.4 / 109.8 |
+
+All six: 0 failed requests, 0 invariant violations, nothing pending after the drain. The three baseline runs at the same rate on 2026-11-07 had POST p99 of 19.3, 30.3 and 30.0 ms, request-to-terminal p99 of 142, 202 and 164 ms, and payment CPU of 142.8, 138.6 and 148.9 %.
+840/s is below the knee of the 3-partition baseline (last sustained rate 1,200/s), so these runs show no throughput difference between the two configurations. In them the 6-partition configuration used more ledger CPU (43.0 to 45.1 % against 35.4 to 38.0 %) and had a wider POST p99 range (11.8 to 42.6 ms against 11.0 to 13.7 ms); with three runs each that is an observation, not a result.
+
+**Not measured in this session:** the `synchronous_commit` A/B/A (steady and ramp), both ramps (default and sync-off), the scaled ramp and the scaled steady runs. The driver skipped c-A1, c-B, c-A2, ramp-A, ramp-sync-off and scaled-ramp, and never started the scaled steady runs; per the person who ran it, because the gate was closed and then the time ran out (it finished at 14:29:30).
+That driver run's own log is not in the repository, so the evidence cannot show when the gate closed; the only records are the host states at the start of the six runs, which include a 53-minute gap between the starts of a2 (11:52:37) and b2 (12:45:44) with no run and no host record.
+Consequences: the commit-path question of ADR 0005 is still open, and the throughput of the scaled topology is still unmeasured.
