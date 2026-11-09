@@ -693,7 +693,7 @@ Local laptop only, one broker and one database node: no high-availability or pro
 
 ### Roadmap Phase 3b: Kafka 4.0.2 and the re-measurement attempt, 2026-11-09
 
-Branch `feat/perf-remeasure`. Code: `b96d66e` for the Kafka pin, the chaos campaign and the host gate; `PENDING_P3B` for the six steady runs below (service code as in Roadmap Phase 3; `apache/kafka` pinned to 4.0.2 in Compose, the k8s manifests and the four test-container classes; `perf/run.sh` gained a host gate).
+Branch `feat/perf-remeasure`. Code: `b96d66e` for the Kafka pin, the chaos campaign and the host gate; `623565f` for the six steady runs below (service code as in Roadmap Phase 3; `apache/kafka` pinned to 4.0.2 in Compose, the k8s manifests and the four test-container classes; `perf/run.sh` gained a host gate).
 
 **Kafka 4.0.2.** The pin is meant to remove the coordinator error seen on 4.0.0 in Roadmap Phase 1b and in run 17 of the Roadmap Phase 3 campaign (Kafka 4.0.2 lists KAFKA-19888 in its release notes; the notes were not re-read here, the claim is the one given in the task).
 `./mvnw -B clean verify`: 39 + 25 + 20 = 84 tests, 0 failures, BUILD SUCCESS (`docs/evidence/verify-postgres-phase3b-2026-11-09-b96d66e.txt`); `bash scripts/smoke.sh`: 7 of 7 (`docs/evidence/smoke-postgres-phase3b-2026-11-09-b96d66e.txt`).
@@ -706,7 +706,7 @@ Branch `feat/perf-remeasure`. Code: `b96d66e` for the Kafka pin, the chaos campa
 **Host gate and what was measured.** The rule for measured runs was AC power with at most 1,024 MiB of swap in use. `perf/run.sh` now enforces it itself (it refuses to start on battery power or above that swap use, and records power, swap, free memory, load and the heaviest processes in `environment.txt`).
 - *First window, 04:54 to 06:43.* Power was AC, but swap in use was between 5,707 and 6,782 MiB in all 28 samples (`perf/results/p3b-2026-11-09-b96d66e/host-gate-log.txt`), so the gate stayed closed and no measured run was started. The chaos campaign above was run in this window for its functional results; its recovery times come from this host state and are not performance measurements.
   (For information only: they were close to the October values, for example replay 7.6 s and pause-postgres 0.5 s, whereas the Roadmap Phase 3 campaign on the degraded host showed 41.7 s and 2.2 s. Swap in use alone therefore does not predict a slow run.)
-- *Later driver run, 11:43 onwards.* Six steady runs at 840 payments/s were made with the gate open (swap in use 0 to 878 MiB at their start) and are **single runs** (`perf/results/p3b-2026-11-09-PENDING_P3B/summary.md`):
+- *Later driver run, 11:43 onwards.* Six steady runs at 840 payments/s were made with the gate open (swap in use 0 to 878 MiB at their start) and are **single runs** (`perf/results/p3b-2026-11-09-623565f/summary.md`):
 
 | Run | Partitions / threads | Achieved/s | POST p50/p95/p99 ms | Request-to-terminal p50/p95/p99 ms | Payment / ledger / Postgres CPU median % |
 |---|---|---|---|---|---|

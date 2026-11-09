@@ -70,7 +70,7 @@ correctness. **The default stays at 3 and 3.**
 
 ## Update, Roadmap Phase 3b (2026-11-09)
 
-Six steady runs at 840/s were made with the host gate open (three with 3 partitions and 3 threads, three with 6 and 6; `perf/results/p3b-2026-11-09-PENDING_P3B/summary.md`, single runs). All achieved 840.0/s with 0 failed requests. That rate is below the knee (1,200/s sustained by the baseline), so the runs cannot show a capacity difference; in them the 6-and-6
+Six steady runs at 840/s were made with the host gate open (three with 3 partitions and 3 threads, three with 6 and 6; `perf/results/p3b-2026-11-09-623565f/summary.md`, single runs). All achieved 840.0/s with 0 failed requests. That rate is below the knee (1,200/s sustained by the baseline), so the runs cannot show a capacity difference; in them the 6-and-6
 configuration used more ledger CPU (43.0 to 45.1 % against 35.4 to 38.0 %) and its POST p99 ranged from 11.8 to 42.6 ms against 11.0 to 13.7 ms. The decision above (defaults stay 3 and 3) is unchanged.
 
 The `synchronous_commit` A/B/A and both ramps were **not measured**: the driver skipped them (the gate was closed, then the time ran out, per the person who ran it). Between 04:54 and 06:43 on the same day the gate was closed throughout: swap in use was between 5,707 and 6,782 MiB in all 28 samples
