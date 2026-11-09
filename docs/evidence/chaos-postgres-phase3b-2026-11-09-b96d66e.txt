@@ -1,0 +1,67 @@
+Final chaos campaign on a pinned Kafka 4.0.2, Roadmap Phase 3b, 2026-11-09
+Code: b96d66e (service code as in Roadmap Phase 3; apache/kafka image changed from 4.0.0 to 4.0.2 in Compose, k8s manifests and the test containers).
+Raw rows: chaos-postgres-phase3b-2026-11-09-b96d66e.csv (column campaign = default | scaled; last column attempt).
+
+Environment: MacBook Air (Apple M4), 10 CPUs, 16 GiB RAM, Docker Desktop (VM 10 CPUs, 9.701 GiB), AC power. postgres:17.11, apache/kafka:4.0.2, grafana/k6:2.3.0 (--memory 1g),
+1 GiB limit per service container, cost-4 load credentials (ADR 0003), RISK_VELOCITY_MAX=1000000 set by the runner (ADR 0002), TRACING_SAMPLING_PROBABILITY=0.1, profile off,
+100 payments/s for 60 s per run, crash probability 0.0005 per injection-point hit.
+HOST STATE (below) did NOT meet the quiet-machine rule of this session (swap used above 1 GiB). The campaign was run anyway because its main results are functional and do not
+depend on a quiet machine: which faults fired, pass or fail, invariant violations, dead letters, broker errors. The recovery times are recorded as the runner wrote them, but they come from
+a host with 5,707 to 6,493 MiB (5.57 to 6.34 GiB) of swap in use and are NOT performance measurements; no performance claim is made from them.
+== host state 2026-11-09 04:11:26
+Now drawing from AC Power
+total = 7168.00M  used = 5707.38M  free = 1460.62M  
+System-wide memory free percentage: 53%
+load averages: 2.05 2.11 2.92
+== host state 2026-11-09 04:48:27
+Now drawing from AC Power
+total = 7168.00M  used = 6319.31M  free = 848.69M  
+System-wide memory free percentage: 38%
+load averages: 3.07 3.45 3.32
+== host state 2026-11-09 04:52:18
+Now drawing from AC Power
+total = 7168.00M  used = 6492.88M  free = 675.12M  
+System-wide memory free percentage: 35%
+load averages: 5.46 4.12 3.63
+
+Commands: TRACING_SAMPLING_PROBABILITY=0.1 KEEP_GOING=1 PROJECT=ledgerflow-p3b-final bash chaos/run_chaos.sh 27     (default topology, 3 partitions, 3 consumer threads)
+          ONLY=kill-ledger-replica SCALE=1 KEEP_GOING=1 PROJECT=ledgerflow-p3b-scaled bash chaos/run_chaos.sh 3     (scaled topology)
+
+Default topology, per scenario:
+| scenario | runs | pass | NOFIRE attempts | recovery s median (min-max) | crashes per run | dup ledger/payment per run | violations | new DLT | settle s median |
+|---|---|---|---|---|---|---|---|---|---|
+| kill-ledger | 3 | 3 | 0 | 42.6 (42.5-42.7) | 0/0/0 | 0/0; 0/0; 0/0 | 0 | 0 | 1 |
+| kill-payment | 3 | 3 | 0 | 40.7 (40.6-40.7) | 0/0/0 | 0/0; 0/0; 0/0 | 0 | 0 | 0 |
+| pause-postgres | 3 | 3 | 0 | 0.5 (0.4-0.5) | 0/0/0 | 0/0; 0/0; 0/0 | 0 | 0 | 1 |
+| restart-kafka | 3 | 3 | 0 | 12.9 (12.5-15.5) | 0/0/0 | 0/0; 0/0; 0/0 | 0 | 0 | 1 |
+| replay | 3 | 3 | 0 | 7.6 (7.5-7.6) | 0/0/0 | 3000/3000; 3000/3000; 3000/3000 | 0 | 0 | 0 |
+| hot-account | 3 | 3 | 0 | 0.9 (0.9-0.9) | 0/0/0 | 3000/3000; 3000/3000; 3000/3000 | 0 | 0 | 0 |
+| crash-before-payment-outbox-commit | 3 | 3 | 0 | 52.5 (29.9-52.7) | 4/2/5 | 3000/0; 3000/0; 3000/0 | 0 | 0 | 0 |
+| crash-after-publish-before-mark | 3 | 3 | 0 | 28.1 (10.8-57.1) | 1/4/1 | 0/2; 6/0; 1/0 | 0 | 0 | 0 |
+| crash-after-ledger-commit-before-ack | 3 | 3 | 0 | 33.3 (7.3-36.8) | 2/1/2 | 0/0; 0/0; 0/0 | 0 | 0 | 1 |
+
+final runs 27: 27 PASS, 0 FAIL, 0 NOFIRE; attempts recorded 27; violations 0; new DLT 0; accepted 156691; abandoned after 5 attempts 1212; k6 rate 77.4-100.0/s
+crash scenarios that fired in the final runs (runs with crashes >= 1 / runs): {'crash-before-payment-outbox-commit': '3/3', 'crash-after-publish-before-mark': '3/3', 'crash-after-ledger-commit-before-ack': '3/3'}
+NOFIRE: none of the 9 crash-scenario runs had crashes = 0, so the NOFIRE re-run rule never triggered.
+Kafka broker error: the string "Histogram recorded value" occurs 0 times in the broker log of the default stack and 0 times in the log of the scaled stack (apache/kafka:4.0.2). The same error
+stopped the Phase 3 campaign on apache/kafka:4.0.0 in run 17. Before this campaign, crash-after-publish-before-mark ran 3 times on 4.0.2 (chaos-20261109-032657: 3 PASS, 2, 3 and 1 halts, 0 occurrences).
+
+Scaled topology (2 payment + 3 ledger replicas behind HAProxy, 6 partitions), kill-ledger-replica:
+  run 1: PASS, recovery 43.0 s, settle 0 s, dup ledger/payment 0/0, new DLT 0, violations 0
+  run 2: PASS, recovery 41.7 s, settle 1 s, dup ledger/payment 0/0, new DLT 0, violations 0
+  run 3: PASS, recovery 0.8 s, settle 3 s, dup ledger/payment 0/0, new DLT 0, violations 0
+  (crashes is 0 by definition: the scenario kills a container with docker compose kill and restarts it)
+
+Recovery median s (min-max), default topology, against the Phase 3 campaign of 2026-11-07 (also taken on a degraded host, on Kafka 4.0.0, with one failed run). Not a like-for-like comparison:
+| scenario | Phase 3b | Phase 3 campaign |
+|---|---|---|
+| kill-ledger | 42.6 (42.5-42.7) | 55.4 (51.7-57.1) |
+| kill-payment | 40.7 (40.6-40.7) | 43.4 (43.0-43.5) |
+| pause-postgres | 0.5 (0.4-0.5) | 2.2 (0.8-2.4) |
+| restart-kafka | 12.9 (12.5-15.5) | 21.6 (21.3-21.7) |
+| replay | 7.6 (7.5-7.6) | 41.7 (40.5-47.6) |
+| hot-account | 0.9 (0.9-0.9) | 4.8 (4.4-4.8) |
+| crash-before-payment-outbox-commit | 52.5 (29.9-52.7) | 56.1 (28.5-97.5) |
+| crash-after-publish-before-mark | 28.1 (10.8-57.1) | 36.8 (35.8-39.0) |
+| crash-after-ledger-commit-before-ack | 33.3 (7.3-36.8) | 23.1 (22.4-26.5) |
+Limits: one laptop, one broker, one database; 3 runs per scenario; host swap use above the session's threshold; recovery times not usable as performance numbers.

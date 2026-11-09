@@ -1,0 +1,32 @@
+Code: b96d66e. Host state sampled every 5 minutes during Roadmap Phase 3b (gate for measured runs: AC power and swap used <= 1024M). Earlier samples were taken by hand:
+2026-11-09 03:23 | AC | swap used 6084.50M of 7168M
+2026-11-09 03:42 | AC | swap used 6781.94M of 8192M | mem free 65%
+2026-11-09 03:52 | AC | swap used 5859.44M of 7168M | mem free 56%
+2026-11-09 04:01 | AC | swap used 5723M
+2026-11-09 04:11 | AC | swap used 5707M
+automatic samples:
+2026-11-09 04:55:01 | Now drawing from AC Power | swap 7168.00M  used = 6600.88M  free = 567.12M   | mem free 36% | load 1.92 3.10 3.29
+2026-11-09 05:00:01 | Now drawing from AC Power | swap 7168.00M  used = 6666.94M  free = 501.06M   | mem free 57% | load 2.43 2.53 2.95
+2026-11-09 05:05:01 | Now drawing from AC Power | swap 7168.00M  used = 6594.94M  free = 573.06M   | mem free 63% | load 2.25 2.31 2.72
+2026-11-09 05:10:01 | Now drawing from AC Power | swap 7168.00M  used = 6586.94M  free = 581.06M   | mem free 64% | load 1.81 2.00 2.44
+2026-11-09 05:15:01 | Now drawing from AC Power | swap 7168.00M  used = 6562.94M  free = 605.06M   | mem free 66% | load 1.81 1.86 2.24
+2026-11-09 05:20:01 | Now drawing from AC Power | swap 7168.00M  used = 6530.94M  free = 637.06M   | mem free 67% | load 3.13 2.30 2.30
+2026-11-09 05:25:01 | Now drawing from AC Power | swap 7168.00M  used = 6530.94M  free = 637.06M   | mem free 69% | load 1.85 2.13 2.23
+2026-11-09 05:30:01 | Now drawing from AC Power | swap 7168.00M  used = 6506.94M  free = 661.06M   | mem free 70% | load 2.22 2.09 2.17
+2026-11-09 05:35:01 | Now drawing from AC Power | swap 7168.00M  used = 6482.94M  free = 685.06M   | mem free 70% | load 1.80 1.84 2.02
+2026-11-09 05:40:01 | Now drawing from AC Power | swap 7168.00M  used = 6458.94M  free = 709.06M   | mem free 69% | load 2.05 1.88 1.97
+2026-11-09 05:45:01 | Now drawing from AC Power | swap 7168.00M  used = 6458.94M  free = 709.06M   | mem free 69% | load 1.71 1.92 1.97
+2026-11-09 05:50:01 | Now drawing from AC Power | swap 7168.00M  used = 6426.94M  free = 741.06M   | mem free 69% | load 2.45 2.45 2.19
+2026-11-09 05:55:02 | Now drawing from AC Power | swap 7168.00M  used = 6402.94M  free = 765.06M   | mem free 69% | load 2.07 2.20 2.13
+2026-11-09 06:00:02 | Now drawing from AC Power | swap 7168.00M  used = 6402.94M  free = 765.06M   | mem free 69% | load 2.13 2.12 2.10
+2026-11-09 06:05:02 | Now drawing from AC Power | swap 7168.00M  used = 6378.94M  free = 789.06M   | mem free 69% | load 1.95 2.01 2.05
+2026-11-09 06:10:02 | Now drawing from AC Power | swap 7168.00M  used = 6362.94M  free = 805.06M   | mem free 69% | load 2.61 2.20 2.12
+2026-11-09 06:15:02 | Now drawing from AC Power | swap 7168.00M  used = 6354.94M  free = 813.06M   | mem free 68% | load 2.35 2.16 2.11
+2026-11-09 06:20:02 | Now drawing from AC Power | swap 7168.00M  used = 6338.94M  free = 829.06M   | mem free 68% | load 1.91 2.21 2.14
+2026-11-09 06:25:02 | Now drawing from AC Power | swap 7168.00M  used = 6338.94M  free = 829.06M   | mem free 68% | load 1.86 1.97 2.05
+2026-11-09 06:30:02 | Now drawing from AC Power | swap 7168.00M  used = 6330.94M  free = 837.06M   | mem free 66% | load 1.92 2.02 2.07
+2026-11-09 06:35:02 | Now drawing from AC Power | swap 7168.00M  used = 6330.94M  free = 837.06M   | mem free 65% | load 2.34 2.15 2.09
+2026-11-09 06:40:02 | Now drawing from AC Power | swap 7168.00M  used = 6322.94M  free = 845.06M   | mem free 63% | load 2.09 2.11 2.08
+2026-11-09 06:43:39 | final sample | swap 7168.00M  used = 6314.94M  free = 853.06M   | Now drawing from AC Power
+driver stopped by me at 06:43:39: it never started a run (gate closed from 04:54 to 06:43). Deadline 06:50 was the plan's limit.
+Summary: 28 samples; smallest swap used 5707M (5.57 GiB), largest 6781.94M (6.62 GiB, rounded to 6,782 MiB in the docs); the gate threshold is 1024M (1 GiB).

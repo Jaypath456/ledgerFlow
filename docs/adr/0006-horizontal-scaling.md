@@ -62,3 +62,8 @@ How several replicas behave (read from the code, and confirmed on the running st
   achieved rate was 187.1/s. Five JVMs and a proxy need more memory than the default stack's two JVMs, so this host state hurts the scaled topology more than the baseline; the
   result says nothing about the topology itself. The planned scaled steady runs and their same-period default-topology reference were not run. To measure it, on an idle machine:
   `SCALE=1 perf/run.sh ramp scaled-ramp`, then `SCALE=1 RATE=<70 % of the last sustained rate> perf/run.sh steady scaled-steady-1` and the same without `SCALE=1`.
+
+## Update, Roadmap Phase 3b (2026-11-09)
+
+On `apache/kafka:4.0.2` the `kill-ledger-replica` scenario passed 3 of 3 again (recovery 43.0, 41.7 and 0.8 s, 0 violations; `docs/evidence/chaos-postgres-phase3b-2026-11-09-b96d66e.txt`). The 41.7 s and 43.0 s recoveries are again consistent with a partition that
+waited for the group to reassign it, and the 0.8 s run with a probe partition that was not on the killed replica; neither was measured separately. The throughput of the scaled topology was **still not measured**: the planned scaled ramp and steady runs did not start because the host gate (swap in use at most 1 GiB) was never open.
