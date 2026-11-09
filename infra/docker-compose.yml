@@ -19,7 +19,7 @@ services:
       retries: 10
 
   kafka:
-    image: apache/kafka:4.0.0
+    image: apache/kafka:4.0.2
     mem_limit: 1g
     ports: ["127.0.0.1:29092:29092"]
     environment:
