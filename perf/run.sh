@@ -23,6 +23,20 @@ log() { echo "[$(date +%T)] $*" | tee -a "$OUT/run.log"; }
 if [ "${REUSE:-0}" != 1 ] && docker ps --format '{{.Names}}' | grep -q '^ledgerflow-'; then
   echo "another ledgerflow-* stack is running; one stack at a time" >&2; docker ps --format '{{.Names}}' | grep '^ledgerflow-' >&2; rmdir "$OUT" 2>/dev/null; exit 3
 fi
+# --- host gate: a measured run needs a quiet machine. Refuses on battery power or more than 1 GiB of swap in use (HOST_GATE=off to override, then say so in the results) ---
+host_state() {
+  echo "power: $(pmset -g batt 2>/dev/null | sed -n 1p | tr -d "'")"
+  echo "swap: $(sysctl -n vm.swapusage 2>/dev/null | sed 's/(encrypted)//')"
+  echo "memory: $(memory_pressure 2>/dev/null | grep -i 'free percentage' | head -1); load averages $(uptime | sed 's/.*load averages*: //')"
+  echo "heaviest processes by memory (MB RSS):$(ps -axo rss=,comm= | sort -rn | head -4 | awk '{printf " %s %.0f;", $2, $1/1024}' | sed 's#/[^ ;]*/##g')"
+}
+HOST_STATE=$(host_state)
+SWAP_USED_MB=$(sysctl -n vm.swapusage 2>/dev/null | sed -E 's/.*used = ([0-9.]+)M.*/\1/')
+if [ "${HOST_GATE:-on}" != off ]; then
+  if echo "$HOST_STATE" | grep -q "power: Now drawing from 'Battery Power'\|power: Now drawing from Battery Power" || [ "${SWAP_USED_MB%.*}" -gt 1024 ]; then
+    echo "host not quiet; refusing to measure (set HOST_GATE=off to override):" >&2; echo "$HOST_STATE" >&2; rmdir "$OUT" 2>/dev/null; exit 4
+  fi
+fi
 RUN_ID="r$(date +%H%M%S)"
 RATE=${RATE:-100}; WARMUP=${WARMUP_SECONDS:-60}; DURATION=${DURATION_SECONDS:-180}
 START_RATE=${START_RATE:-50}; STEP_RATE=${STEP_RATE:-50}; STEP_SECONDS=${STEP_SECONDS:-30}; MAX_RATE=${MAX_RATE:-800}
@@ -40,6 +54,7 @@ fi
   echo "mode: $MODE  name: $NAME  project: $PROJECT  run_id: $RUN_ID"
   echo "host: $(sysctl -n machdep.cpu.brand_string 2>/dev/null || uname -m), $(sysctl -n hw.ncpu 2>/dev/null) CPUs, $(( $(sysctl -n hw.memsize 2>/dev/null || echo 0) / 1073741824 )) GiB RAM, $(uname -sr)"
   echo "docker: engine $(docker version --format '{{.Server.Version}}'), compose $(docker compose version --short), VM $(docker info --format '{{.NCPU}} CPUs, {{.MemTotal}} bytes')"
+  echo "host state before start (host gate ${HOST_GATE:-on}):"; echo "$HOST_STATE" | sed 's/^/  /'
   echo "host state: $(pmset -g batt 2>/dev/null | sed -n 1p | tr -d "'"); swap $(sysctl -n vm.swapusage 2>/dev/null | sed 's/(encrypted)//'); $(memory_pressure 2>/dev/null | grep -i 'free percentage' | head -1); load averages $(uptime | sed 's/.*load averages*: //')"
   echo "k6: $([ "${K6:-}" = docker ] && echo 'docker grafana/k6:2.3.0 (--network host --memory 1g)' || { command -v k6 >/dev/null && echo "host $(k6 version | head -1)" || echo 'docker grafana/k6:2.3.0 (--network host --memory 1g)'; })"
   echo "compose command: ${C//-f infra/-f infra}"
