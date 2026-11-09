@@ -14,3 +14,10 @@ jobs:
           java-version: 25
           cache: maven
       - run: ./mvnw -B verify
+  # Builds both service images from the Dockerfile with the targets Compose uses (infra/docker-compose.yml). Nothing is pushed.
+  images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - run: docker build --target payment-service --tag ledgerflow-payment:ci .
+      - run: docker build --target ledger-service --tag ledgerflow-ledger:ci .
