@@ -67,3 +67,8 @@ correctness. **The default stays at 3 and 3.**
 - Measurements taken later the same day are not comparable with the morning's: with the machine under memory pressure, the same baseline steady run (840/s,
   default configuration) achieved 344.6/s instead of 840.0/s (`perf/results/drift-check-2026-11-07-4a4e645/`, host state in `host-state.txt`).
   `perf/run.sh` now records the host's swap, free memory and power state in each run's `environment.txt`.
+
+## Update, Roadmap Phase 3b (2026-11-09)
+
+The planned quiet-machine runs (three baseline and three 6-partition steady runs, and a `synchronous_commit` A/B/A on one ramp and one steady run) were **not made**: the host gate required at most 1 GiB of swap in use and the host stayed between 5,707 and 6,782 MiB (5.57 to 6.62 GiB)
+(`perf/results/p3b-2026-11-09-b96d66e/host-gate-log.txt`). Whether the commit path is the shared limit therefore remains **open**, and the decision above (defaults stay 3 and 3) stands on the Phase 3 single runs.

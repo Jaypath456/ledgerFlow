@@ -63,11 +63,11 @@ docker tag ledgerflow-k8s-payment-service $PAYMENT_IMAGE
 docker tag ledgerflow-k8s-ledger-service $LEDGER_IMAGE
 
 # PostgreSQL/Kafka images come from the host too (pulled once if missing), so the cluster never pulls.
-for img in postgres:17.11 apache/kafka:4.0.0; do
+for img in postgres:17.11 apache/kafka:4.0.2; do
   docker image inspect $img >/dev/null 2>&1 || docker pull -q $img >/dev/null
 done
 step "Importing images into the cluster"
-k3d image import -c $CLUSTER $PAYMENT_IMAGE $LEDGER_IMAGE postgres:17.11 apache/kafka:4.0.0 >/dev/null
+k3d image import -c $CLUSTER $PAYMENT_IMAGE $LEDGER_IMAGE postgres:17.11 apache/kafka:4.0.2 >/dev/null
 
 wait_for() {
   step "Waiting for $1"

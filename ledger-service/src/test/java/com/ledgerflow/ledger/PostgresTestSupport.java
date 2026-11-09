@@ -41,7 +41,7 @@ final class PostgresTestSupport {
                     MountableFile.forHostPath(Path.of("../infra/postgres/init/01-roles-schemas.sql")),
                     "/docker-entrypoint-initdb.d/01-roles-schemas.sql");
 
-    static final KafkaContainer KAFKA = new KafkaContainer("apache/kafka:4.0.0");
+    static final KafkaContainer KAFKA = new KafkaContainer("apache/kafka:4.0.2");
 
     private static ConfigurableApplicationContext context;
     // Tests fund their accounts from this SYSTEM account, never from the seeded account 1, so the

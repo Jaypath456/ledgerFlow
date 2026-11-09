@@ -38,7 +38,7 @@ abstract class PaymentTestSupport {
                     MountableFile.forHostPath(Path.of("../infra/postgres/init/01-roles-schemas.sql")),
                     "/docker-entrypoint-initdb.d/01-roles-schemas.sql");
 
-    static final KafkaContainer KAFKA = new KafkaContainer("apache/kafka:4.0.0");
+    static final KafkaContainer KAFKA = new KafkaContainer("apache/kafka:4.0.2");
 
     static {
         POSTGRES.start();

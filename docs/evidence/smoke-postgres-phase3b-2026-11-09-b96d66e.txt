@@ -1,0 +1,15 @@
+Date: 2026-11-09
+Code: b96d66e (Kafka pinned to 4.0.2)
+Command: bash scripts/smoke.sh   (fresh project ledgerflow-delivery-7b5acd2f04, stopped afterwards with the command it prints; data kept)
+
+Starting ledgerflow-delivery-7b5acd2f04 evidence: chaos/results/ledgerflow-delivery-7b5acd2f04
+PASS: successful payment {"postings": 1, "balance": 3500} I1-I6 violations=0
+PASS: risk-declined payment {"postings": 0, "balance": 3500} I1-I6 violations=0
+PASS: insufficient funds {"postings": 0, "balance": 100} I1-I6 violations=0
+PASS: idempotent replay and payload conflict {"postings": 1, "balance": 3500} I1-I6 violations=0
+PASS: unauthorized and unowned debit rejected {"unauthenticated": 401, "unowned": 403} I1-I6 violations=0
+PASS: concurrent velocity limit {"requests": 32, "completed": 5, "declined": 27, "balance": 9500} I1-I6 violations=0
+PASS: ledger service interruption {"postings": 1, "balance": 9900} I1-I6 violations=0
+PASS: 7 scenarios; evidence: chaos/results/ledgerflow-delivery-7b5acd2f04
+Containers and data kept. Stop with: docker compose -p ledgerflow-delivery-7b5acd2f04 -f infra/docker-compose.yml -f infra/docker-compose.delivery.yml stop
+Exit: 0

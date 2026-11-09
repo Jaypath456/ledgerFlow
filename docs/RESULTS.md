@@ -547,6 +547,8 @@ provisioned dashboard and got 403 on a write. `/actuator/prometheus` on the API 
 | (c) profile off, sampling 0 | 100.0/s | 4.8/107.3/283.3 | 38/2330/3072 | 79.6 |
 | Phase 1b, cost 4 (`recovery-investigation-2026-11-05-2b58c27.txt`) | 100.0/s | 3.6/9.7/139.7 | 34/54/140 | 37 |
 
+*Note (Roadmap Phase 3): the 80–102 % payment-service CPU figures above did not reproduce in the 18 benches of Roadmap Phase 3 (cold-start median 36.7 % for the old code, 36.6 % for the current code), so this table does not show a cost of tracing.*
+
 All three runs had 0 failed payments and 0 invariant violations. Their tails disagree with each other (the run without any sampling has
 the worst request-to-terminal tail, the run with export on the best), so these runs do not measure a cost of tracing. During (b),
 Prometheus, Grafana and Jaeger used CPU medians of 0.3 %, 0.4 % and 1.3 %. Prometheus counted 6001 request-to-terminal samples, the same
@@ -688,3 +690,21 @@ comparison, recovery_s (final campaign median | Phase 1b run 1, run 2 | Phase 2 
 a second occurrence of the Phase 1b hang; whether a newer pinned broker image avoids it was not tested.
 
 Local laptop only, one broker and one database node: no high-availability or production claim.
+
+### Roadmap Phase 3b: Kafka 4.0.2 and the re-measurement attempt, 2026-11-09
+
+Branch `feat/perf-remeasure`. Code: `b96d66e` (service code as in Roadmap Phase 3; `apache/kafka` pinned to 4.0.2 in Compose, the k8s manifests and the four test-container classes; `perf/run.sh` gained a host gate).
+
+**Kafka 4.0.2.** The pin is meant to remove the coordinator error seen on 4.0.0 in Roadmap Phase 1b and in run 17 of the Roadmap Phase 3 campaign (Kafka 4.0.2 lists KAFKA-19888 in its release notes; the notes were not re-read here, the claim is the one given in the task).
+`./mvnw -B clean verify`: 39 + 25 + 20 = 84 tests, 0 failures, BUILD SUCCESS (`docs/evidence/verify-postgres-phase3b-2026-11-09-b96d66e.txt`); `bash scripts/smoke.sh`: 7 of 7 (`docs/evidence/smoke-postgres-phase3b-2026-11-09-b96d66e.txt`).
+
+**Chaos on Kafka 4.0.2** (`docs/evidence/chaos-postgres-phase3b-2026-11-09-b96d66e.csv` and `.txt`), 100 payments/s for 60 s per run, 3 runs per scenario, single campaign:
+- Default topology, 9 scenarios x 3 runs: 27 of 27 PASS, 0 invariant violations, 0 new dead letters, 0 NOFIRE; every crash scenario fired its fault in all 3 runs.
+- Scaled topology, `kill-ledger-replica` x 3: 3 of 3 PASS, 0 violations; recovery 43.0, 41.7 and 0.8 s.
+- The string `Histogram recorded value` occurs **0 times** in the broker logs of both stacks (and 0 times in a preceding run of 3 x `crash-after-publish-before-mark` on 4.0.2). On 4.0.0 the campaign of Roadmap Phase 3 logged it and one run failed (`docs/evidence/chaos-postgres-phase3-2026-11-07-4a4e645.txt`). Three clean stacks are encouraging, not proof: on 4.0.0 the error also did not appear in every stack.
+
+**Host state: the quiet-machine measurements were not made.** The session's rule was to measure only on AC power with at most 1 GiB of swap in use. Power was AC, but swap in use stayed between 5,707 and 6,782 MiB (5.57 to 6.62 GiB) in all 28 samples from the first check to the end
+(`perf/results/p3b-2026-11-09-b96d66e/host-gate-log.txt`), so none of the planned runs was made: the three baseline and three 6-partition steady runs, the `synchronous_commit` A/B/A, and the scaled ramp and steady runs.
+`perf/run.sh` now enforces the rule itself (it refuses to start on battery power or above 1 GiB of swap, and records power, swap, free memory, load and the heaviest processes in `environment.txt`).
+Consequences: the commit-path question of ADR 0005 is still open, and the throughput of the scaled topology is still unmeasured. The recovery times of the chaos campaign above came from this same host state; they are recorded but are not performance measurements.
+(For information only: they were close to the October values, for example replay 7.6 s and pause-postgres 0.5 s, whereas the Roadmap Phase 3 campaign on the degraded host showed 41.7 s and 2.2 s. Swap in use alone therefore does not predict a slow run.)

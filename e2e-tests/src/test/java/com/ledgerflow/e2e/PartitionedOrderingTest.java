@@ -62,7 +62,7 @@ class PartitionedOrderingTest {
             .withCopyFileToContainer(
                     MountableFile.forHostPath(Path.of("../infra/postgres/init/01-roles-schemas.sql")),
                     "/docker-entrypoint-initdb.d/01-roles-schemas.sql");
-    private static final KafkaContainer KAFKA = new KafkaContainer("apache/kafka:4.0.0");
+    private static final KafkaContainer KAFKA = new KafkaContainer("apache/kafka:4.0.2");
 
     private static ConfigurableApplicationContext ledger;
     private static ConfigurableApplicationContext payment;
