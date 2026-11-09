@@ -3,6 +3,9 @@
 Phases here are "Roadmap Phase N". Phase numbers in `docs/PLAN.md`, `docs/DECISIONS.md` and `docs/RESULTS.md` refer to the earlier plan.
 Lines starting with "Note:" record where the roadmap was aligned with the repo; they do not change its intent.
 
+## Status
+Phases 1a, 1b, 2, 3 and 3b are done, Phase 4 is dropped, Phase 5 is this documentation and release change. Results are in [RESULTS.md](RESULTS.md); decisions in [adr/](adr/).
+
 ## Goal
 A payments backend that shows production engineering practice: relational correctness, observability, measured performance with
 a fixed bottleneck, horizontal scaling, Kubernetes deployment and clear docs. Everything runs locally and for free.
@@ -10,7 +13,7 @@ a fixed bottleneck, horizontal scaling, Kubernetes deployment and clear docs. Ev
 ## Baseline
 - `v1.3.0-mongodb` = `33cd86d` (main when this roadmap was written; MongoDB 8.0 build).
 - `v1.2.0-postgres` tests: 58 (payment-service 23, ledger-service 21, e2e-tests 14), from `docs/evidence/verify-2026-10-25.txt`.
-- Current main tests: 69 (payment-service 31, ledger-service 21, e2e-tests 17), from `docs/evidence/verify-postgres-phase1b-2026-11-05-2b58c27.txt`.
+- Current main tests: 84 (payment-service 39, ledger-service 25, e2e-tests 20), from `docs/evidence/verify-postgres-phase3b-2026-11-09-b96d66e.txt`.
 
 ## Global rules (every phase)
 - Never run git commit, push, tag, merge, rebase or reset. I create branches, tags and commits myself. After each logical step, stop and show:
@@ -32,7 +35,7 @@ a fixed bottleneck, horizontal scaling, Kubernetes deployment and clear docs. Ev
   Note: files are docs/adr/NNNN-<slug>.md. docs/DECISIONS.md is kept as the earlier decision log and is not extended.
 - If something blocks you, stop and ask. No workarounds that weaken tests or checks.
 
-## Phase 1a: PostgreSQL core (branch feat/postgres-core, created by me after I tag current main as v1.3.0-mongodb)
+## Phase 1a: PostgreSQL core (DONE, see [RESULTS.md](RESULTS.md) "Roadmap Phase 1a"; branch feat/postgres-core, created by me after I tag current main as v1.3.0-mongodb)
 Note: done, `v1.3.0-mongodb` → `33cd86d`.
 - Restore the PostgreSQL persistence layer from v1.2.0-postgres: JdbcClient repositories, Flyway migrations, infra/postgres/init,
   chaos/verify_invariants.sql and create_accounts.sql, Postgres Testcontainers support, Compose Postgres 17.
@@ -46,7 +49,7 @@ Note: done, `v1.3.0-mongodb` → `33cd86d`.
 - Every test that existed at v1.2.0-postgres passes. Record test counts per module.
 - Done when ./mvnw clean verify is green and the Compose stack processes a payment end to end.
 
-## Phase 1b: port newer features (branch feat/postgres-port, created by me after 1a is merged)
+## Phase 1b: port newer features (DONE, see [RESULTS.md](RESULTS.md) "Roadmap Phase 1b" and [ADR 0001](adr/0001-postgres-over-mongodb.md), [0002](adr/0002-strict-velocity-guard-row.md), [0003](adr/0003-load-test-credentials.md); branch feat/postgres-port, created by me after 1a is merged)
 - Port PaymentSecurity (HTTP Basic + account ownership) and its tests, OrderingTest, scripts/smoke.sh, scripts/evidence.py,
   infra/k8s and k8s/ scripts (Postgres StatefulSet instead of MongoDB).
   Note: scripts/smoke.sh runs scripts/demo.sh and scripts/demo.py (tests in scripts/tests/) and uses infra/docker-compose.delivery.yml,
@@ -59,7 +62,7 @@ Note: done, `v1.3.0-mongodb` → `33cd86d`.
 - Gate: verify, smoke, k8s smoke, then print the 9-run chaos command (one run per scenario) for me.
 - ADR: why PostgreSQL over MongoDB, using only numbers from the committed chaos CSVs of both versions.
 
-## Phase 2: observability (branch feat/observability)
+## Phase 2: observability (DONE, see [RESULTS.md](RESULTS.md) "Roadmap Phase 2" and [ADR 0004](adr/0004-observability.md); branch feat/observability)
 - Compose profile "observability" (opt-in): Prometheus (15 s scrape, 2 d retention), Grafana OSS (provisioned datasources and dashboards
   as JSON in the repo, anonymous read-only locally), Jaeger all-in-one (in-memory, trace count capped).
 - Metrics via Micrometer Prometheus registry: HTTP rate/errors/latency; request-to-terminal payment latency histogram; outbox backlog and
@@ -71,7 +74,7 @@ Note: done, `v1.3.0-mongodb` → `33cd86d`.
   Add a test that asserts one trace id across all hops.
 - Evidence: docker stats snapshot during one short load run with the profile on.
 
-## Phase 3: performance and horizontal scaling (branch feat/performance)
+## Phase 3: performance and horizontal scaling (DONE, see [RESULTS.md](RESULTS.md) "Roadmap Phase 3", [ADR 0005](adr/0005-ledger-throughput.md), [ADR 0006](adr/0006-horizontal-scaling.md); branch feat/performance)
 - perf/: k6 ramping-arrival-rate test to find saturation, then a steady-state test at about 70% of saturation. Report throughput, HTTP
   p50/p95/p99 and request-to-terminal p50/p95/p99. k6 runs on the host.
 - Stop point 1: after the k6 scripts are written, print the baseline commands and stop. Continue only after I commit the results
@@ -86,13 +89,18 @@ Note: done, `v1.3.0-mongodb` → `33cd86d`.
 - Commit the after results and a before/after table.
 - Final full chaos campaign on the final code (all scenarios, 3 runs each, including the new one), run by me.
 
-## Phase 4 (optional, not part of v2.0): Terraform for the local k3d cluster, only if needed later.
+## Phase 4: DROPPED. Terraform for the local k3d cluster was optional and was not needed for v2.0.
 
-## Phase 5: README, docs and release (branch docs/v2)
+## Phase 3b (added): Kafka 4.0.2 pin and re-measurement (DONE, see [RESULTS.md](RESULTS.md) "Roadmap Phase 3b")
+Pinned `apache/kafka` to 4.0.2, re-ran the chaos campaign, added a host-state gate to `perf/run.sh`, and re-ran the steady-state runs. The `synchronous_commit` runs, the ramps and the scaled runs were not measured.
+
+## Phase 5: README, docs and release (branch feat/readme-v2; this change: README rewrite, CI image build, stale docs, [release notes](RELEASE_NOTES_v2.0.0.md))
 - README readable in 60 seconds: one-line summary, Mermaid architecture diagram, headline numbers table (committed evidence only), 5 key design
   decisions linking ADRs, 3-command quick start, short scope and limits, AI-tools disclosure kept.
 - README results as tables from committed evidence plus one Grafana screenshot (I take it).
+  Note: no screenshot was taken; the README references no image.
 - CI: build both Docker images in GitHub Actions.
 - Fix stale numbers and test counts everywhere. Link older docs instead of repeating them.
 - Release notes for tag v2.0.0 (I create the GitHub Release).
   Note: the project version (pom.xml 1.1.0) and k8s image tags (1.1.0-local) are bumped to 2.0.0 first.
+  Note: not done in this change. Poms (1.1.0) and k8s image tags (1.1.0-local) are unchanged; the release is tagged v2.0.0 without a version bump.
